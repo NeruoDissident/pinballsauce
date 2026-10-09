@@ -5,6 +5,7 @@ import {interruptBoss} from './bosses.js';
 import {CLASSES} from './classes.js';
 import {qEvent} from './quests.js';
 import {recalc} from './run.js';
+import {TEXT} from '../table/content.js';
 import {heroBalls} from './spells.js';
 import {A} from '../ui/audio.js';
 import {popup} from '../ui/ui.js';
@@ -12,7 +13,7 @@ import {popup} from '../ui/ui.js';
 /* ---------- score / stats ---------- */
 export function score(n,x,y,label){const r=G.run;let v=n*r.mult;if(G.curse.hex>0)v*=.5;if(G.buffs.moon>0)v*=2;v=Math.round(v/10)*10;r.score+=v;G.dirty=true;
   if(x!==undefined&&v>=1000)float(x,y,(label?label+' ':'')+fmt(v),label?'#ffd24a':'#ffe9b0',v>=20000?17:12);return v;}
-export function gold(n,x,y){if(n<=0)return;const r=G.run,v=Math.ceil(n*G.mods.gold*(G.buffs.stealth>0?2:1));r.gold+=v;G.dirty=true;if(x!==undefined)float(x+10,y-16,'+'+v+'g','#ffd24a',12);}
+export function gold(n,x,y){if(n<=0)return;const r=G.run,v=Math.ceil(n*G.mods.gold*(G.buffs.stealth>0?2:1));r.gold+=v;G.dirty=true;if(x!==undefined)float(x+10,y-16,'+'+v+TEXT.coinMark,'#ffd24a',12);}
 export function xp(n){const r=G.run;r.xp+=n*G.mods.xp;G.dirty=true;
   while(r.xp>=xpNeed(r.level)){r.xp-=xpNeed(r.level);r.level++;recalc();heal(20);r.shop=true;G.pending.push('book');popup('Level Up','You are now level '+r.level,'level');A.s('level');}}
 export function heal(n){const r=G.run;r.hp=Math.min(G.mods.maxHp,r.hp+n);G.dirty=true;}
@@ -30,5 +31,5 @@ export function hurt(n){const r=G.run;if(G.fallen||!G.balls.length)return;G.stru
 export function charge(n,src){const r=G.run,k=CLASSES[r.cls].ch[src];if(!k||G.fallen)return;const was=r.charge;r.charge=Math.min(100,r.charge+k*n*G.mods.charge/Math.max(1,heroBalls().length));G.dirty=true;if(was<100&&r.charge>=100){A.s('ward');const b=focusBall();if(b)float(b.x,b.y-34,CLASSES[r.cls].abil.toUpperCase()+' READY',CLASSES[r.cls].glow,14);}}
 export function major(x,y){const r=G.run;if(G.comboT>0)G.combo++;else G.combo=1;G.comboT=G.mods.combo;if(G.combo>r.stat.bestCombo)r.stat.bestCombo=G.combo;
   if(G.combo>1)float(x,y-34,G.combo+'x COMBO','#c9a6ff',15);charge(G.combo>1?1.6:1,'shot');}
-export function shot(id,x,y){G.qxy=x===undefined?null:{x,y};qEvent('shot',id);G.qxy=null;const bo=G.boss;if(bo&&bo.alive&&bo.phase==='cast'&&bo.def.cast.shots.includes(id))interruptBoss(bo);}
+export function shot(id,x,y){(G.tally||(G.tally={}))[id]=(G.tally[id]||0)+1;G.qxy=x===undefined?null:{x,y};qEvent('shot',id);G.qxy=null;const bo=G.boss;if(bo&&bo.alive&&bo.phase==='cast'&&bo.def.cast.shots.includes(id))interruptBoss(bo);}
 export function jackpot(x,y){const m=G.mb;if(!m)return;score(m.jackpot*G.mods.jackpot,x,y,'JACKPOT');m.jackpot=Math.min(200000,m.jackpot+8000);G.run.stat.jackpots++;A.s('jackpot');G.flash=.35;G.flashC='#ffd24a';}

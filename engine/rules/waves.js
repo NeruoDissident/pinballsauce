@@ -31,7 +31,7 @@ export function callFoes(tier,types,text,x,y){if(G.demo||tier>=NM||G.inGrave||G.
   launchWave(tier,types.slice(),'call',null,true);if(x!==undefined)float(x,y-44,text,'#ff9a7a',13);A.s('summon');G.dirty=true;return true;}
 export function campFoes(n){const r=G.run,c=CAMPAIGNS[r.arcs[r.arcs.length-1]],o=[];for(let i=0;i<n;i++)o.push(pick(c.foes));return o;}
 export function waveTick(){const r=G.run,W=G.wave,tier=G.focusTier,L=W.list||(W.list=[]);
-  for(const wv of L.slice())if(wv.left<=0){W.list=L.filter(x=>x!==wv);const g=8+3*wv.total;popup('Wave Cleared','+'+g+' gold','good');gold(g);score(4000*wv.total*r.level);charge(3,'kill');A.s('questDone');G.dirty=true;L.splice(L.indexOf(wv),1);}
+  for(const wv of L.slice())if(wv.left<=0){W.list=L.filter(x=>x!==wv);const g=8+3*wv.total;popup('Wave Cleared','+'+g+' '+TEXT.coin,'good');gold(g);score(4000*wv.total*r.level);charge(3,'kill');A.s('questDone');G.dirty=true;L.splice(L.indexOf(wv),1);}
   W.active=L.length?L[L.length-1]:null;
   // the next wave comes on a clock that runs on the ball's level, three times as fast while the level is empty
   if(tier>=NM||(G.boss&&G.boss.alive&&G.boss.tier===tier))return;W.t-=.6*(foesOn(tier)?1:3);if(W.t<=0){W.t=waveGap();startWave(tier,'time');}}

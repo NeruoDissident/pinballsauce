@@ -11,7 +11,7 @@ import {MB,at,box,cyl,offsets,prism,strip,ugeo} from './mesh.js';
 import {buildRunes} from './runes.js';
 import {texBall,texFlame,texGlow,texGround,texRampBed,texRampGlow,texSky,texStone,texWood} from './textures.js';
 import {buildWings} from './wings.js';
-import {BLOCK_H,E,RAMP_H,SLOPES,UP,WALL_H,elev,inSlope,inWing,setWorld,sstep,wingIdx,zshift} from './world.js';
+import {BLOCK_H,E,RAMP_H,SLOPES,UP,WALL_H,elev,groundY,inSlope,inWing,setWorld,sstep,wingIdx,zshift} from './world.js';
 import {DEF,PAL,THEME,WINGS,WING_KEYS} from '../table/content.js';
 import {arcPts} from '../table/geometry.js';
 import {BT,CX,GT,GY,H,HW,NM,TIER_NAME,TY,XR,tierOf} from '../table/layout.js';
@@ -46,7 +46,7 @@ export function buildMaterials(){const S=SM,st=ctex(texStone(),{repeat:1}),wd=ct
   M.roof=S({color:0x2a2238,roughness:.8,metalness:.1,envMapIntensity:.4,flatShading:true});
   M.ward=new THREE.MeshBasicMaterial({color:hdr('#62d8ff',.9),transparent:true,opacity:.16,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide});
   M.black=new THREE.MeshBasicMaterial({color:0x000000});
-  R3.glowTex=ctex(texGlow());R3.flameTex=ctex(texFlame());}
+  R3.glowTex=ctex(texGlow());R3.flameTex=ctex(texFlame());if(THEME.materials)THEME.materials(M);}
 export function buildLights(){const sc=R3.scene;
   sc.add(R3.hemi=new THREE.HemisphereLight(0x8fa6e0,0x1a1420,.36));sc.add(new THREE.AmbientLight(0x404058,.4));
   const moon=R3.moon=new THREE.DirectionalLight(0xcfdcff,1.7);moon.castShadow=true;const s=moon.shadow;s.mapSize.set(2048,2048);
@@ -113,13 +113,13 @@ export function paintNames(){for(const d of R3.nameDecals){const c=d.cv.getConte
 // a ramp: the ball's path lifted off the table, drawn as a wire-form with a plated bed
 export function buildRail(r,steel,iron){const n=r.n,ef=elev(r.y[0]),et=elev(r.y[n-1]),X=[],Yh=[],Z=[];r.h3=new Float32Array(n);
   for(let i=0;i<n;i++){const s=i*r.ds,prof=sstep(0,1,Math.min(1,s/80,(r.len-s)/80)),base=Math.max(lerp(ef,et,sstep(40,r.len*.55,s)),elev(r.y[i]));
-    r.h3[i]=base+RAMP_H*prof+(prof>0?1:0);X.push(r.x[i]-320);Yh.push(r.h3[i]);Z.push(r.y[i]);}
+    r.h3[i]=base+(RAMP_H+(r.lift||0))*prof+(prof>0?1:0);X.push(r.x[i]-320);Yh.push(r.h3[i]);Z.push(r.y[i]);}
   const tan=i=>{const a=Math.max(0,i-1),b=Math.min(n-1,i+1);let tx=X[b]-X[a],tz=Z[b]-Z[a];const l=Math.hypot(tx,tz)||1;return [tx/l,tz/l];};
   // bed
   const mb=new MB();mb.hint=[0,1,0];let v=0;const hw=13;
   for(let i=0;i<n-1;i++){const t0=tan(i),t1=tan(i+1),v1=v+r.ds/48;
     mb.quad([X[i]-t0[1]*hw,Yh[i],Z[i]+t0[0]*hw],[X[i]+t0[1]*hw,Yh[i],Z[i]-t0[0]*hw],[X[i+1]+t1[1]*hw,Yh[i+1],Z[i+1]-t1[0]*hw],[X[i+1]-t1[1]*hw,Yh[i+1],Z[i+1]+t1[0]*hw],[0,v],[1,v],[1,v1],[0,v1]);v=v1;}
-  const tier=r.from,col=THEME.rampCol[tier],bt=ctex(texRampBed(col),{repeat:1}),gt=ctex(texRampGlow(col),{repeat:1});
+  const tier=r.from,col=r.col||THEME.rampCol[tier],bt=ctex(texRampBed(col),{repeat:1}),gt=ctex(texRampGlow(col),{repeat:1});
   const bed=mb.mesh(new THREE.MeshStandardMaterial({map:bt,emissiveMap:gt,emissive:new THREE.Color(1,1,1),emissiveIntensity:2.4,roughness:.4,metalness:.7,envMapIntensity:1.1,side:THREE.DoubleSide,transparent:true,opacity:.62,depthWrite:false}),{cast:true});
   bed.userData.rail=r;R3.scene.add(bed);(R3.railBeds=R3.railBeds||[]).push(bed);
   // side wires, ties and legs
@@ -129,7 +129,7 @@ export function buildRail(r,steel,iron){const n=r.n,ef=elev(r.y[0]),et=elev(r.y[
   for(let i=4;i<n-2;i+=5){const t=tan(i);
     steel.add(ugeo('box'),new THREE.Matrix4().compose(new THREE.Vector3(X[i],Yh[i]-1.2,Z[i]),new THREE.Quaternion().setFromAxisAngle(UP,Math.atan2(-t[0],-t[1])),new THREE.Vector3(30,1.6,2.2)));
     for(const sd of [-1,1])steel.add(ugeo('c6'),new THREE.Matrix4().compose(new THREE.Vector3(X[i]-sd*t[1]*15,Yh[i]+4,Z[i]+sd*t[0]*15),new THREE.Quaternion(),new THREE.Vector3(1.1,10,1.1)));}
-  for(let i=22;i<n-18;i+=26){const g=elev(r.y[i]),hgt=Yh[i]-g;if(hgt<RAMP_H*.8)continue;const t=tan(i),sd=(i/26|0)%2?1:-1;
+  for(let i=22;i<n-18;i+=26){const g=r.x[i]<20||r.x[i]>620?groundY(r.x[i],r.y[i]):elev(r.y[i]),hgt=Yh[i]-g;if(hgt<RAMP_H*.8)continue;const t=tan(i),sd=(i/26|0)%2?1:-1;
     iron.add(ugeo('c6'),new THREE.Matrix4().compose(new THREE.Vector3(X[i]-sd*t[1]*15,g+hgt/2,Z[i]+sd*t[0]*15),new THREE.Quaternion(),new THREE.Vector3(1.5,hgt,1.5)));}}
 export function railY(r,s){const f=clamp(s/r.ds,0,r.n-1.001),i=f|0;return r.h3[i]+(r.h3[i+1]-r.h3[i])*(f-i);}
 /* ---------- everything that moves or lights up ---------- */

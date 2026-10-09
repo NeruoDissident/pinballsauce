@@ -27,7 +27,7 @@ import {continueRun,initGame,saveRun,startDemo,startRun} from '../rules/run.js';
 import {CRADLE_ARM,CRADLE_RALLY} from '../rules/score.js';
 import {gameStep} from '../rules/step.js';
 import {enterWing} from '../rules/wings.js';
-import {WINGS,WING_KEYS} from '../table/content.js';
+import {TEXT,WINGS,WING_KEYS} from '../table/content.js';
 import {BT,CX,GT,GY,H,NM,TY} from '../table/layout.js';
 import {UI,bindInput,popup} from '../ui/ui.js';
 
@@ -119,7 +119,7 @@ window.__gb={G,T,UI,INS,openInspect,closeInspect,startRun,gameStep,devKey,setQua
   advance(sec,frames){const n=Math.round(sec*120),per=frames?Math.max(1,Math.round(n/frames)):0;R3.acc=0;for(let i=0;i<n;i++){gameStep(1/120);if(per&&i%per===per-1)frame3D(per/120);}if(per){drawOverlay();G.dirty=true;UI.sync();gfxInfo();}}};
 // the same hook under the name the engine's own tests use
 window.__pb={ready:()=>R3.ready,api:window.__gb};
-export function boot(def){mountPage();initGame(def);
+export function boot(def){mountPage();initGame(def);$('hCoin').textContent=TEXT.coin;
   R3.camMode=(GFX.cam|0)%CAMS.length;R3.qName=QUALITY[GFX.q]?GFX.q:'high';R3.auto=GFX.auto!==false;
   if(!init3D($('gl'))){const m=$('menu');m.hidden=false;m.innerHTML='<div class="pane"><p class="lead">This needs WebGL, and the browser would not start it. Try a current Chrome, Edge or Firefox with hardware acceleration turned on.</p></div>';return;}
   resize();bindInput();startDemo();snapCam();UI.menu('title');requestAnimationFrame(loop);

@@ -59,7 +59,7 @@ export function ev(type,o,b,imp){const r=G.run;if(!r)return;if(type==='sling')G.
   case 'kick':if(r.kickback&&!G.fallen&&G.tilt<=0){r.kickback=false;G.kickT=30;b.x=o.x;b.vx=0;b.vy=-2050;A.s('kick');float(b.x+40,b.y-40,'KICKBACK','#9fe8ff',15);burst(b.x,b.y,14,'#9fe8ff',300,.6);relight();}break;
   case 'rampIn':A.s('rampIn');for(const e of G.enemies)if(e.job==='ritual'&&e.post&&e.post.rail===o.id)ritualBroken(e);break;
   case 'ramp':if(o.to===o.from&&!b.party)callFoes(o.to,campFoes(2),TEXT.followed,b.x,b.y);r.stat.ramps++;if(r.bb)r.bb.ramps++;if(!b.party)spellProg('striker',1,b.x,b.y);major(b.x,b.y);score(4000*comboF(),b.x,b.y);A.s('ramp');shot(o.id,b.x,b.y);if(G.mods.rampHeal)heal(G.mods.rampHeal);if(G.mods.rampCharge){r.charge=Math.min(100,r.charge+G.mods.rampCharge);score(G.mods.rampScore);}xp(2);jackpot(b.x,b.y);break;
-  case 'rampFail':A.s('knock',260);break;
+  case 'rampFail':A.s('knock',260);(G.tally||(G.tally={}))['fail:'+o.id]=(G.tally['fail:'+o.id]||0)+1;break;
   case 'hole':handleHole(o,b);break;
   }}
 export function done(id,x,y){const r=G.run;major(x,y);score(8000*comboF(),x,y);A.s('bank');qEvent('done',id);xp(5);raiseParty(x,y);if(T.banks[id])spellProg('breaker',1,x,y);
@@ -71,13 +71,13 @@ export function done(id,x,y){const r=G.run;major(x,y);score(8000*comboF(),x,y);A
   relight();}
 export function openDoor(open){if(T.door)T.door.segs.forEach(s=>s.on=!open);if(!open)G.doorT=0;relight();}
 export function handleHole(h,b){const r=G.run,hd=b.held;hd.plan='eject';hd.delay=1;A.s('hole');major(h.x,h.y);spellProg('guard',4,h.x,h.y);score(2500*comboF(),h.x,h.y);shot(h.id,h.x,h.y);
-  if(h.id==='rise'){hd.plan='tunnel';hd.delay=.5;G.inGrave=false;G.graveLive=false;G.tilt=0;G.save=Math.max(G.save,6);score(50000,h.x,h.y,'RISEN');xp(20);popup(TEXT.risen[0],TEXT.risen[1],'main');A.s('victory');G.flash=.8;G.flashC='#eaffd0';} // the way out of the Grave
+  if(h.id==='rise'){hd.plan='tunnel';hd.delay=.5;G.inGrave=false;G.graveLive=false;G.tilt=0;G.save=Math.max(G.save,6);score(50000,h.x,h.y,TEXT.risen[0].toUpperCase());xp(20);popup(TEXT.risen[0],TEXT.risen[1],'main');A.s('victory');G.flash=.8;G.flashC='#eaffd0';} // the way out of the Grave
   else if(h.wingGoal){hd.plan='tunnel';hd.delay=1.1;wingDone(h);}               // the scoop at the head of a wing
   else if(h.wingIn){hd.delay=.5;}                                                 // arriving in a wing
   else if(RULES.onScoop&&RULES.onScoop[h.id])RULES.onScoop[h.id](h,b,hd,r);     // the table's own
   relight();}
 export function lockBall(b){const r=G.run;r.locks++;
-  if(r.locks>=2){r.locks=0;if(!G.mods.lockKeep)r.lockLit=false;b.held.delay=2.4;startMultiball('Restless Dead',2,'catacombs');}
+  if(r.locks>=2){r.locks=0;if(!G.mods.lockKeep)r.lockLit=false;b.held.delay=2.4;startMultiball(TEXT.lockMb,2,b.held.id);}
   else{popup('Ball Locked','One more for multiball','mb');A.s('lock');G.balls=G.balls.filter(x=>x!==b);if(!G.balls.length)later(1,()=>{if(G.run===r&&!G.balls.length&&!G.sub)serve();});}}
 export function startMultiball(name,add,from){if(!G.mb)G.mb={name,jackpot:40000};popup(name+' Multiball','Ramps and orbits score jackpots','mb');A.s('multiball');G.save=Math.max(G.save,8);G.flash=.5;G.flashC='#ffd24a';
   for(let i=0;i<add;i++)later(.7+i*.8,()=>addBall(from));relight();}

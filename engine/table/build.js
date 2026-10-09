@@ -82,7 +82,7 @@ export function buildTable(def){const L=def.layout,C={m:{},aims:[],def};
   if(!T.shooter)throw new Error('layout: the bottom field needs a {t:"shooter"} piece');
   from('grave',()=>buildGrave(L.grave,C));
   (L.wings||[]).forEach((wd,k)=>from(wd.key+' room',()=>buildWing(wd,k,C)));
-  for(const r of L.ramps||[]){const o={from:r.from,to:r.to};if(r.up)o.up=true;rail(r.id,r.name,C.m[r.mouth||r.id],r.path,o);}
+  for(const r of L.ramps||[]){const o={from:r.from,to:r.to};if(r.up)o.up=true;if(r.lift)o.lift=r.lift;if(r.col)o.col=r.col;if(r.k!==undefined)o.k=r.k;rail(r.id,r.name,C.m[r.mouth||r.id],r.path,o);}
   T.mouthGeo=C.m;
   for(const k in WINGS)if(WINGS[k].rule==='targets'){if(!T.banks[WINGS[k].bank])throw new Error('content: wing '+k+' names a bank the layout does not have');T.banks[WINGS[k].bank].wing=k;}
   // tunnels: scoop to scoop

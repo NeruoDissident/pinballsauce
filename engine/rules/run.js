@@ -5,6 +5,7 @@ import {G,T,later} from '../core/state.js';
 import {pick,rand,setStoreNs,shuffle,store} from '../core/util.js';
 import {startBall} from './ball.js';
 import {CLASSES} from './classes.js';
+import {applyNames} from './names.js';
 import {COMPANIONS,TAVERN_RECRUITS,drawRecruits,recruit} from './party.js';
 import {PERKS,RELICS} from './perks.js';
 import {qBegin,qResume,quests} from './quests.js';
@@ -16,7 +17,7 @@ import {A} from '../ui/audio.js';
 import {UI,popup} from '../ui/ui.js';
 
 // a table is loaded once: its layout becomes T, its content and rules become the bindings in table/content.js
-export function initGame(def){setStoreNs('pinballsauce.'+(def.store||def.id)+'.');setLayout(def.layout);setContent(def);buildTable(def);
+export function initGame(def){setStoreNs('pinballsauce.'+(def.store||def.id)+'.');setLayout(def.layout);setContent(def);applyNames(def.content.names);buildTable(def);
   G.statues=T.statues.map(s=>({x:s.x,y:s.y,r:s.r,tier:s.tier,id:s.id,on:true,flash:0,cool:0}));G.cam.y=G.cam.ty=TY[BT]-20;G.focusTier=BT;if(RULES.init)RULES.init();}
 export function resetWorld(){G.gen=(G.gen||0)+1;Object.assign(G,{balls:[],enemies:[],pickups:[],queue:[],pending:[],boss:null,choice:null,sub:null,mb:null,tilt:0,fallen:false,curse:{},buffs:{},combo:0,comboT:0,save:0,paused:false,bonus:null,doorT:0,orbitMem:{},booms:[],zones:[],phase:0,nudgeCd:0,hidden:false,inGrave:false,graveLive:false,wave:{n:0,t:18,active:null,list:[]},casts:[],rallyT:0});for(const id in T.rails)T.rails[id].closed=false;
   G.plunge={ready:false,charge:0,held:false,auto:0};

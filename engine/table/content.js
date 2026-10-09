@@ -10,8 +10,8 @@ const TEXT0={ // engine defaults; a table's content.text overrides any of them
   graveOpen:['The Grave Opens','Your next lost ball falls into it. Fight your way back out'],graveIn:['The Grave','Drive both coffin nails, then shoot the light before the lid closes'],
   graveObjNails:'Drive both coffin nails at the head of the coffin',graveObjLight:'The lid is split. Shoot the light',graveLost:['Gravebound','The earth keeps what it is given'],
   graveLid:['The Lid Splits','Shoot the light'],graveClosed:['The Lid Closes','The flippers go dead'],risen:['Risen','The grave gives you back'],
-  graveStir:'THE GRAVE STIRS',watch:'THE WATCH HOLDS +12s',followed:'SOMETHING FOLLOWED YOU ROUND',feel:'THEY FEEL IT',bell:['The Bell Tolls','Every ear in the dark heard that'],
-  barred:'BARRED',wave:['They Come','']};
+  graveStir:'THE GRAVE STIRS',graveCount:'GRAVE',watch:'THE WATCH HOLDS +12s',followed:'SOMETHING FOLLOWED YOU ROUND',feel:'THEY FEEL IT',bell:['The Bell Tolls','Every ear in the dark heard that'],
+  barred:'BARRED',lockMb:'Restless Dead',coin:'gold',coinMark:'g',graveChip:'Grave',wave:['They Come','']};
 // a palette per tier when the theme gives none: a, b floor gradient; acc, acc2 accents; glow; stone
 const PAL0=[{a:'#1d1124',b:'#110a17',acc:'#c0283c',acc2:'#d9a441',glow:'#ff4a5a',stone:'#3a2c44'},{a:'#10201b',b:'#0a1411',acc:'#58b89a',acc2:'#cfeef2',glow:'#8fe8d0',stone:'#2c4038'},
   {a:'#16203a',b:'#0c121f',acc:'#e0a040',acc2:'#9cc0ea',glow:'#ffc060',stone:'#2f3a52'},{a:'#1c1430',b:'#0d0a18',acc:'#9a7cff',acc2:'#e0d4ff',glow:'#b9a0ff',stone:'#352c4e'}];

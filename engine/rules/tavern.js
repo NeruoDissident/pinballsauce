@@ -19,9 +19,9 @@ export function recruitCost(){return 40+15*((G.run.recruits||[]).length);}
 export function tavernOpen(){const r=G.run;return !!(r&&r.recruits&&r.recruits.length<RECRUIT_MAX&&r.gold>=recruitCost());}
 export function drawTavern(n){const out=[],seen=new Set();let guard=0;while(out.length<n&&guard++<60){const cls=pick(Object.keys(CLASSES)),ids=Object.keys(SPELLS[cls]),spell=pick(ids),k=cls+':'+spell;if(seen.has(k))continue;seen.add(k);out.push({cls,spell});}return out;}
 export function tavernChoice(){const r=G.run,cost=recruitCost();
-  const opts=r.tavern.map(q=>{const cc=CLASSES[q.cls],sp=spellDef(q.spell);return {name:sp.name,desc:sp.text,tag:cc.name+' \u00b7 '+cost+' gold',cost,orb:[cc.color,cc.glow],face:[q.cls,q.spell],
+  const opts=r.tavern.map(q=>{const cc=CLASSES[q.cls],sp=spellDef(q.spell);return {name:sp.name,desc:sp.text,tag:cc.name+' \u00b7 '+cost+' '+TEXT.coin,cost,orb:[cc.color,cc.glow],face:[q.cls,q.spell],
     act:()=>{r.recruits.push({cls:q.cls,spell:q.spell});r.tavern=r.tavern.filter(x=>x!==q);popup('A '+cc.name+' Joins You',sp.name+' rides out with the next Rally','good');A.s('questDone');G.dirty=true;}};});
-  return {kind:'tavern',title:TEXT.tavern,sub:'Balls for hire. '+r.gold+' gold in your purse, '+(RECRUIT_MAX-r.recruits.length)+' seats in the band',opts:opts.concat([{name:'Leave',desc:'Keep your coin and get back to it.',tag:'',act:()=>{}}])};}
+  return {kind:'tavern',title:TEXT.tavern,sub:'Balls for hire. '+r.gold+' '+TEXT.coin+' in your purse, '+(RECRUIT_MAX-r.recruits.length)+' seats in the band',opts:opts.concat([{name:'Leave',desc:'Keep your coin and get back to it.',tag:'',act:()=>{}}])};}
 export function armRecruit(b,spell,T0){b.spell=spell;b.cast={id:spell,t:T0,max:T0,tick:0,hits:0};if(spell==='cloak')b.phased=true;if(spell==='shieldWall'||spell==='charge'){b.kx=.6;}if(spell==='charge')b.arm=9;}
 // a portrait for the hiring board: the ball as the person, a hooded figure in the class colour, the ability's colour on the hood
 export function portrait(cls,spell){const key=cls+':'+spell;portrait.cache=portrait.cache||{};if(portrait.cache[key])return portrait.cache[key];

@@ -13,7 +13,7 @@ import {gameOver,saveRun,startDemo} from './run.js';
 import {gold} from './score.js';
 import {spellCast,spellVal} from './spells.js';
 import {leaveWing} from './wings.js';
-import {WING_KEYS} from '../table/content.js';
+import {TEXT,WING_KEYS} from '../table/content.js';
 import {railPos} from '../table/geometry.js';
 import {CX,GT,H,HW,TY,WLEN,WT0,tierOf} from '../table/layout.js';
 import {A} from '../ui/audio.js';
@@ -59,7 +59,7 @@ export function updateBalls(dt){let gone=false;
   if(gone){const g=G.balls.filter(b=>b.gone);G.balls=G.balls.filter(b=>!b.gone);for(const b of g)onDrain(b);}}
 export function onDrain(b){const r=G.run;if(b.party)return;A.s('drain');if(G.balls.some(x=>x.party))endRally('Your ball is lost');
   if(!G.fallen&&G.tilt<=0&&!G.inGrave&&!G.balls.length){const cA=spellCast('aegis'),cS=spellCast('sanctuary');if(cA){saveBall('Aegis','The ward returns your ball');if(spellVal('aegis','wave')){G.booms.push({x:b.x,y:b.y,r:400,t:0,c:'#8fb0d8'});for(const e of G.enemies)if(e.tier===G.focusTier&&!e.dead){e.wind=0;e.stun=Math.max(e.stun,2);}r.charge=Math.min(100,r.charge+40);}return;}if(cS&&cS.ret>0){cS.ret--;saveBall('Sanctuary','The light returns your ball');return;}}
-  if(G.inGrave){G.inGrave=false;G.graveLive=false;popup('Gravebound','The earth keeps what it is given','bad');endBall();return;}
+  if(G.inGrave){G.inGrave=false;G.graveLive=false;popup(TEXT.graveLost[0],TEXT.graveLost[1],'bad');endBall();return;}
   if(!G.fallen&&G.tilt<=0){if(G.save>0){saveBall('Ball Saved','The ball returns');return;}if(r.shield){r.shield=false;saveBall('Aegis','The ward returns your ball');if(G.mods.bulwark){G.booms.push({x:b.x,y:b.y,r:400,t:0,c:'#8fb0d8'});for(const e of G.enemies)if(e.tier===G.focusTier&&!e.dead){e.wind=0;e.stun=Math.max(e.stun,2);}float(b.x,b.y-60,'BULWARK','#8fb0d8',15);}return;}}
   if(G.balls.length+(G.plunge.auto>0?1:0)>=1){if(G.balls.length<=1&&G.mb){G.mb=null;relight();}return;}
   if(G.mods.bargain&&G.tilt<=0)gold(G.mods.bargain,b.x,b.y-40);endBall();}

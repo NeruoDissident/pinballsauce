@@ -11,7 +11,7 @@ const PAGE=`<div id="app">
     <canvas id="gl"></canvas><canvas id="fx"></canvas>
     <div id="hud" hidden>
       <div class="hrow">
-        <div class="who"><b id="hCls"></b> <span id="hLv">Lv 1</span><br><span id="hGold">0</span> gold</div>
+        <div class="who"><b id="hCls"></b> <span id="hLv">Lv 1</span><br><span id="hGold">0</span> <span id="hCoin">gold</span></div>
         <div id="hScore">0</div>
         <div class="who r"><span id="hBallN">Ball 1</span><br><span id="hBalls"></span></div>
       </div>

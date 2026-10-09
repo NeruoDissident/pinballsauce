@@ -11,7 +11,7 @@ import {qEvent} from './quests.js';
 import {charge,gold,heal,hurt,score,shot,xp} from './score.js';
 import {endCast,spellCast,spellOn,spellVal} from './spells.js';
 import {wingProg} from './wings.js';
-import {ENEMY,WINGS} from '../table/content.js';
+import {ENEMY,TEXT,WINGS} from '../table/content.js';
 import {CX,NM,TY,tierOf} from '../table/layout.js';
 import {A} from '../ui/audio.js';
 
@@ -47,7 +47,7 @@ export function spawnEnemy(type,tier,quest,minion){const def=ENEMY[type],r=G.run
     castT:def.cast?def.cast+rand(2):0,atk:rand(def.rate?def.rate[0]:9,def.rate?def.rate[1]:14),t:rand(9),flash:0,quest:quest||null,minion:!!minion,hopT:rand(2,3.5),hop:1,post,state:post&&post.kind==='bump'?'drift':'idle',goal:null,want:null,loot:null,lunge:0,lungeCd:rand(2,4),dead:false};
   if(def.prowl)e.ax=clamp(p[0],P.cx-110,P.cx+110);
   G.enemies.push(e);burst(e.x,e.y,8,'#7dffb0',120,.8);return e;}
-export function foeEscape(e){e.dead=true;float(e.x,e.y-30,'GOT AWAY'+(e.loot&&e.loot.gold?' WITH '+e.loot.gold+' GOLD':''),'#ffd24a',13);A.s('deny');burst(e.x,e.y,8,'#6f9a4a',120,.6);if(G.boss&&e.minion)G.boss.minions--;}
+export function foeEscape(e){e.dead=true;float(e.x,e.y-30,'GOT AWAY'+(e.loot&&e.loot.gold?' WITH '+e.loot.gold+' '+TEXT.coin.toUpperCase():''),'#ffd24a',13);A.s('deny');burst(e.x,e.y,8,'#6f9a4a',120,.6);if(G.boss&&e.minion)G.boss.minions--;}
 export function foeStrike(e,fb){const d=e.def,r=G.run,th=1+.4*(r.threat-1);
   if(e.tgt&&e.tgt.hp>0){guardStruck(e.tgt,d.dmg*th,e);burst(e.x,e.y+20,8,'#ff5a5a',200,.5);return;}if(!fb)return;
   if(spellOn('smoke')||spellOn('cloak')){float(fb.x,fb.y-26,'LOST IN THE SMOKE','#b08cff',12);return;}
@@ -56,7 +56,7 @@ export function foeStrike(e,fb){const d=e.def,r=G.run,th=1+.4*(r.threat-1);
   {const t=interceptor();if(t&&e.job!=='thief'){t.ready=12;guardStruck(t,d.dmg*th*.7,e);float(fb.x,fb.y-26,'INTERCEPTED','#8fb0d8',13);A.s('clank');return;}}
   if(G.zones.some(z=>!z.fire&&!z.pyre&&Math.hypot(fb.x-z.x,fb.y-z.y)<z.r+fb.r)||G.buffs.hallow>0||(G.mods.phaseWard&&G.phase>0)){float(fb.x,fb.y-26,'WARDED','#ffe0a0',13);A.s('ward');return;}
   bolt(e,fb);burst(fb.x,fb.y,8,'#ff5a5a',200,.5);
-  if(e.job==='thief'){const n=Math.min(r.gold,4+r.level*2);if(n>0){r.gold-=n;e.loot={kind:'gold',gold:n};e.hopT=0;float(e.x,e.y-36,'-'+n+' GOLD STOLEN','#ffd24a',13);A.s('deny');G.dirty=true;return;}}
+  if(e.job==='thief'){const n=Math.min(r.gold,4+r.level*2);if(n>0){r.gold-=n;e.loot={kind:'gold',gold:n};e.hopT=0;float(e.x,e.y-36,'-'+n+' '+TEXT.coin.toUpperCase()+' STOLEN','#ffd24a',13);A.s('deny');G.dirty=true;return;}}
   hurt(d.dmg*th);float(e.x,e.y-36,d.name.toUpperCase()+' STRIKES','#ff8a8a',12);}
 export function ritualBroken(e){if(e.dead||e.spawn>0)return;e.castT=e.def.cast+1;e.stun=Math.max(e.stun,3);float(e.x,e.y-40,'RITUAL BROKEN','#9fe8ff',14);A.s('interrupt');score(3000,e.x,e.y);charge(2,'hit');damageEnemy(e,G.mods.pow*1.5,false);}
 export function updateEnemies(dt){const fb=focusBall(),live=G.balls.filter(b=>b.st==='live'),act=G.balls.length&&!G.fallen&&!G.hidden&&!G.inGrave,r=G.run,th=1+.4*(r.threat-1);
@@ -116,7 +116,7 @@ export function strikeEnemy(e,b,imp,sure){const r=G.run,m=G.mods,pw=b&&b.pow?r.c
   if(pw==='knight'){dmg*=2.5;if(++b.pow.hits>=4)endPower(b);const tr=spellVal('charge','stun');if(tr){e.wind=0;e.stun=Math.max(e.stun,tr);}}else if(pw==='rogue'){dmg*=1.5;G.buffs.stealth=Math.max(G.buffs.stealth||0,.1);endPower(b);float(e.x,e.y-44,'BACKSTAB','#c9a6ff',14);if(m.marked)e.marked=m.marked;}if(G.buffs.sharp>0)dmg*=1.25;
   if(e.def.cast&&e.castT<e.def.cast*.6){e.castT=e.def.cast+1;float(e.x,e.y-40,'SPELL INTERRUPTED','#9fe8ff',13);A.s('interrupt');if(r.cls==='mage')dmg*=3;score(2000);}
   if(crit)dmg*=2;if(e.stun>0)dmg*=1.5;A.s('hit');charge(1,'hit');score(300);if(e.atk<3.5)e.atk=3.5;if(crit){if(m.critCharge)r.charge=Math.min(100,r.charge+m.critCharge);if(m.poison)e.poison=m.poison;}return damageEnemy(e,dmg,crit);}
-export function killEnemy(e){const r=G.run;e.dead=true;r.kills++;if(r.bb)r.bb.kills++;if(e.marked>0&&spellOn('markedPrey')&&spellVal('markedPrey','refund'))r.charge=Math.min(100,r.charge+spellVal('markedPrey','refund'));if(G.mods.deathWish)r.charge=Math.min(100,r.charge+G.mods.deathWish);if(e.loot){if(e.loot.gold){r.gold+=e.loot.gold;float(e.x,e.y-48,'+'+e.loot.gold+' GOLD RECOVERED','#ffd24a',13);}else G.pickups.push({x:e.x,y:e.y,tier:e.tier,kind:e.loot.kind,t:0,quest:null});}if(e.post&&e.post.b&&e.post.b.poss===e)e.post.b.poss=null;score(1000*r.level,e.x,e.y);xp(e.def.xp);gold(e.def.gold*(1+G.mods.killGold),e.x,e.y);if(G.mods.healKill)heal(G.mods.healKill);
+export function killEnemy(e){const r=G.run;e.dead=true;r.kills++;if(r.bb)r.bb.kills++;if(e.marked>0&&spellOn('markedPrey')&&spellVal('markedPrey','refund'))r.charge=Math.min(100,r.charge+spellVal('markedPrey','refund'));if(G.mods.deathWish)r.charge=Math.min(100,r.charge+G.mods.deathWish);if(e.loot){if(e.loot.gold){r.gold+=e.loot.gold;float(e.x,e.y-48,'+'+e.loot.gold+' '+TEXT.coin.toUpperCase()+' RECOVERED','#ffd24a',13);}else G.pickups.push({x:e.x,y:e.y,tier:e.tier,kind:e.loot.kind,t:0,quest:null});}if(e.post&&e.post.b&&e.post.b.poss===e)e.post.b.poss=null;score(1000*r.level,e.x,e.y);xp(e.def.xp);gold(e.def.gold*(1+G.mods.killGold),e.x,e.y);if(G.mods.healKill)heal(G.mods.healKill);
   charge(1,'kill');A.s('kill');burst(e.x,e.y,16,e.def.undead?'#9dffc8':'#ff8a6a',260,.9);if(G.boss&&e.minion)G.boss.minions--;
   if(Math.random()<.12)later(.05,()=>{G.pickups.push({x:e.x,y:e.y,tier:e.tier,kind:'heart',t:0,quest:null});});
   if(e.pack&&r.wing.key&&WINGS[r.wing.key].rule==='kills'&&!r.wing.done&&T.wings[r.wing.key].seal[0].on)wingProg(8,e.x,e.y);

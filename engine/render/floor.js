@@ -13,8 +13,6 @@ import {BT,H,HW,NM,TY,W} from '../table/layout.js';
    inserts and their names, plus soft contact shadows and light pools baked in. */
 export const FLOOR_CH=820;
 export const FLOOR_Y0=-60;
-export const GRAVE_Y0=3190;
-export const GRAVE_Y1=4100;
 export function drawFloor3D(c,ss){
   c.fillStyle='#08080c';c.fillRect(-10,-400,W+20,H+800);
   for(let r=-15;r<(H+300)/24;r++){const y=r*24,off=(r%2)*26;for(let k=-1;k<13;k++){const h=hash(r*31.7+k*3.3);c.fillStyle='rgba('+(52+h*34|0)+','+(50+h*30|0)+','+(70+h*36|0)+','+(.16+h*.16)+')';c.fillRect(k*52+off+1,y+1,50,22);}}

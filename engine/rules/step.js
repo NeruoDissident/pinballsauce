@@ -19,7 +19,7 @@ import {hurt} from './score.js';
 import {updateSpells} from './spells.js';
 import {manageSpawns,updatePickups} from './waves.js';
 import {wingHoldsDoor} from './wings.js';
-import {RULES,WINGS,WING_KEYS} from '../table/content.js';
+import {RULES,TEXT,WINGS,WING_KEYS} from '../table/content.js';
 import {FY,GT,H,HW,WT0,tierOf} from '../table/layout.js';
 import {A} from '../ui/audio.js';
 import {popup} from '../ui/ui.js';
@@ -36,7 +36,7 @@ export function updateRules(dt){const r=G.run;r.time+=dt;
   if(G.doorT>0){G.doorT-=dt;if(G.doorT<=0){if(wingHoldsDoor())G.doorT=0;else openDoor(false);}}
   if(RULES.tick)RULES.tick(dt,r); // the table's own timers
   for(const id in T.banks){const B=T.banks[id];if(B.reset>0){B.reset-=dt;if(B.reset<=0&&!B.door&&id!=='nails')B.segs.forEach(s=>s.on=true);}}
-  if(G.inGrave&&G.graveLive&&G.tilt<=0){G.graveT-=dt;G.dirty=true;if(G.graveT<=0){G.graveT=0;G.tilt=1e9;popup('The Lid Closes','The flippers go dead','bad');A.s('tilt');}}
+  if(G.inGrave&&G.graveLive&&G.tilt<=0){G.graveT-=dt;G.dirty=true;if(G.graveT<=0){G.graveT=0;G.tilt=1e9;popup(TEXT.graveClosed[0],TEXT.graveClosed[1],'bad');A.s('tilt');}}
   if(G.focusTier>GT&&G.tilt<=0&&G.balls.some(b=>b.st==='live'&&b.tier===G.focusTier)){G.wingT-=dt;G.dirty=true;if(G.wingT<=0){const d=WINGS[WING_KEYS[G.focusTier-WT0]];G.wingT=0;G.tilt=1e9;popup(d.late[0],d.late[1],'bad');A.s('tilt');}}
   for(const q of r.side.slice())if(q.tl>0&&!G.inGrave&&G.focusTier<=GT){q.tl-=dt;G.dirty=true;if(q.tl<=0)qFail(q);}
   G.spawnT-=dt;if(G.spawnT<=0){G.spawnT=.6;manageSpawns();}updateParty(dt);updateSpells(dt);updateRally(dt);

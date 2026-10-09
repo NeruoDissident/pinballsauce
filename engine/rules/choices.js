@@ -8,13 +8,13 @@ import {PERKS} from './perks.js';
 import {recalc,saveRun} from './run.js';
 import {bookChoice,bookUpChoice} from './spells.js';
 import {tavernChoice} from './tavern.js';
-import {TEXT} from '../table/content.js';
+import {DEF,TEXT} from '../table/content.js';
 import {A} from '../ui/audio.js';
 import {UI,popup} from '../ui/ui.js';
 
 /* ---------- choices (perks, shop) ---------- */
 export function openChoice(kind){const r=G.run;let c;
-  if(kind==='perk'){const cnt=id=>r.perks.filter(x=>x===id).length,can=p=>cnt(p.id)<p.max&&(!p.cls||p.cls===r.cls)&&(!p.rare||Math.random()<.35),picks=[];
+  if(kind==='perk'){const cnt=id=>r.perks.filter(x=>x===id).length,off=DEF.content.noPerks||[],can=p=>!off.includes(p.id)&&cnt(p.id)<p.max&&(!p.cls||p.cls===r.cls)&&(!p.rare||Math.random()<.35),picks=[];
     const take=k=>{const l=shuffle(PERKS.filter(p=>p.kind===k&&can(p)&&!picks.includes(p)));if(l.length)picks.push(l[0]);};
     const hasKey=r.perks.some(id=>{const p=PERKS.find(q=>q.id===id);return p&&p.kind==='key';});
     take('table');take('stat');take(!hasKey&&r.level>=3&&Math.random()<.35?'key':'table');
@@ -24,8 +24,8 @@ export function openChoice(kind){const r=G.run;let c;
   else if(kind==='book'){c=bookChoice();}
   else if(kind==='bookUp'){c=bookUpChoice(G.bookUp);}
   else if(kind==='tavern'&&TAVERN_RECRUITS){c=tavernChoice();}
-  else{const opts=r.tavern.map(id=>{const d=COMPANIONS[id],R=ROLES[d.role];return {name:d.name,desc:R.name+'. '+d.desc,cost:d.cost,tag:d.cost+' gold',role:d.role,act:()=>{const c=recruit(id);if(c)popup(d.name+' Joins','They take the '+c.slot+' post','good',d.desc);}};});
-    c={kind,title:TEXT.tavern,sub:'Recruits for hire. You have '+r.gold+' gold'+(r.party.length?'; '+(3-r.party.length)+' post'+(3-r.party.length===1?'':'s')+' free':''),opts:opts.concat([{name:'Leave',desc:'Keep your coin and get back to it.',tag:'',act:()=>{}}])};}
+  else{const opts=r.tavern.map(id=>{const d=COMPANIONS[id],R=ROLES[d.role];return {name:d.name,desc:R.name+'. '+d.desc,cost:d.cost,tag:d.cost+' '+TEXT.coin,role:d.role,act:()=>{const c=recruit(id);if(c)popup(d.name+' Joins','They take the '+c.slot+' post','good',d.desc);}};});
+    c={kind,title:TEXT.tavern,sub:'Recruits for hire. You have '+r.gold+' '+TEXT.coin+(r.party.length?'; '+(3-r.party.length)+' post'+(3-r.party.length===1?'':'s')+' free':''),opts:opts.concat([{name:'Leave',desc:'Keep your coin and get back to it.',tag:'',act:()=>{}}])};}
   if(G.demo||G.auto||G.opt.autoPick){autoPick(kind,c);resumeHeld();G.dirty=true;return;}
   c.sel=0;G.choice=c;UI.choice(c);A.s('choice');}
 // Auto pick (Options): level-ups, boons and hires are chosen for you the moment they come up, no menu, no scoop.
