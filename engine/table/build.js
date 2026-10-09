@@ -13,6 +13,9 @@ import {WINGS} from './content.js';
 const RESERVED=new Set(['t','x','y','r','group','at','id','name','pts','kind','from','to','n','pad','w','style','eject','xs','posts','mouth','side','xg','topY','rot','door']);
 const extra=p=>{const o={};for(const k in p)if(!RESERVED.has(k))o[k]=p[k];return o;};
 
+// everything built while fn runs is tagged with where it came from in the layout file; inspect mode shows the tag
+function from(label,fn){const n=[T.segs.length,T.bumps.length,T.sens.length,T.wallPaths.length,T.blocks.length],h=new Set(Object.keys(T.holes));fn();
+  [T.segs,T.bumps,T.sens,T.wallPaths,T.blocks].forEach((l,k)=>{for(let i=n[k];i<l.length;i++)if(!l[i].src)l[i].src=label;});for(const id in T.holes)if(!h.has(id)&&!T.holes[id].src)T.holes[id].src=label;}
 // one piece of a field or a wing. C carries the room's origin, its tier and the ramp mouths met so far.
 function piece(p,C){const y=C.y,tier=C.tier,m=C.m;
   const ref=s=>{const q=s.slice(1).split('.'),g=m[q[0]];if(!g||!g[q[1]])throw new Error('layout: unknown mouth point '+s);return g[q[1]];};
@@ -59,7 +62,7 @@ function buildWing(wd,k,C){const tier=WT0+k,y=TY[tier],o=p=>[p[0],p[1]+y],w=T.wi
   w.seal=[seg(300,y+184,320,y+178,{kind:'seal',w:3,e:.3,tier}),seg(320,y+178,340,y+184,{kind:'seal',w:3,e:.3,tier})];
   hole(wd.entry.id,wd.entry.x,y+wd.entry.y,13,tier,wd.entry.name);shotDef(wd.goal.id,wd.goal.name,tier,320,236);
   C.aims.push([wd.entry.id,tier,-1]);T.holes[wd.goal.id].wingGoal=wd.key;T.holes[wd.entry.id].wingIn=wd.key;
-  const WC={y,tier,m:C.m,aims:C.aims,def:C.def};for(const p of wd.pieces||[])piece(p,WC);
+  const WC={y,tier,m:C.m,aims:C.aims,def:C.def};(wd.pieces||[]).forEach((p,i)=>from(wd.key+'.pieces['+i+']',()=>piece(p,WC)));
   if(wd.coins)w.coins=wd.coins.map(o);
   T.spawn[tier]=(wd.spawn||[]).map(o);
   for(const s of wd.shots||[])shotDef(s.id,s.name,tier,s.x,s.y,s.ang,s.kind);
@@ -69,16 +72,16 @@ export function buildTable(def){const L=def.layout,C={m:{},aims:[],def};
   Object.assign(T,{segs:[],grid:[],flips:[],bumps:[],sens:[],holes:{},rails:{},mouths:[],shots:{},banks:{},sets:{},slings:[],spawn:[],torches:[],wallPaths:[],blocks:[],chans:[],bossSpot:[],statueSpot:[],tunnels:{},posts:[],gposts:null,wings:{},door:null,shooter:null,statues:[]});
   for(let t=0;t<NT;t++)T.spawn.push([]);
   poly([[20,TY[0]+300],[20,H+80]],{},'none');poly([[620,TY[0]+300],[620,H+80]],{},'none');
-  for(let i=0;i<NM;i++){buildFrame(i);buildOrbits(i);}
-  for(let i=0;i<NM;i++)buildFloor(i,20,XR[i],CX[i]);
+  for(let i=0;i<NM;i++){from(L.fields[i].id+' frame',()=>buildFrame(i));from(L.fields[i].id+' orbits',()=>buildOrbits(i));}
+  for(let i=0;i<NM;i++)from(L.fields[i].id+' floor',()=>buildFloor(i,20,XR[i],CX[i]));
   for(let i=0;i<NM;i++){const f=L.fields[i],y=TY[i],o=p=>[p[0],p[1]+y];
-    for(const p of f.pieces||[])piece(p,{y,tier:i,m:C.m,aims:C.aims,def});
+    (f.pieces||[]).forEach((p,k)=>from(f.id+'.pieces['+k+']',()=>piece(p,{y,tier:i,m:C.m,aims:C.aims,def})));
     if(f.statue){T.statueSpot[i]={x:f.statue.x,y:y+f.statue.y};T.statues.push({x:f.statue.x,y:y+f.statue.y,r:f.statue.r,tier:i,id:f.statue.id});}
     if(f.boss)T.bossSpot[i]={x:f.boss.x,y:y+f.boss.y};
     T.spawn[i]=(f.spawn||[]).map(o);}
   if(!T.shooter)throw new Error('layout: the bottom field needs a {t:"shooter"} piece');
-  buildGrave(L.grave,C);
-  (L.wings||[]).forEach((wd,k)=>buildWing(wd,k,C));
+  from('grave',()=>buildGrave(L.grave,C));
+  (L.wings||[]).forEach((wd,k)=>from(wd.key+' room',()=>buildWing(wd,k,C)));
   for(const r of L.ramps||[]){const o={from:r.from,to:r.to};if(r.up)o.up=true;rail(r.id,r.name,C.m[r.mouth||r.id],r.path,o);}
   T.mouthGeo=C.m;
   for(const k in WINGS)if(WINGS[k].rule==='targets'){if(!T.banks[WINGS[k].bank])throw new Error('content: wing '+k+' names a bank the layout does not have');T.banks[WINGS[k].bank].wing=k;}

@@ -1,6 +1,8 @@
 /* ================= THE SHELL =================
    boot(table) starts everything. Also settings, dev keys, the flat overlay (gauges, floating text), the frame loop
    and the test hooks (window.__pb). */
+import {INS,closeInspect,drawInspect,openInspect} from './inspect.js';
+import {mountPage} from '../ui/page.js';
 import {G,T,focusBall} from '../core/state.js';
 import {$,PI,TAU,clamp,prefs,rand} from '../core/util.js';
 import {newBall} from '../physics/physics.js';
@@ -96,7 +98,9 @@ export function drawOverlay(){const cv=$('fx'),c=cv.getContext('2d'),s=UI.fxS||1
   if(G.flash>0){c.globalCompositeOperation='lighter';c.globalAlpha=Math.min(.34,G.flash*.34);c.fillStyle=G.flashC;c.fillRect(0,0,w,h);c.globalAlpha=1;c.globalCompositeOperation='source-over';}
   if(G.tilt>0&&G.balls.length){c.fillStyle='rgba(10,0,0,.35)';c.fillRect(0,0,w,h);}
   // other balls that are above the view during multiball
-  if(G.balls.length>1){c.fillStyle=cl.glow;for(let i=0;i<G.balls.length;i++){const b=G.balls[i],o=R3.balls[i];if(b===fb||!o||b.st==='tunnel')continue;_v.set(o.sx-320+ZX(o.sy),o.sh,o.sy+ZZ(o.sy)).project(R3.camera);const y=(-_v.y*.5+.5)*h,x=clamp((_v.x*.5+.5)*w,20,w-20);if(y<0){c.beginPath();c.moveTo(x,8);c.lineTo(x+9,22);c.lineTo(x-9,22);c.closePath();c.fill();}}}}
+  if(G.balls.length>1){c.fillStyle=cl.glow;for(let i=0;i<G.balls.length;i++){const b=G.balls[i],o=R3.balls[i];if(b===fb||!o||b.st==='tunnel')continue;_v.set(o.sx-320+ZX(o.sy),o.sh,o.sy+ZZ(o.sy)).project(R3.camera);const y=(-_v.y*.5+.5)*h,x=clamp((_v.x*.5+.5)*w,20,w-20);if(y<0){c.beginPath();c.moveTo(x,8);c.lineTo(x+9,22);c.lineTo(x-9,22);c.closePath();c.fill();}}}
+  drawInspect();}
+
 export function resize(){const st=$('stage'),w=st.clientWidth||innerWidth,h=st.clientHeight||innerHeight||600,fx=$('fx'),d=Math.min(window.devicePixelRatio||1,1.5);
   resize3D(w,h);fx.width=Math.round(w*d);fx.height=Math.round(h*d);UI.fxS=d;}
 export let lastT=0;
@@ -104,19 +108,20 @@ export let acc=0;
 export let hudT=0;
 export let slowT=0;
 export function loop(ts){requestAnimationFrame(loop);if(R3.hold){lastT=ts;return;}const raw=(ts-lastT)/1000||0,dt=Math.min(.05,raw);lastT=ts;acc+=dt;let n=0;
-  while(acc>=1/120&&n<8){gameStep(1/120);acc-=1/120;n++;}if(n===8)acc=0;
-  R3.acc=acc;frame3D(dt);drawOverlay();
+  while(acc>=1/120&&n<8){if(!R3.freeze)gameStep(1/120);acc-=1/120;n++;}if(n===8)acc=0; // inspect mode freezes the game, not the picture
+  R3.acc=R3.freeze?0:acc;frame3D(dt);drawOverlay();
   if(raw>0&&raw<.5){R3.fps+=(1/raw-R3.fps)*.05;
     // step the detail down by itself if this machine cannot hold a playable frame rate
     if(R3.auto&&!document.hidden&&G.t>4){slowT=R3.fps<38?slowT+raw:Math.max(0,slowT-raw);if(slowT>2.5&&R3.qName!=='low'){slowT=0;R3.fps=60;setQuality(R3.qName==='high'?'medium':'low');gfxSave();popup('Detail lowered','Press Q to change it back','info');}}}
   hudT+=dt;if(hudT>.2){hudT=0;G.dirty=true;gfxInfo();}UI.sync();}
 // test hook: freeze the loop and advance by hand (used by the headless screenshot and soak scripts)
-window.__gb={G,T,UI,startRun,gameStep,devKey,setQuality,DEV,setFlip,nudge,choose,saveRun,continueRun,R3,hold(v){R3.hold=v;},draw(n,dt){R3.acc=0;for(let i=0;i<(n||1);i++)frame3D(dt===undefined?.5:dt);drawOverlay();G.dirty=true;UI.sync();gfxInfo();},
+window.__gb={G,T,UI,INS,openInspect,closeInspect,startRun,gameStep,devKey,setQuality,DEV,setFlip,nudge,choose,saveRun,continueRun,R3,hold(v){R3.hold=v;},draw(n,dt){R3.acc=0;for(let i=0;i<(n||1);i++)frame3D(dt===undefined?.5:dt);drawOverlay();G.dirty=true;UI.sync();gfxInfo();},
   advance(sec,frames){const n=Math.round(sec*120),per=frames?Math.max(1,Math.round(n/frames)):0;R3.acc=0;for(let i=0;i<n;i++){gameStep(1/120);if(per&&i%per===per-1)frame3D(per/120);}if(per){drawOverlay();G.dirty=true;UI.sync();gfxInfo();}}};
 // the same hook under the name the engine's own tests use
 window.__pb={ready:()=>R3.ready,api:window.__gb};
-export function boot(def){initGame(def);
+export function boot(def){mountPage();initGame(def);
   R3.camMode=(GFX.cam|0)%CAMS.length;R3.qName=QUALITY[GFX.q]?GFX.q:'high';R3.auto=GFX.auto!==false;
   if(!init3D($('gl'))){const m=$('menu');m.hidden=false;m.innerHTML='<div class="pane"><p class="lead">This needs WebGL, and the browser would not start it. Try a current Chrome, Edge or Firefox with hardware acceleration turned on.</p></div>';return;}
   resize();bindInput();startDemo();snapCam();UI.menu('title');requestAnimationFrame(loop);
+  if(/[?&]inspect\b/.test(location.search))openInspect();
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{try{repaintFloor();paintNames();repaintWings();}catch(e){}});}

@@ -1,4 +1,5 @@
 /* ================= CAMERA ================= */
+import {inspectCam} from '../app/inspect.js';
 import {G,focusBall} from '../core/state.js';
 import {PI,clamp,rand} from '../core/util.js';
 import {CAMS,R3} from './core.js';
@@ -11,7 +12,7 @@ export function frameLevel(tier,pitch,fov,asp){const p=pitch*PI/180,tv=Math.tan(
   const bo=G.boss;let nA=-.92,nB=bo&&bo.tier===tier?.55:.68,h=0,kA=0; /* a boss fight needs headroom under its health bar */ const g=n=>(n*tv*sn+cs)/(n*tv*cs-sn);
   for(let it=0;it<4;it++){h=L/(g(nA)-g(nB));kA=h*g(nA);const depth=h*sn-kA*cs,m=half/(depth*tv*asp*.97);if(m<=1.001)break;nA/=m;nB/=m;}
   return {h,zc:zA-kA,sn,cs};}
-export function updateCam3D(dt){const cam=R3.cam,C=R3.camera,b=focusBall(),asp=C.aspect;let px,py,pz,tx,ty,tz,fov,rate=4;
+export function updateCam3D(dt){inspectCam();const cam=R3.cam,C=R3.camera,b=focusBall(),asp=C.aspect;let px,py,pz,tx,ty,tz,fov,rate=4;
   const tier=G.focusTier,f=FY[tier],e=E[tier],bx=b?b.x-320:0,by=b?b.y:f-300;
   if(R3.dbg){fov=R3.dbg.fov||40;px=R3.dbg.p[0];py=R3.dbg.p[1];pz=R3.dbg.p[2];tx=R3.dbg.t[0];ty=R3.dbg.t[1];tz=R3.dbg.t[2];rate=1e3;}
   else if(G.demo&&G.mode==='title'){const s=G.t*.1;fov=36;tx=30+Math.sin(s)*50;ty=E[BT]+20;tz=TY[BT]+330;px=-610+Math.sin(s*.8)*150;py=E[BT]+560+Math.sin(s*.6)*50;pz=FY[BT]+470;rate=1.2;

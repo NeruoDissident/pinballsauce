@@ -46,3 +46,5 @@ export * from './app/shell.js';
 export * from './table/build.js';
 export * from './render/world.js';
 
+export * from './ui/page.js';
+export * from './app/inspect.js';
