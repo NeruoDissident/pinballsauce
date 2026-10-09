@@ -1,0 +1,106 @@
+{
+ "table": "gravebound",
+ "source": "Taken from the original Gravebound 3D 0.21 (commit aeadf66), where the table was hand-written code.",
+ "sections": {
+  "banks": {
+   "n": 9,
+   "hash": "2a78032350e44dcd"
+  },
+  "blocks": {
+   "n": 16,
+   "hash": "cc43785eaac264f3"
+  },
+  "bossSpot": {
+   "n": 2,
+   "hash": "80a1fa1120d188cb"
+  },
+  "bumps": {
+   "n": 16,
+   "hash": "81d08118f296acb7"
+  },
+  "chans": {
+   "n": 6,
+   "hash": "980f6417c969a419"
+  },
+  "coffin": {
+   "n": 8,
+   "hash": "ba052318845c00c7"
+  },
+  "flips": {
+   "n": 14,
+   "hash": "558edda9f85cd8c5"
+  },
+  "graveIn": {
+   "n": 1,
+   "hash": "32bf6ac41464e6d1"
+  },
+  "grid": {
+   "n": 86,
+   "hash": "7c2a5674626a280d"
+  },
+  "holes": {
+   "n": 14,
+   "hash": "7705064afb14144b"
+  },
+  "mouths": {
+   "n": 5,
+   "hash": "f14647eb77662e63"
+  },
+  "rails": {
+   "n": 5,
+   "hash": "dc7c74b9f4a73f19"
+  },
+  "segs": {
+   "n": 497,
+   "hash": "eb9db9fd4e7d15"
+  },
+  "sens": {
+   "n": 25,
+   "hash": "758609f631530cb"
+  },
+  "sets": {
+   "n": 2,
+   "hash": "d2893c6a35bb5787"
+  },
+  "shooter": {
+   "n": 1,
+   "hash": "9aaf88df8b2ec36f"
+  },
+  "shots": {
+   "n": 46,
+   "hash": "409755b47b4de4cf"
+  },
+  "slings": {
+   "n": 6,
+   "hash": "c6bb8ee2e724ad8d"
+  },
+  "spawn": {
+   "n": 7,
+   "hash": "88efcd1518a0ec79"
+  },
+  "statueSpot": {
+   "n": 2,
+   "hash": "ea8f1bc210b6b1c9"
+  },
+  "statues": {
+   "n": 2,
+   "hash": "bce37e2bdc4b04b7"
+  },
+  "torches": {
+   "n": 33,
+   "hash": "47c060816d9306ef"
+  },
+  "tunnels": {
+   "n": 13,
+   "hash": "9af412d84a87a189"
+  },
+  "wallPaths": {
+   "n": 50,
+   "hash": "20fd30337c8cc489"
+  },
+  "wings": {
+   "n": 3,
+   "hash": "ca21cbc970906721"
+  }
+ }
+}

@@ -1,0 +1,20 @@
+{
+  "name": "pinballsauce",
+  "version": "0.1.0",
+  "description": "A pinball engine and the tables that run on it. No build step: open index.html through any static server.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node tests/serve.mjs . 4187",
+    "check": "node tests/check.mjs",
+    "test": "node tests/check.mjs && node tests/table.mjs && node tests/replay.mjs 5",
+    "test:full": "node tests/check.mjs && node tests/table.mjs && node tests/replay.mjs 25",
+    "bundle": "node tools/bundle.mjs"
+  },
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "acorn": "^8.12.0",
+    "eslint-scope": "^7.2.2",
+    "playwright": "^1.56.0"
+  }
+}

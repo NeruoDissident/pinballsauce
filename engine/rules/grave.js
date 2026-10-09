@@ -1,0 +1,22 @@
+/* ================= THE GRAVE =================
+   Every table has one. Hitting the bumpers marked opensGrave opens it; an open Grave always takes the next lost
+   ball, tilted or not. The room itself is built in table/build.js. */
+import {G,T,float} from '../core/state.js';
+import {relight} from './lamps.js';
+import {heroBalls} from './spells.js';
+import {catmull,resample} from '../table/geometry.js';
+import {GY} from '../table/layout.js';
+import {A} from '../ui/audio.js';
+import {popup} from '../ui/ui.js';
+
+/* ---------- the Grave ---------- */
+export function graveHit(o){const r=G.run,g=r.grave;if(g.open||G.inGrave)return;g.hits=Math.min(g.need,g.hits+(r.cls==='cleric'?2:1));G.dirty=true;
+  if(g.hits>=g.need){g.open=true;popup('The Grave Opens','Your next lost ball falls into it. Fight your way back out','good');A.s('summon');G.flash=.4;G.flashC='#7dffb0';}
+  else if(g.hits%3===0||g.need-g.hits<=2)float(o.x,o.y-34,'GRAVE '+g.hits+'/'+g.need,'#9dffc8',12);}
+export function graveCatch(b){const r=G.run,g=r.grave,ok=!G.fallen&&G.tilt<=0; // an open Grave always takes the ball, tilted or fallen or not
+  if(!g.open||heroBalls().length>1||G.plunge.auto>0||(ok&&(G.save>0||r.shield)))return false;
+  g.open=false;g.used++;g.hits=0;g.need=8+4*g.used;G.inGrave=true;G.graveLive=false;G.graveT=22;G.graveBones=0;G.tilt=0;G.mb=null;G.nudges=[];
+  if(G.fallen){G.fallen=false;r.hp=Math.round(G.mods.maxHp*.25);}
+  T.banks.nails.segs.forEach(s=>{s.on=true;});T.banks.nails.reset=0;b.arm=0;b.pow=null;b.cr=0;
+  b.tun=Object.assign(resample(catmull([[b.x,b.y],[b.x,GY-40],[T.graveIn.x,GY+150],[T.graveIn.x,T.graveIn.y]],12),6),{grave:true});b.st='tunnel';b.rs=0;b.vx=b.vy=0;
+  popup('The Grave','Drive both coffin nails, then shoot the light before the lid closes','boss');A.s('boss');G.flash=.6;G.flashC='#0a2a14';relight();G.dirty=true;return true;}
