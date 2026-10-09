@@ -52,8 +52,9 @@ The whole suite is `npm run test:full` (about 12 minutes). It passed on the comm
 - **One code path never ran:** a class with its whole spellbook maxed (`bookDone`). No scenario gets that far.
 - **Hosting.** GitHub Pages and Vercel should serve the repo as it is (relative paths, no build), but neither was
   set up or tried.
-- **Screenshot saving inside embedded viewers.** Some block downloads silently. The screenshot is now also shown
-  on screen so it can be saved by hand; that path was not tried on a phone.
+- **Screenshot saving inside embedded viewers.** Some block downloads silently, so the screenshot is also shown on
+  screen to be saved by hand, and the published artifact saves through the viewer's own download prompt. Neither
+  path was tried on a phone or inside the artifact viewer; only the plain browser download was exercised.
 - **Old saves.** Saves from the original Gravebound do not carry over (the engine uses its own storage names).
 
 ## Deliberate differences from the original Gravebound
