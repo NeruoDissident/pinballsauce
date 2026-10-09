@@ -15,7 +15,7 @@ export const FLOOR_CH=820;
 export const FLOOR_Y0=-60;
 export function drawFloor3D(c,ss){
   c.fillStyle='#08080c';c.fillRect(-10,-400,W+20,H+800);
-  for(let r=-15;r<(H+300)/24;r++){const y=r*24,off=(r%2)*26;for(let k=-1;k<13;k++){const h=hash(r*31.7+k*3.3);c.fillStyle='rgba('+(52+h*34|0)+','+(50+h*30|0)+','+(70+h*36|0)+','+(.16+h*.16)+')';c.fillRect(k*52+off+1,y+1,50,22);}}
+  if(THEME.floorBase)THEME.floorBase(c);else for(let r=-15;r<(H+300)/24;r++){const y=r*24,off=(r%2)*26;for(let k=-1;k<13;k++){const h=hash(r*31.7+k*3.3);c.fillStyle='rgba('+(52+h*34|0)+','+(50+h*30|0)+','+(70+h*36|0)+','+(.16+h*.16)+')';c.fillRect(k*52+off+1,y+1,50,22);}}
   for(let i=0;i<NM;i++){const p=PAL[i],y=TY[i];c.save();fieldPath(c,i);c.clip();
     const g=c.createLinearGradient(0,y,0,y+920);g.addColorStop(0,p.a);g.addColorStop(1,p.b);c.fillStyle=g;c.fillRect(0,y-10,W,1200);
     if(THEME.flagstones!==false)flagstones(c,i);if(THEME.floorArt&&THEME.floorArt[i])THEME.floorArt[i](c,y,p);

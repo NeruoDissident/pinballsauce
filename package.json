@@ -7,8 +7,9 @@
   "scripts": {
     "start": "node tests/serve.mjs . 4187",
     "check": "node tests/check.mjs",
-    "test": "node tests/check.mjs && node tests/table.mjs && node tests/replay.mjs 5",
-    "test:full": "node tests/check.mjs && node tests/table.mjs && node tests/replay.mjs 25",
+    "test": "node tests/check.mjs && node tests/table.mjs && node tests/table.mjs --table neon-descent && node tests/replay.mjs 5 && node tests/replay.mjs 5 --table neon-descent",
+    "test:full": "node tests/check.mjs && node tests/table.mjs && node tests/table.mjs --table neon-descent && node tests/replay.mjs 25 && node tests/replay.mjs 10 --table neon-descent && node tests/soak.mjs 20 --table gravebound && node tests/soak.mjs 20 --table neon-descent",
+    "soak": "node tests/soak.mjs 20 --table",
     "bundle": "node tools/bundle.mjs"
   },
   "license": "UNLICENSED",

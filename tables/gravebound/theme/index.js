@@ -17,6 +17,7 @@ export const theme={
   bumper:mkBumper,statue:mkStatue,                        // models per bumper group and statue
   scenery:buildScenery,                                   // the world around the table
   wingArt:WING_ART,wingProps:WING_PROPS,
-  sprites:{foes:EDRAW,bosses:BDRAW}                       // painted billboards
+  sprites:{foes:EDRAW,bosses:BDRAW},                      // painted billboards
+  fitNames:false                                          // level names are lettered at the original's fixed size
 };
 

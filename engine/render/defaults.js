@@ -11,22 +11,28 @@ import {M,R3,SM,hdr} from './core.js';
 import {elev} from './world.js';
 import {path} from './draw2d.js';
 
-// a pop bumper: a post, a skirt and a lit cap. Returns what frame.js animates: the lit materials, the ring, the ward.
-export function defaultBumper(b){const g=new THREE.Group(),p=PAL[b.tier],col=b.bell?'#ffd070':p.glow,r=b.r,o={b,g,mats:[],bell:null,flame:null,t:0};
+// What every bumper model needs, whatever it looks like: the group at the bumper's spot, the ring on the floor that
+// carries its colour, and the ward shown while a boss shields it. A theme's own bumper starts from this:
+//   const {o,lit,mesh,r,p}=bumperBase(b);  mesh(geometry, material, height);  lit({color}, glow) makes a material that flashes on a hit;  return o;
+export function bumperBase(b){const g=new THREE.Group(),p=PAL[b.tier],col=b.bell?'#ffd070':p.glow,r=b.r,o={b,g,mats:[],bell:null,flame:null,t:0};
   const lit=(base,k)=>{const m=SM(Object.assign({emissive:hdr(col),emissiveIntensity:k,roughness:.45,metalness:.3,envMapIntensity:1},base));o.mats.push({m,k});return m;};
   const mesh=(geo,mat,y)=>{const m=new THREE.Mesh(geo,mat);m.position.y=y||0;m.castShadow=true;m.receiveShadow=true;g.add(m);return m;};
   const ringM=new THREE.MeshBasicMaterial({color:hdr(col,.5)});o.ring=ringM;mesh(new THREE.TorusGeometry(r-1.6,1.7,6,28).rotateX(PI/2),ringM,3).castShadow=false;
-  mesh(new THREE.CylinderGeometry(r*.93,r*.97,6,24),M.iron,3);mesh(new THREE.CylinderGeometry(r*.5,r*.62,22,20),M.steel,17);
-  mesh(new THREE.CylinderGeometry(r*.96,r*.7,7,24),lit({color:p.acc},.5),31);mesh(new THREE.CylinderGeometry(r*.6,r*.96,4,24),lit({color:'#f4f4f8'},.25),36.5);
   {const w=new THREE.Group(),tm=new THREE.MeshBasicMaterial({color:hdr('#9fe8ff',1.8)}),tr=new THREE.Mesh(new THREE.TorusGeometry(r+5,1.6,6,32).rotateX(PI/2),tm);tr.position.y=10;
     const ws=new THREE.Sprite(new THREE.SpriteMaterial({map:R3.glowTex,color:hdr('#62d8ff',1.5),transparent:true,opacity:.6,blending:THREE.AdditiveBlending,depthWrite:false}));ws.position.y=26;ws.scale.set(r*5,r*5,1);w.add(tr,ws);w.visible=false;g.add(w);o.ward=w;o.wardS=ws;o.wardT=tr;}
-  g.position.set(b.x-320,elev(b.y),b.y);R3.scene.add(g);return o;}
-// a statue: an obelisk on a plinth
-export function defaultStatue(s){const g=new THREE.Group(),col=PAL[s.tier].acc2,o={s,g,mats:[]};
+  g.position.set(b.x-320,elev(b.y),b.y);R3.scene.add(g);return {o,lit,mesh,r,p,col};}
+// a pop bumper: a post, a skirt and a lit cap
+export function defaultBumper(b){const {o,lit,mesh,r,p}=bumperBase(b);
+  mesh(new THREE.CylinderGeometry(r*.93,r*.97,6,24),M.iron,3);mesh(new THREE.CylinderGeometry(r*.5,r*.62,22,20),M.steel,17);
+  mesh(new THREE.CylinderGeometry(r*.96,r*.7,7,24),lit({color:p.acc},.5),31);mesh(new THREE.CylinderGeometry(r*.6,r*.96,4,24),lit({color:'#f4f4f8'},.25),36.5);return o;}
+// the same for a statue: the group at its spot, lit(), mesh()
+export function statueBase(s){const g=new THREE.Group(),p=PAL[s.tier],col=p.acc2,o={s,g,mats:[]};
   const lit=(base,k)=>{const m=SM(Object.assign({emissive:hdr(col),emissiveIntensity:k,roughness:.6,metalness:.2,envMapIntensity:.8},base));o.mats.push({m,k});return m;};
   const mesh=(geo,mat,y)=>{const m=new THREE.Mesh(geo,mat);m.position.y=y||0;m.castShadow=true;m.receiveShadow=true;g.add(m);return m;};
-  mesh(new THREE.CylinderGeometry(s.r-1,s.r,6,20),M.iron,3);mesh(new THREE.CylinderGeometry(6,12,58,4),lit({color:PAL[s.tier].stone},.12),35).rotation.y=PI/4;
-  g.position.set(s.x-320,elev(s.y),s.y);R3.scene.add(g);return o;}
+  g.position.set(s.x-320,elev(s.y),s.y);R3.scene.add(g);return {o,lit,mesh,p,col};}
+// a statue: an obelisk on a plinth
+export function defaultStatue(s){const {o,lit,mesh,p}=statueBase(s);
+  mesh(new THREE.CylinderGeometry(s.r-1,s.r,6,20),M.iron,3);mesh(new THREE.CylinderGeometry(6,12,58,4),lit({color:p.stone},.12),35).rotation.y=PI/4;return o;}
 // a boss billboard: a hooded shape with two eyes, in the boss's own colour. Drawn in a 160-unit square centred on 0,0.
 export function defaultBossSprite(color){return c=>{c.fillStyle='#0b0b12';c.beginPath();c.moveTo(0,-48);c.quadraticCurveTo(42,-26,36,36);c.lineTo(-36,36);c.quadraticCurveTo(-42,-26,0,-48);c.fill();c.strokeStyle=color;c.lineWidth=2;c.stroke();
     c.fillStyle=color;for(const sx of [-1,1]){c.beginPath();c.ellipse(sx*11,-6,6,3.5,sx*.3,0,TAU);c.fill();}c.globalAlpha=.5;c.beginPath();c.arc(0,16,5,0,TAU);c.fill();c.globalAlpha=1;};}

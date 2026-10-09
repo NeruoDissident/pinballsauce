@@ -108,7 +108,7 @@ export function buildStatic(){const sc=R3.scene,stone=Array.from({length:NM+1},(
     mb.hint=[0,1,0];mb.quad(P(q[0]-hw,q[1]-hh),P(q[0]+hw,q[1]-hh),P(q[0]+hw,q[1]+hh),P(q[0]-hw,q[1]+hh),[0,1],[1,1],[1,0],[0,0]);
     const m=mb.mesh(new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false,color:hdr('#e6c890',.8)}),{cast:false,receive:false});sc.add(m);return {cv,tex,text:q[2]};});
   paintNames();}
-export function paintNames(){for(const d of R3.nameDecals){const c=d.cv.getContext('2d');c.clearRect(0,0,512,128);c.textAlign='center';c.textBaseline='middle';c.font='600 76px '+R.fontD;
+export function paintNames(){for(const d of R3.nameDecals){const c=d.cv.getContext('2d');c.clearRect(0,0,512,128);c.textAlign='center';c.textBaseline='middle';{let fs=76;c.font='600 76px '+R.fontD;if(THEME.fitNames!==false)while(fs>28&&c.measureText(d.text).width>496){fs-=4;c.font='600 '+fs+'px '+R.fontD;}} // a long name in a wide face is set smaller, never clipped
     c.fillStyle='rgba(0,0,0,.9)';c.fillText(d.text,258,70);c.fillStyle='rgba(232,200,130,.95)';c.fillText(d.text,256,66);d.tex.needsUpdate=true;}}
 // a ramp: the ball's path lifted off the table, drawn as a wire-form with a plated bed
 export function buildRail(r,steel,iron){const n=r.n,ef=elev(r.y[0]),et=elev(r.y[n-1]),X=[],Yh=[],Z=[];r.h3=new Float32Array(n);
@@ -129,7 +129,7 @@ export function buildRail(r,steel,iron){const n=r.n,ef=elev(r.y[0]),et=elev(r.y[
   for(let i=4;i<n-2;i+=5){const t=tan(i);
     steel.add(ugeo('box'),new THREE.Matrix4().compose(new THREE.Vector3(X[i],Yh[i]-1.2,Z[i]),new THREE.Quaternion().setFromAxisAngle(UP,Math.atan2(-t[0],-t[1])),new THREE.Vector3(30,1.6,2.2)));
     for(const sd of [-1,1])steel.add(ugeo('c6'),new THREE.Matrix4().compose(new THREE.Vector3(X[i]-sd*t[1]*15,Yh[i]+4,Z[i]+sd*t[0]*15),new THREE.Quaternion(),new THREE.Vector3(1.1,10,1.1)));}
-  for(let i=22;i<n-18;i+=26){const g=r.x[i]<20||r.x[i]>620?groundY(r.x[i],r.y[i]):elev(r.y[i]),hgt=Yh[i]-g;if(hgt<RAMP_H*.8)continue;const t=tan(i),sd=(i/26|0)%2?1:-1;
+  for(let i=22;i<n-18;i+=26){const x=r.x[i],g=x<-70||x>710?groundY(x,r.y[i]):elev(r.y[i])+(x<20||x>620?34:0),hgt=Yh[i]-g;if(hgt<RAMP_H*.8)continue;const t=tan(i),sd=(i/26|0)%2?1:-1;
     iron.add(ugeo('c6'),new THREE.Matrix4().compose(new THREE.Vector3(X[i]-sd*t[1]*15,g+hgt/2,Z[i]+sd*t[0]*15),new THREE.Quaternion(),new THREE.Vector3(1.5,hgt,1.5)));}}
 export function railY(r,s){const f=clamp(s/r.ds,0,r.n-1.001),i=f|0;return r.h3[i]+(r.h3[i+1]-r.h3[i])*(f-i);}
 /* ---------- everything that moves or lights up ---------- */
