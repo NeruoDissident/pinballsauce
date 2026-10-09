@@ -74,7 +74,7 @@ export const UI={cur:null,q:[],busy:false,eraseArmed:false,
   menu(name){const m=$('menu');UI.eraseArmed=false;if(!name){m.hidden=true;m.innerHTML='';UI.cur=null;return;}let h='';
     const btn=(act,label,extra)=>'<button data-act="'+act+'"'+(extra||'')+'>'+label+'</button>';
     if(name==='title'){const sv=store.get('run',null),meta=store.get('meta',{});
-      h='<div class="pane title"><p class="eyebrow">'+esc(TEXT.eyebrow)+'</p><h1>'+esc(TEXT.title)+'<span>'+esc(TEXT.titleSmall)+'</span></h1><nav>'+btn('new','New run')+(sv&&sv.run?btn('continue','Continue <small>'+esc(CLASSES[sv.run.cls].name)+', level '+sv.run.level+', ball '+sv.run.ballNum+'</small>'):'')+btn('help','How to play')+btn('scores','High scores')+btn('options','Options')+btn('controls','Controls')+btn('inspect','Inspect table')+'</nav>'+
+      h='<div class="pane title"><p class="eyebrow">'+esc(TEXT.eyebrow)+'</p><h1>'+esc(TEXT.title)+'<span>'+esc(TEXT.titleSmall)+'</span></h1><nav>'+btn('new','New run')+(sv&&sv.run?btn('continue','Continue <small>'+esc(CLASSES[sv.run.cls].name)+', level '+sv.run.level+', ball '+sv.run.ballNum+'</small>'):'')+btn('help','How to play')+btn('scores','High scores')+btn('options','Options')+btn('controls','Controls')+btn('inspect','Inspect table')+(window.__pbTables?btn('tables','Other tables'):'')+'</nav>'+
         (meta.bosses?'<p class="hint">Legacy: '+meta.bosses+' bosses slain. New heroes start with '+Math.min(100,meta.bosses*10)+' '+esc(TEXT.coin)+'.</p>':'<p class="hint">'+esc(TEXT.hintFresh)+'</p>')+(G.opt.endless?'<p class="hint">Endless mode is on.</p>':'')+'<p class="ver">'+esc(TEXT.version||VERSION)+'</p></div>';}
     else if(name==='class'){h='<div class="pane wide"><h2>Choose your hero</h2><p class="lead">The ball is the hero. Hits fill your power meter. Hold the ball still on a raised flipper to spend a third of it on your class shot, or all of it at full.</p><div class="cards four">';
       for(const k in CLASSES){const c=CLASSES[k];h+='<button class="card cls" data-act="class" data-k="'+k+'"><i class="orb" style="--c:'+c.color+';--g:'+c.glow+'"></i><b>'+c.name+'</b><small>'+esc(c.tag)+'</small><span class="stat">Health '+c.hp+' &middot; Power '+c.pow+'</span><span>'+esc(c.pass)+'</span><span><em>Nudge: '+esc(c.nudge)+'.</em> '+esc(c.nudgeText)+'</span><span><em>Cradle: '+esc(c.shot)+'.</em> '+esc(c.shotText)+'</span><span><em>Full meter: '+esc(c.abil)+'.</em> '+esc(c.abilText)+'</span></button>';}
@@ -101,6 +101,7 @@ export const UI={cur:null,q:[],busy:false,eraseArmed:false,
     case 'continue':UI.menu(null);if(!continueRun())UI.menu('title');break;
     case 'scores':UI.menu('scores');break;
     case 'inspect':openInspect();break;
+    case 'tables':window.__pbTables();break; // only in a build that carries more than one table (app/picker.js)
     case 'options':UI.back=UI.cur==='pause'?'pause':'title';UI.menu('options');break;
     case 'controls':UI.back=UI.cur==='pause'?'pause':'title';UI.menu('controls');break;
     case 'help':UI.back=UI.cur==='pause'?'pause':'title';UI.menu('help');break;

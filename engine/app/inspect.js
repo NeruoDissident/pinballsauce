@@ -148,4 +148,13 @@ export function shoot(){frame3D(0);drawOverlay();const gl=$('gl'),fx=$('fx'),k=g
   c.fillText(DEF.id+' / '+tierId(INS.tier)+'   centre x '+Math.round(INS.x)+' y '+Math.round(INS.y-TY[INS.tier])+'   view '+Math.round(INS.span)+(INS.tilt?' tilted':' top-down'),8*k,gl.height+12*k);
   c.fillStyle='#9a9aa8';c.fillText('grid lines every 100; numbers as in tables/'+DEF.id+'/layout.js',8*k,gl.height+28*k);
   const name=DEF.id+'-'+tierId(INS.tier)+'-x'+Math.round(INS.x)+'-y'+Math.round(INS.y-TY[INS.tier])+'.png';
-  cv.toBlob(b=>{if(!b)return;const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);},'image/png');return cv;}
+  cv.toBlob(b=>{if(!b)return;const url=URL.createObjectURL(b),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();shown(url,name);},'image/png');return cv;}
+// The picture just taken, shown over the table. Some viewers (an embedded page, some phone apps) refuse downloads without
+// saying so; from here it can still be saved by pressing and holding it, or by a screenshot of the screen.
+function shown(url,name){let p=$('insShot');if(p)p.remove();p=document.createElement('div');p.id='insShot';
+  p.style.cssText='position:absolute;inset:0;z-index:70;display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:10px;justify-items:center;padding:calc(14px + env(safe-area-inset-top)) 16px calc(14px + env(safe-area-inset-bottom));background:rgba(4,4,8,.92);font:600 13px/1.4 system-ui,sans-serif;color:#ece4cf';
+  const t=document.createElement('div');t.textContent=name;const im=document.createElement('img');im.src=url;im.alt='Screenshot of the table in inspect mode';im.style.cssText='max-width:100%;max-height:100%;min-height:0;object-fit:contain;border:1px solid #3a3650;-webkit-touch-callout:default;-webkit-user-select:auto;user-select:auto';
+  const row=document.createElement('div');row.style.cssText='display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;text-align:center';
+  const note=document.createElement('span');note.textContent='Saved to your downloads. If nothing was saved, press and hold the picture to save it.';note.style.cssText='color:#a39cb2;font-weight:400';
+  const b=document.createElement('button');b.type='button';b.textContent='Done';b.style.cssText='font:inherit;color:inherit;background:#201d2d;border:1px solid #3a3650;border-radius:4px;padding:0 16px;height:36px;cursor:pointer;width:auto;margin:0;text-transform:none;letter-spacing:0';
+  b.addEventListener('click',()=>{p.remove();URL.revokeObjectURL(url);});row.append(note,b);p.append(t,im,row);$('stage').appendChild(p);b.focus();}

@@ -8,7 +8,7 @@ import {relight} from './lamps.js';
 import {gameOver,giveRelic,makeCampaign,metaAdd,saveRun} from './run.js';
 import {gold,heal,score,xp} from './score.js';
 import {spawnPickup} from './waves.js';
-import {CAMPAIGNS,SIDE,STAGES,WINGS} from '../table/content.js';
+import {CAMPAIGNS,SIDE,STAGES,TEXT,WINGS} from '../table/content.js';
 import {A} from '../ui/audio.js';
 import {popup} from '../ui/ui.js';
 
@@ -33,7 +33,7 @@ export function qFinish(q){const r=G.run;
     if(G.opt.endless)later(7,()=>{if(G.run!==r||r.main)return;r.main=makeCampaign(r);qBegin(r.main);popup('A New Shadow Rises',r.main.name,'boss',r.main.text);saveRun();});
     else later(5,()=>{if(G.run===r&&G.mode!=='over')gameOver(true);});}
   else{r.side=r.side.filter(x=>x!==q);r.doneSide.push(q.id);r.questsDone++;if(r.bb)r.bb.quests++;const w=q.rw;score(25000);xp(w.xp||0);gold(w.gold||0);if(w.heal)heal(w.heal);
-    let note=[w.gold?'+'+w.gold+' gold':'',w.xp?'+'+w.xp+' xp':''].filter(Boolean).join('  ');if(w.relic){const x=giveRelic();if(x)note+='  Relic: '+x.name;}
+    let note=[w.gold?'+'+w.gold+' '+TEXT.coin:'',w.xp?'+'+w.xp+' xp':''].filter(Boolean).join('  ');if(w.relic){const x=giveRelic();if(x)note+='  Relic: '+x.name;}
     popup('Quest Complete',q.name,'good',note);A.s('questDone');}
   saveRun();}
 export function qFail(q){const r=G.run;r.side=r.side.filter(x=>x!==q);G.enemies.forEach(e=>{if(e.quest===q)e.quest=null;});G.pickups=G.pickups.filter(p=>p.quest!==q);popup('Quest Failed',q.name,'bad');relight();}

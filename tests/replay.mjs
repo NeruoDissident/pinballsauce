@@ -1,7 +1,7 @@
 /* The engine's regression test: replay fixed inputs with a fixed random seed and compare the whole simulation,
    step for step, with a recording.
 
-     node tests/replay.mjs [minutes=5] [--table gravebound] [--only name,name] [--record]
+     node tests/replay.mjs [minutes=5] [--table gravebound] [--only name,name] [--record] [--url page]
 
    Gravebound's recording (tests/golden/gravebound.replay.json) was made from the original Gravebound 0.21 before it
    was split into engine and table: 20 scenarios, 25 minutes each. If this test passes, the ball, the flippers, the
@@ -18,7 +18,7 @@ const fnv=l=>{let h1=0x811c9dc5,h2=0x1b873593;for(const s of l)for(let i=0;i<s.l
 const chunks=s=>{const o=[];for(let i=0;i+CHUNK<=s.length;i+=CHUNK)o.push(fnv(s.slice(i,i+CHUNK)));return o;};
 const golden=fs.existsSync(gfile)?JSON.parse(fs.readFileSync(gfile,'utf8')):null;
 if(!golden&&!record){console.error('no recording at '+gfile+' (make one with --record)');process.exit(1);}
-const srv=await serve(path.join(here,'..'));const url=srv.url+'/tables/'+table+'/index.html';
+const srv=await serve(path.join(here,'..'));const url=srv.url+'/'+(opt('url')||'tables/'+table+'/index.html'); // --url dist/gravebound.html checks a bundle (tools/bundle.mjs)
 const br=await chromium.launch({args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader','--ignore-gpu-blocklist']});
 const out={minutes:mins,every:EVERY,chunk:CHUNK,scenarios:{}},logs=[];let bad=0;
 for(const sc of SCEN){if(only&&only!==true&&!only.split(',').some(o=>sc.name.includes(o)))continue;const t0=Date.now();
