@@ -12,6 +12,18 @@ const TEXT0={ // engine defaults; a table's content.text overrides any of them
   graveLid:['The Lid Splits','Shoot the light'],graveClosed:['The Lid Closes','The flippers go dead'],risen:['Risen','The grave gives you back'],
   graveStir:'THE GRAVE STIRS',watch:'THE WATCH HOLDS +12s',followed:'SOMETHING FOLLOWED YOU ROUND',feel:'THEY FEEL IT',bell:['The Bell Tolls','Every ear in the dark heard that'],
   barred:'BARRED',wave:['They Come','']};
-export function setContent(def){DEF=def;const c=def.content;RULES=def.rules||{};THEME=def.theme||{};TEXT=Object.assign({},TEXT0,c.text||{});
+// a palette per tier when the theme gives none: a, b floor gradient; acc, acc2 accents; glow; stone
+const PAL0=[{a:'#1d1124',b:'#110a17',acc:'#c0283c',acc2:'#d9a441',glow:'#ff4a5a',stone:'#3a2c44'},{a:'#10201b',b:'#0a1411',acc:'#58b89a',acc2:'#cfeef2',glow:'#8fe8d0',stone:'#2c4038'},
+  {a:'#16203a',b:'#0c121f',acc:'#e0a040',acc2:'#9cc0ea',glow:'#ffc060',stone:'#2f3a52'},{a:'#1c1430',b:'#0d0a18',acc:'#9a7cff',acc2:'#e0d4ff',glow:'#b9a0ff',stone:'#352c4e'}];
+function themeDefaults(def,th){const nm=def.layout.fields.length,nt=nm+1+(def.layout.wings||[]).length,t=Object.assign({},th);
+  if(!t.pal){t.pal=[];for(let i=0;i<nt;i++)t.pal.push(i===nm?{a:'#1b1710',b:'#080705',acc:'#7dffb0',acc2:'#cfe8c0',glow:'#7dffb0',stone:'#3a3222'}:PAL0[(i<nm?i:i-1)%PAL0.length]);}
+  const P=t.pal,each=f=>P.map(f);
+  if(!t.stoneCol)t.stoneCol=each(p=>p.stone);
+  if(!t.tierLight)t.tierLight=P.slice(0,nm+1).map(p=>p.glow);
+  if(!t.rampCol)t.rampCol=P.slice(0,nm).map(p=>p.glow);
+  if(!t.fog)t.fog=each(p=>p.b);
+  if(!t.motes)t.motes=P.slice(0,nm+1).map(p=>({col:p.glow,style:'drift'}));
+  return t;}
+export function setContent(def){DEF=def;const c=def.content;RULES=def.rules||{};THEME=themeDefaults(def,def.theme||{});TEXT=Object.assign({},TEXT0,c.text||{});
   ENEMY=c.foes;BOSSES=c.bosses;CAMPAIGNS=c.campaigns;SIDE=c.side||[];STAGES=c.stages||[];WINGS=c.wings||{};WING_KEYS=(def.layout.wings||[]).map(w=>w.key);HELP=c.help||[];PAL=THEME.pal;}
 

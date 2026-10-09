@@ -1,6 +1,15 @@
-import {PI,biped,clamp,foeEyes,foePart,foePivot,hdr,limbG} from '../../../engine/api.js';
+/* ================= STOCK FIGURES =================
+   Eight jointed figures any table can use for its foes, and the flourishes that go with them. A foe in content.foes
+   picks one with `figure` (it defaults to the foe's own key) and can recolour it with `tint`:
+     drone:{name:'Scrap Drone', job:'swarm', figure:'skeleton', tint:{bone:'#8fa0b0', eyeG:'#43e7ed'}, ...}
+   skeleton, goblin, cultist, revenant, knight, troll are bipeds; wolf goes on four legs; spirit floats.
+   Material names a tint can use are the keys of foeMats() in figures.js. A theme can still supply its own builder
+   for a foe type in theme.figures. */
+import {PI,clamp} from '../core/util.js';
+import {hdr} from './core.js';
+import {biped,foeEyes,foePart,foePivot,limbG} from './figures.js';
 
-export const FOE_BUILD={
+export const FIGURES={
   skeleton(g,m){const P=biped(g,{hip:17,stance:4,leg:1.7,legM:m.bone,torso:13,torsoG:new THREE.BoxGeometry(2.2,13,2.2),torsoM:m.bone,shoulder:8,arm:1.5,armLen:14,armM:m.bone,headR:6});
     foePart(P.head,new THREE.SphereGeometry(6,10,8),m.bone,0,0,0);foePart(P.head,new THREE.BoxGeometry(6,3,4),m.bone,0,-5,1.5);foeEyes(P.head,m.eyeG,2.4,.5,5.2,1.6);
     for(let k=0;k<4;k++)foePart(P.body,new THREE.TorusGeometry(5.2-k*.7,.8,5,10).rotateX(PI/2),m.bone,0,11-k*2.6,0);foePart(P.body,new THREE.BoxGeometry(14,2,2.4),m.bone,0,12.5,0);foePart(P.hip,new THREE.BoxGeometry(9,2.4,4),m.bone,0,-.6,0);
@@ -37,7 +46,7 @@ export const FOE_BUILD={
     P.head=foePivot(P.body,0,22,0);const hd=foePart(P.head,new THREE.SphereGeometry(6.5,10,8),m.ghost,0,0,0);hd.castShadow=false;foeEyes(P.head,m.eyeC,2.6,0,5.4,1.6);
     P.armL=foePivot(P.body,-7,14,2);P.armR=foePivot(P.body,7,14,2);for(const a of [P.armL,P.armR]){const x=foePart(a,limbG(2,1,12),m.ghost);x.castShadow=false;a.rotation.x=-.9;}P.ghost=true;return {P,h:38,eyes:m.eyeC};}
 };
-export const FOE_POSE={ // per-type flourishes on top of the engine's posing: (rig, foe, time, def, parts)
+export const FIGURE_POSE={ // per-type flourishes on top of the engine's posing: (rig, foe, time, def, parts)
   cultist(rig,e,t,d,P){const f=1-e.castT/d.cast,up=clamp((f-.3)/.5,0,1);if(e.stun<=0){P.armL.rotation.x=-.4-2.2*up;P.armR.rotation.x=-.4-2.2*up;}P.tip.material.color.set(hdr('#c08cff',.8+2.4*up));P.tip.rotation.y=t*3;P.tip.scale.setScalar(1+.4*up+(up>.9?.3*Math.sin(t*30):0));},
   revenant(rig,e,t,d,P){if(e.stun<=0&&e.wind<=0&&rig.strikeT<=0){P.armL.rotation.x=-1.3;P.armL.rotation.y=.4;}},
   goblin(rig,e,t,d,P){P.loot.visible=!!e.loot;},

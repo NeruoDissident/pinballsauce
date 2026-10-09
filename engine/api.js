@@ -48,3 +48,5 @@ export * from './render/world.js';
 
 export * from './ui/page.js';
 export * from './app/inspect.js';
+export * from './render/figurekit.js';
+export * from './render/defaults.js';

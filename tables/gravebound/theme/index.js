@@ -1,5 +1,4 @@
 import {ART,BDRAW,EDRAW,GB_PAL,drawGrave} from './art.js';
-import {FOE_BUILD,FOE_POSE} from './figures.js';
 import {mkBumper,mkStatue} from './props.js';
 import {buildScenery} from './scenery.js';
 import {WING_ART,WING_PROPS} from './wings.js';
@@ -18,7 +17,6 @@ export const theme={
   bumper:mkBumper,statue:mkStatue,                        // models per bumper group and statue
   scenery:buildScenery,                                   // the world around the table
   wingArt:WING_ART,wingProps:WING_PROPS,
-  figures:FOE_BUILD,foePose:FOE_POSE,                     // foes as jointed figures
   sprites:{foes:EDRAW,bosses:BDRAW}                       // painted billboards
 };
 

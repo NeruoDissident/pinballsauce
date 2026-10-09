@@ -1,4 +1,5 @@
 /* ================= BOSSES, PICKUPS, EFFECTS ================= */
+import {defaultBossSprite} from './defaults.js';
 import {G} from '../core/state.js';
 import {PI,TAU,clamp,mkCanvas} from '../core/util.js';
 import {R3,ctex,hdr} from './core.js';
@@ -13,7 +14,7 @@ import {BOSSES,THEME} from '../table/content.js';
 export function spriteTex(draw,units,px){const cv=mkCanvas(px,px),c=cv.getContext('2d');c.translate(px/2,px/2);c.scale(px/units,px/units);c.lineJoin='round';draw(c);return ctex(cv);}
 export function buildActors(){const sc=R3.scene,X=R3.act={tex:{},foes:[],picks:[],zones:[],booms:[]};
   const SP=THEME.sprites||{};for(const k in SP.foes||{})X.tex[k]=spriteTex(SP.foes[k],64,192);
-  for(const k in SP.bosses||{})X.tex['b_'+k]=spriteTex(SP.bosses[k],160,480);
+  for(const k in BOSSES)X.tex['b_'+k]=spriteTex((SP.bosses||{})[k]||defaultBossSprite(BOSSES[k].color),160,480);
   const stroke=c=>{c.strokeStyle='#07070b';c.lineWidth=1.5;};
   X.tex.heart=spriteTex(c=>{stroke(c);c.fillStyle='#ff6a8a';c.beginPath();c.moveTo(0,7);c.bezierCurveTo(-12,-2,-5,-10,0,-3);c.bezierCurveTo(5,-10,12,-2,0,7);c.fill();c.stroke();},32,96);
   X.tex.gold=spriteTex(c=>{stroke(c);c.fillStyle='#ffd24a';c.beginPath();c.arc(0,0,6.5,0,TAU);c.fill();c.stroke();c.fillStyle='#fff2b0';c.beginPath();c.arc(-2,-2,2,0,TAU);c.fill();},32,96);

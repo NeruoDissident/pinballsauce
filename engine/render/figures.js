@@ -1,11 +1,12 @@
 /* ================= JOINTED FIGURES =================
    Foes and the party as small figures posed from the game state. The theme supplies a builder per foe type. */
+import {FIGURES,FIGURE_POSE} from './figurekit.js';
 import {G,focusBall} from '../core/state.js';
 import {PI,clamp} from '../core/util.js';
-import {M,R3,SM,hdr} from './core.js';
+import {M,R3,SM,hdr,lin} from './core.js';
 import {elev,zshift} from './world.js';
 import {COMPANIONS,guardPosts} from '../rules/party.js';
-import {THEME} from '../table/content.js';
+import {ENEMY,THEME} from '../table/content.js';
 import {NM} from '../table/layout.js';
 
 /* ================= FOES AS FIGURES =================
@@ -52,8 +53,11 @@ export const ALLY_BUILD={
     P.drum=foePart(P.body,new THREE.CylinderGeometry(6,6,8,12).rotateX(PI/2),m.wood,0,5,7);foePart(P.drum,new THREE.CylinderGeometry(6.1,6.1,1,12).rotateX(PI/2),m.white,0,0,4);
     P.weapon=foePart(P.armR,new THREE.CylinderGeometry(.8,.8,12,5),m.wood,0,-13,4);return {P,h:41,eyes:null};}
 };
-export function foeRig(type){const m=Object.assign({},foeMats());for(const k in m)if(k.startsWith('eye'))m[k]=m[k].clone();const pool=FOE3.pool||(FOE3.pool={}),free=pool[type]||(pool[type]=[]);if(free.length){const r=free.pop();r.g.visible=true;r.g.rotation.set(0,0,0);FOE3.rigs.push(r);return r;}
-  const g=new THREE.Group(),b=(ALLY_BUILD[type]||THEME.figures[type])(g,m),rig=Object.assign({type,g,walk:0,strikeT:0,prevWind:0,dieT:0,yaw:0,px:0,pz:0,e:null},b);if(rig.eyes)rig.eye0=rig.eyes.color.clone();R3.scene.add(g);(FOE3.rigs||(FOE3.rigs=[])).push(rig);return rig;}
+// which builder a type uses: the party's own, the theme's own for that foe, or a stock figure (content.foes[type].figure)
+function figureFor(type){const d=ENEMY[type]||{};return ALLY_BUILD[type]||(THEME.figures&&THEME.figures[type])||FIGURES[d.figure||type]||FIGURES.skeleton;}
+export function foeRig(type){const m=Object.assign({},foeMats());for(const k in m)if(k.startsWith('eye'))m[k]=m[k].clone();
+  {const tint=(ENEMY[type]||{}).tint;for(const k in tint||{})if(m[k]){m[k]=m[k].clone();m[k].color.copy(/^(eye|staff|lamp)/.test(k)?hdr(tint[k],2.2):lin(tint[k]));}}const pool=FOE3.pool||(FOE3.pool={}),free=pool[type]||(pool[type]=[]);if(free.length){const r=free.pop();r.g.visible=true;r.g.rotation.set(0,0,0);FOE3.rigs.push(r);return r;}
+  const g=new THREE.Group(),b=figureFor(type)(g,m),rig=Object.assign({type,g,walk:0,strikeT:0,prevWind:0,dieT:0,yaw:0,px:0,pz:0,e:null},b);if(rig.eyes)rig.eye0=rig.eyes.color.clone();R3.scene.add(g);(FOE3.rigs||(FOE3.rigs=[])).push(rig);return rig;}
 export function foeRelease(rig){rig.g.visible=false;rig.e=null;rig.dieT=0;FOE3.pool[rig.type].push(rig);FOE3.rigs.splice(FOE3.rigs.indexOf(rig),1);}
 export function poseFoe(rig,e,dt){const P=rig.P,g=rig.g,t=e.t,d=e.def,spawnK=e.spawn>0?clamp(1-e.spawn/.7,0,1):1;
   // where it stands and which way it faces
@@ -78,7 +82,7 @@ export function poseFoe(rig,e,dt){const P=rig.P,g=rig.g,t=e.t,d=e.def,spawnK=e.s
   if(rig.strikeT>0){rig.strikeT-=dt;const k=1-rig.strikeT/.35;if(P.armR)P.armR.rotation.x=1.4*Math.sin(k*PI)-.2;P.body.rotation.x=(rig.hunch||0)+.35*Math.sin(k*PI);g.position.z+=Math.cos(rig.yaw)*12*Math.sin(k*PI);g.position.x+=Math.sin(rig.yaw)*12*Math.sin(k*PI);}
   if(e.stun>0){g.rotation.z=Math.sin(t*25)*.12;P.body.rotation.x=(rig.hunch||0)+.4;P.head.rotation.x=.5;}
   // jobs with a look of their own
-  {const fp=THEME.foePose&&THEME.foePose[e.type];if(fp)fp(rig,e,t,d,P);} // jobs with a look of their own: the theme's
+  {const fp=(THEME.foePose&&THEME.foePose[e.type])||FIGURE_POSE[d.figure||e.type];if(fp)fp(rig,e,t,d,P);} // a figure's own flourishes
   if(rig.ghost){g.position.y+=8+Math.sin(t*2.2)*4;P.body.rotation.y=Math.sin(t*1.3)*.2;P.armL.rotation.x=-.9+Math.sin(t*2)*.25;P.armR.rotation.x=-.9-Math.sin(t*2)*.25;}
   zshift(g);}
 export function frameFoes(dt){const rigs=FOE3.rigs||[];

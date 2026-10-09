@@ -1,5 +1,6 @@
 /* ================= BUILDING THE SCENE =================
    Turns T into meshes: walls, blocks, ramps, flippers, targets, inserts, scoops, torches, the plunger, the Grave. */
+import {defaultBumper,defaultStatue} from './defaults.js';
 import {G,T} from '../core/state.js';
 import {PI,TAU,clamp,hash,lerp,mkCanvas} from '../core/util.js';
 import {buildActors} from './actors.js';
@@ -144,9 +145,9 @@ export function buildDynamic(){const sc=R3.scene,D=R3.dyn,S=SM;
     const a=new THREE.Mesh(fg,M.bone),b=new THREE.Mesh(rg,rub),p=new THREE.Mesh(pg,M.steel);a.castShadow=b.castShadow=true;a.receiveShadow=true;g.add(a,b,p);
     g.position.set(f.x-320,elev(f.y)+.5,f.y);sc.add(g);D.flips.push({f,g,rub});}
   // bumpers
-  for(const b of T.bumps)D.bumps.push(THEME.bumper(b));
+  for(const b of T.bumps)D.bumps.push((THEME.bumper||defaultBumper)(b));
   // statues
-  for(const s of G.statues)D.statues.push(THEME.statue(s));
+  for(const s of G.statues)D.statues.push((THEME.statue||defaultStatue)(s));
   // drop targets, standup targets, the sealed door, coffin nails
   const tgeo=ugeo('box');
   for(const id in T.banks)for(const s of T.banks[id].segs){const drop=s.kind==='drop',door=!!T.banks[id].door,nail=id==='nails',p=PAL[s.tier];

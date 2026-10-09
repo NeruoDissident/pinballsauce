@@ -1,5 +1,6 @@
 /* ================= THE PLAYFIELD TEXTURE =================
    The floor is painted in 2D and laid flat: stone, the theme's art per field, inserts and their names, baked shadows. */
+import {defaultPaintGrave} from './defaults.js';
 import {G,T} from '../core/state.js';
 import {PI,TAU,hash,lerp,mkCanvas} from '../core/util.js';
 import {R,fieldPath,flagstones,path} from './draw2d.js';
@@ -19,7 +20,7 @@ export function drawFloor3D(c,ss){
   for(let r=-15;r<(H+300)/24;r++){const y=r*24,off=(r%2)*26;for(let k=-1;k<13;k++){const h=hash(r*31.7+k*3.3);c.fillStyle='rgba('+(52+h*34|0)+','+(50+h*30|0)+','+(70+h*36|0)+','+(.16+h*.16)+')';c.fillRect(k*52+off+1,y+1,50,22);}}
   for(let i=0;i<NM;i++){const p=PAL[i],y=TY[i];c.save();fieldPath(c,i);c.clip();
     const g=c.createLinearGradient(0,y,0,y+920);g.addColorStop(0,p.a);g.addColorStop(1,p.b);c.fillStyle=g;c.fillRect(0,y-10,W,1200);
-    flagstones(c,i);if(THEME.floorArt&&THEME.floorArt[i])THEME.floorArt[i](c,y,p);
+    if(THEME.flagstones!==false)flagstones(c,i);if(THEME.floorArt&&THEME.floorArt[i])THEME.floorArt[i](c,y,p);
     const v=c.createLinearGradient(20,0,620,0);v.addColorStop(0,'rgba(0,0,0,.42)');v.addColorStop(.14,'rgba(0,0,0,0)');v.addColorStop(.86,'rgba(0,0,0,0)');v.addColorStop(1,'rgba(0,0,0,.42)');c.fillStyle=v;c.fillRect(0,y-10,W,1200);
     c.restore();}
   // chutes between levels and the shooter lane
@@ -56,5 +57,5 @@ export function paintFloorChunks(ss){const out=[];
   for(let k=0;k<Math.ceil((H+40-FLOOR_Y0)/FLOOR_CH);k++){const y0=FLOOR_Y0+k*FLOOR_CH,cv=mkCanvas(Math.round(W*ss),Math.round(FLOOR_CH*ss)),c=cv.getContext('2d');
     c.setTransform(ss,0,0,ss,0,-y0*ss);drawFloor3D(c,ss);out.push({cv,y0,y1:y0+FLOOR_CH});}
   {const cv=mkCanvas(Math.round(W*ss),Math.round((HW+90-(H+10))*ss)),c=cv.getContext('2d');c.setTransform(ss,0,0,ss,0,-(H+10)*ss);
-    c.fillStyle='#0a0806';c.fillRect(0,H+10,W,HW+90-(H+10));if(THEME.paintGrave)THEME.paintGrave(c);out.push({cv,y0:H+10,y1:HW+90,grave:true});}
+    c.fillStyle='#0a0806';c.fillRect(0,H+10,W,HW+90-(H+10));(THEME.paintGrave||defaultPaintGrave)(c);out.push({cv,y0:H+10,y1:HW+90,grave:true});}
   return out;}
