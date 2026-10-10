@@ -69,6 +69,9 @@ preset. `standard` is what Gravebound was tuned on.
 | `fast` | `speed:1.15`: everything about 15% quicker |
 | `slow` | `speed:0.88`: everything about 12% slower: a floatier, easier table |
 | `lively` | walls give back 0.52, slingshots kick 12% harder, bumpers 520: the ball is thrown about more |
+| `flat` | standard, with the old flipper: one speed from the first instant to the stop. For telling the two apart by hand |
+| `heavy` | standard, with a bat that starts from a standstill: softer taps and tips, timing matters more. Closer to a real coil, but a ball rolling down the bat no longer finds some wide shots on the tables built before it |
+| `real` | standard, with the stroke nearest a real coil: a standstill start, and the power lost over the last 15% of the swing. A ball carried up the bat leaves about 5 degrees further across the table, so on the tables built before it a rolling ball misses the centre scoops and centre ramps. A table that uses it has to be laid out for it |
 
 Give an object to start from a preset and change single numbers: `feel:{preset:'fast', bounce:.5}`. The numbers:
 
@@ -79,16 +82,35 @@ Give an object to start from a preset and change single numbers: `feel:{preset:'
 | `maxSpeed` | 2300 | nothing moves faster |
 | `bounce` | 0.45 | what a plain wall gives back (a wall's own `bounce` still wins) |
 | `flipper` | 1 | flipper strength |
+| `stroke` | `{punch:.7, rise:.01, cut:.95, hold:.45, peak:1.03}` | how the bat swings (below). `'flat'` is the old flipper |
 | `sling`, `bumper` | 1, 470 | slingshot kick (a factor); pop-bumper kick (a bumper's own `kick` still wins) |
 | `plunge` | `[1330, 1950]` | launch speed, from a tap to a full pull |
 | `ramp` | `{k:.2, drag:.1, exitV:520}` | what a ramp has unless its layout line says otherwise |
+
+**The flipper's stroke.** The bat does not move at one speed. The coil punches it to `punch` of its top speed at
+once; the rest builds, most of it within `rise` seconds; and for the last of the travel (past `cut` of the stroke)
+the power drops to a holding current, so the bat slows to `hold` of top speed. `peak` is the top speed as a share
+of the old flat flipper's, set so the hardest strike is as hard as it was. What that gives a player:
+
+- Full power is a ball met by the middle of the bat in mid-swing.
+- A tap is a soft shot: let go early and the ball gets what the bat had reached.
+- A ball at the very tip, or one that meets a bat already at the top of its swing, gets less.
+
+The standard numbers are mild on purpose: they were picked so that a ball rolling down the bat still finds the
+shots it found with the flat flipper on the four shipped tables. A ball on the bat is carried by it and let go
+where the bat slows, so `cut` and `punch` move every shot that starts near the pivot (the centre scoops and centre
+ramps, on these tables). Change them on a table and run `npm run reach` before anything else.
 
 A feel is one table's. It never changes another table. After changing one, run `npm run soak`, `reach` and
 `standards` for that table: a faster ball finds different pockets.
 
 To try a preset before committing to it: open the table with `?feel=fast` on the address
 (`tables/starfall/?feel=fast`) and play it, or give a check `--feel` (`node tests/soak.mjs 15 --table starfall
---feel fast`; `standards.mjs` and `reach.mjs` take it too). Neither changes the table's files.
+--feel fast`; `standards.mjs`, `reach.mjs` and `replay.mjs` take it too). Neither changes the table's files.
+
+To tell flippers apart by hand there is also a switch in the game: **Options > Flippers** steps through "Table's
+own", "Old" (the `flat` stroke), "Heavy" and "Real", on whatever table is open. It changes the stroke and
+nothing else, it is remembered until it is put back, and while it is on the corner of the screen says so.
 
 **`points`: what things are worth.** Every value the shared code pays has a name and a default (`POINTS0` in
 `engine/table/content.js`; the table in RULESET section 3). A table lists only the ones it changes:
@@ -264,7 +286,7 @@ A mouth must be listed before pieces that refer to it.
 - The bat points right from the pivot for a left-button flipper and left for a right-button one. `dir:1` or `dir:-1`
   says otherwise.
 - `rest` (0.5) and `up` (-0.44) are its two angles, in radians below the horizontal. Leave them unless you mean it.
-- Every flipper on a table swings at the same rate (the table's `feel` sets it), so a longer bat throws harder. The best strikes
+- Every flipper on a table swings the same way (the table's `feel` sets it), so a longer bat throws harder. The best strikes
   leave a mini at about 1400 units a second, a standard at about 1950, a long at about 2200: enough to climb roughly
   820, 1650 and 2050 units of table. `npm run reach -- <id>` tells you what each flipper of your table can hit.
 - A flipper needs something to bring the ball to it: the standard shelf, a wall, a gate, the end of a ramp.

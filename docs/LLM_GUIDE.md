@@ -35,13 +35,13 @@ want of a shorter word; read that as "the shared parts", not as a rule book.
 index.html                 table picker
 engine/api.js              the ONLY file a table imports from (re-exports the whole engine)
 engine/table/              layout.js  the level model (fields on a grid, Grave, wings; sizes; tierOf) and the feel
-                                      presets (FEELS: gravity, bounce, kicks, plunger, ramp defaults)
+                                      presets (FEELS: gravity, bounce, kicks, the flipper's stroke, plunger, ramps)
                            build.js   layout data -> walls, flippers, sensors (piece types live here)
                            parts.js   standard parts a field gets unless it says not (arch, orbits, slings, flippers,
                                       lanes) and the cabinet parts it always gets (shelf, way out)
                            geometry.js primitives (seg, bank, bumper, hole, mouth, rail)
-                           content.js a table's content as live bindings, default text (TEXT0), and USE: which
-                                      game systems this table has switched on
+                           content.js a table's content as live bindings, default text (TEXT0), default point
+                                      values (POINTS0), and USE: which game systems this table has switched on
 engine/physics/physics.js  how the ball moves. Its numbers come from the table's feel preset.
 engine/rules/              one file per subject: classes, spells, perks, party, rally, tavern (recruits), foes, waves,
                            bosses, quests, lamps, score, powers, grave, wings, events (what a hit is worth), ball,
@@ -64,7 +64,8 @@ docs/                      this guide, PINBALL, TABLE_FORMAT, RULESET, NEW_TABLE
 |---|---|
 | Make a new table ("today I want a space pinball game") | `PINBALL.md`, then `NEW_TABLE_CHECKLIST.md`, then `TABLE_FORMAT.md` |
 | Change a table's layout, words, goals, art | `PINBALL.md` (what it should still have), `TABLE_FORMAT.md` and that table's files |
-| Make a table faster, bouncier, easier | `TABLE_FORMAT.md`, "`feel`" |
+| Make a table faster, bouncier, easier; change how its flippers hit | `TABLE_FORMAT.md`, "`feel`" |
+| Change what a ramp, a target or a jackpot is worth on a table | `TABLE_FORMAT.md`, "`points`" |
 | Add or drop a game system on a table (health, enemies, classes...) | `TABLE_FORMAT.md`, "`uses`" |
 | What does an optional system do? What is a Rally, a ward, a lamp colour? | `RULESET.md` |
 | Change how every table plays | `RULESET.md`, then the one file in `engine/rules/` it names |
@@ -139,6 +140,10 @@ npm run bundle -- all  dist/pinballsauce.html (one file); check it with  node te
 - The recordings are an alarm, not a law. A replay failure means you changed how that table plays. If you meant
   to, re-record with `--record` and say so in the commit. If you did not, find it: the failure names the scenario
   and the second it first differs.
+- One recording is kept for good: `gravebound.flat.replay.json` was made from the original Gravebound, which had
+  the flat flipper. `node tests/replay.mjs 25 --feel flat` still has to match it; `test:full` runs it.
+- Changing how flippers swing (`stroke`) moves shots. Run `npm run reach` on every table that uses the feel you
+  changed, before and after, and say which shots moved.
 - `standards` prints notes, and notes never fail: they are guidelines the table does not follow, for someone to
   decide whether that is on purpose.
 - Passing every check means the table is not broken. Whether it is good is judged by a person playing it.

@@ -169,8 +169,20 @@ export function stepFlippers(h) {
   for (const f of T.flips) {
     const pw = G.flipPow || 1,
       dead = G.tilt > 0;
-    const target = f.on && !dead ? f.up : f.rest,
-      sp = f.on && !dead ? -21 * pw * FEEL.flipper : 13;
+    const up = f.on && !dead,
+      target = up ? f.up : f.rest,
+      st = FEEL.stroke;
+    let sp = up ? -21 * pw * FEEL.flipper : 13;
+    if (up && st) {
+      // The power stroke (see `stroke` in table/layout.js). The coil punches the bat to a share of its top speed at
+      // once; from there its speed closes on the top speed, quickly at first and then less and less. Past the cut
+      // the coil only holds, and the bat slows toward the stop. A bat already on its way up carries on from the
+      // speed it has.
+      const done = (f.rest - f.a) / (f.rest - f.up),
+        want = sp * st.peak * (done < st.cut ? 1 : st.hold),
+        was = Math.min(0, f.w, want * st.punch);
+      sp = want + (was - want) * Math.exp(-h / st.rise);
+    }
     let na = f.a + sp * h;
     if (sp < 0 && na < target) na = target;
     if (sp > 0 && na > target) na = target;

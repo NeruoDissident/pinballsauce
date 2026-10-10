@@ -1,18 +1,24 @@
 /* The engine's regression test: replay fixed inputs with a fixed random seed and compare the whole simulation,
    step for step, with a recording.
 
-     node tests/replay.mjs [minutes=5] [--table gravebound] [--only name,name] [--record] [--url page]
+     node tests/replay.mjs [minutes=5] [--table gravebound] [--only name,name] [--record] [--url page] [--feel flat]
 
-   Gravebound's recording (tests/golden/gravebound.replay.json) was made from the original Gravebound 0.21 before it
-   was split into engine and table: 20 scenarios, 25 minutes each. If this test passes, the ball, the flippers, the
-   foes, the bosses, every score and every random number are still exactly what the original produced.
+   A recording is how a table played on the day it was made: an alarm that says when a change altered that, not a
+   law. tests/golden/<table>.replay.json is the table as it ships. With --feel the table is played on another feel
+   preset and compared with tests/golden/<table>.<feel>.replay.json.
+
+   One of those is kept for good: gravebound.flat.replay.json was made from the original Gravebound 0.21, before it
+   was split into engine and table (20 scenarios, 25 minutes each). The original had the flat flipper, so
+     node tests/replay.mjs 25 --feel flat
+   still proves that with that one setting the ball, the flippers, the foes, the bosses, every score and every
+   random number are exactly what the original game produced.
    A failure names the scenario and the game time where the two first differ.
    --record rewrites the recording. Only do that for a change you MEANT to make to how tables play. */
 import {chromium} from 'playwright';
 import fs from 'fs';
 import path from 'path';
 import {fileURLToPath} from 'url';
-import {serve} from './serve.mjs';
+import {serve, local} from './serve.mjs';
 import {SCEN, init, run} from './scenarios.mjs';
 const here = path.dirname(fileURLToPath(import.meta.url)),
   args = process.argv.slice(2);
@@ -24,9 +30,11 @@ const mins = +(args.find(a => /^\d+(\.\d+)?$/.test(a)) || 5),
   table = opt('table') || 'gravebound',
   only = opt('only'),
   record = args.includes('--record'),
+  feel = opt('feel'), // play the table on another feel preset; it has its own recording
   EVERY = 12,
   CHUNK = 100;
-const gfile = path.join(here, 'golden', table + '.replay.json');
+const gfile = path.join(here, 'golden', table + (feel ? '.' + feel : '') + '.replay.json');
+
 const fnv = l => {
   let h1 = 0x811c9dc5,
     h2 = 0x1b873593;
@@ -67,7 +75,7 @@ for (const sc of SCEN) {
   pg.on('console', m => {
     if (m.type() === 'error' && !/ERR_FAILED|ERR_TUNNEL|favicon|net::/.test(m.text())) logs.push(m.text());
   });
-  await pg.route('**/*', r => (/^http:\/\/127\.0\.0\.1/.test(r.request().url()) ? r.continue() : r.abort()));
+  await local(pg, table, feel && {feel});
   await pg.addInitScript(init, sc.seed);
   await pg.goto(url);
   await pg.waitForFunction(() => window.__pb && window.__pb.ready(), null, {timeout: 180000, polling: 300});

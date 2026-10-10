@@ -33,6 +33,18 @@ import {UI, bindInput, popup} from '../ui/ui.js';
 
 /* ================= 3D SHELL: settings, overlay, resize, loop, boot ================= */
 export const GFX = prefs.get('gfx', {cam: 0, q: 'high', auto: true});
+/* A tuning switch, for telling flippers apart by hand: Options > Flippers gives every table the stroke of the `flat`
+   feel (the old flipper), the `heavy` one or the `real` one in place of its own, until it is put back. It is a setting, shared
+   by every table, and the page reloads when it changes because a feel is read once, when a table loads. */
+export const TRY_FLIP = {
+  on: prefs.get('flip', ''),
+  names: {'': "Table's own (mild)", flat: 'Old (one speed)', heavy: 'Heavy', real: 'Real'},
+  next() {
+    const k = Object.keys(this.names);
+    prefs.set('flip', k[(k.indexOf(this.on) + 1) % k.length] || '');
+    location.reload();
+  }
+};
 export const DEV = {on: false};
 export function gfxSave() {
   prefs.set('gfx', {cam: R3.camMode, q: R3.qName, auto: R3.auto});
@@ -49,7 +61,8 @@ export function gfxInfo() {
     (R3.q ? R3.q.label + (R3.q.post && !R3.postOn ? ' (no glow)' : '') : '') +
     '  ·  ' +
     Math.round(R3.fps) +
-    ' fps';
+    ' fps' +
+    (R3.tryFeel ? '  ·  ' + R3.tryFeel : '');
 }
 export function gfxKey(k) {
   if (k === 'cam') {
@@ -553,9 +566,17 @@ window.__gb = {
 window.__pb = {ready: () => R3.ready, api: window.__gb};
 export function boot(def, opt) {
   mountPage();
-  // ?feel=fast on the address tries this table on another feel preset, without editing it
-  const tryFeel = new URLSearchParams(location.search).get('feel');
+  // ?feel=fast on the address tries this table on another feel preset, without editing it. So does the Flippers
+  // button in Options, which is kept in the settings (TRY_FLIP below) until it is put back.
+  const tryFeel = new URLSearchParams(location.search).get('feel'),
+    flip = !tryFeel && FEELS[TRY_FLIP.on] ? TRY_FLIP.on : '';
   if (tryFeel && FEELS[tryFeel]) def = Object.assign({}, def, {feel: tryFeel});
+  // the Flippers switch changes the stroke only: the rest of the table's own feel stays
+  if (flip) {
+    const own = typeof def.feel === 'string' ? {preset: def.feel} : def.feel || {};
+    def = Object.assign({}, def, {feel: Object.assign({}, own, {stroke: FEELS[flip].stroke})});
+  }
+  R3.tryFeel = tryFeel && FEELS[tryFeel] ? tryFeel + ' feel' : flip ? flip + ' flippers' : '';
   initGame(def);
   $('hCoin').textContent = TEXT.coin;
   R3.camMode = (GFX.cam | 0) % CAMS.length;

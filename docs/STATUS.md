@@ -1,9 +1,106 @@
 # Status
 
-Written 10 October 2026, at the end of the third stage. Three lists: what exists, what was checked and how, and
-what was not checked. Nothing in the second list is a guess; anything that is a guess is in the third.
+Written 10 October 2026, at the end of the fourth stage (the third and fourth were the same day). Three lists
+for each: what exists, what was checked and how, and what was not checked. Nothing in a "verified" list is a guess;
+anything that is a guess is in a "not verified" list.
 
-## What changed in this stage: from "an engine that makes Gravebound" to "a ruleset and optional parts"
+## Stage 4: the flipper's stroke, point values, the Cathedral Freeway
+
+Three changes the owner asked for, and nothing else.
+
+**1. The flipper has a power stroke.** Before, a bat moved at one speed from the instant the button went down to
+the stop: a hit in the last degree of travel was as hard as one in the first, and a tap was nearly a full shot.
+Now the coil punches the bat to 70% of its top speed at once, the rest builds over the next hundredths of a second,
+and the power is cut for the last twentieth of the swing (`stroke` in a table's `feel`; TABLE_FORMAT). It is the
+default on all four tables. No table was retuned for it, as agreed.
+
+What it does, measured on Starfall's left flipper with a ball rolling down the bat (the right is its mirror):
+
+| | Old (flat) | New |
+|---|---|---|
+| Hardest strike | about 1975 | about 1980: the same, by design |
+| Middling strike | 1850 | 1700 |
+| A 12 ms tap / 20 ms / 30 ms | 1470 / 1720 / 1820 | 1350 / 1430 / 1620 |
+| Wide shots, 32 to 42 degrees across the table | 1690 to 1890 | 1450 to 1780 |
+| The whole stroke | 44 ms | 46 ms |
+
+So: the sweet spot (the middle of the bat, mid-swing) hits as hard as ever; everything else is softer, taps and
+the tip most of all.
+
+**This is a milder stroke than first built, and that is a finding.** A ball on the bat is not struck once: it is
+carried up by the bat and let go where the bat slows. So anything that weakens the end of the swing, or slows its
+start, moves every shot that begins near the pivot. The first version (a bat starting from a standstill, power cut
+for the last 15% of the swing) took the centre scoop and the centre ramp off every table: found on 15 to 20 of
+156 timings before, on none after. The numbers that shipped are the ones that keep those shots where they were.
+Three other strokes are kept as presets to try by hand: `flat` (the old flipper, exactly), `heavy` (a bat that
+starts from a standstill; softer taps and tips, and it loses a few wide shots) and `real` (that first version: the
+nearest to a real coil, and the one that misses the centre shots on today's layouts). **Options > Flippers** in
+the game steps through all four on any table.
+
+**Where this is going.** The owner wants the real feel: a ball rolling up the bat has to feel different from one
+met by a bat at full speed, and he is content to change the tables for it. So the mild default is a holding
+position. He picks a stroke by playing the four; then the tables are fitted to that stroke (centre scoops and
+ramp mouths moved to where its shots land, the wide shots opened up), and it becomes the default.
+
+**2. Point values are per-table defaults.** All 40 values the shared code pays have names (`POINTS0`); a table
+changes any with `points: {ramp: 6000}`. No table does yet.
+
+**3. Neon Descent's Cathedral Freeway** (the ramp up the right of the bottom district) is graded more gently:
+`k` 0.05 to 0.03 and `drag` 0.1 to 0.04, so it needs about 420 at its mouth where it needed about 610. In bot play
+it was made 27 times and failed 16; it is now made 41 and fails 6.
+
+### Verified in stage 4
+
+| What | How | Result |
+|---|---|---|
+| Naming the point values changed nothing | the replay alarm on all four tables before the flipper was touched | all 80 scenarios identical to the recordings |
+| A table's own points load, and a misspelt one is refused | Starfall loaded with `points:{ramp:9000, jackpot:60000}`, then with `points:{ramps:1}` | the two values changed and the rest kept their defaults; the second stopped the table with a message naming the valid names |
+| The `flat` preset is the old flipper exactly | all four tables replayed on `--feel flat` against the recordings made before this stage (before the Cathedral Freeway was changed) | all 80 scenarios identical. Gravebound's is the recording made from the original game; it is kept as `gravebound.flat.replay.json` and the suite still runs it |
+| No shot went from makeable to not | `reach` on all four tables before and after (156 timed flips for each of 29 flippers), and an 80-minute bot soak of each table before and after | see "What the new flipper changed", below. One shot did: Gravebound's home right orbit |
+| No new ball traps | the same four soaks | 0 balls stuck on all four |
+| Launches are as fair | `standards` on all four | 96%, 100%, 98%, 100% of launches reach a flipper: the same as before |
+| The Cathedral Freeway | the speed it needs worked out from its path and the ramp rule, then the Neon Descent soak | needs 417 at the mouth (was 608); made 41, failed 6 (was 27 and 16) |
+| The `heavy` preset does not break a table | Starfall and Gravebound on `--feel heavy`: `reach` and an 80-minute soak each | 0 stuck, the bot made every shot on both; `reach` no longer finds the Crypt Stair or the home right orbit on Gravebound from a rolling ball |
+| The Flippers switch | stepped through its settings on Starfall, reading back the stroke the table loaded each time; and once inside the one-page build | table's own, flat, heavy, real, and back; the choice survives the reload, the same table comes back, and the corner of the screen names the flipper in use |
+| The checks, on the commit this file ships in | recordings renewed on purpose, then the static check, all four layouts, and every replay: Gravebound 25 minutes, the original game's recording on `--feel flat` 25 minutes, the other three 10 minutes each | all passed: 100 scenarios identical. The soaks, `reach` and `standards` were run on the same stroke just before (above) and not again after the recordings were renewed |
+
+### What the new flipper changed (nothing was retuned; these are for the owner to judge)
+
+- **Gravebound's home right orbit is gone from the left flipper.** `reach` found it on 2 timings of 156 and the bot
+  made it 4 times in 80 minutes; now 0 and 0. It was already the narrowest shot on the table (the plunger lane
+  takes its room), and the same shot on Neon Descent and the Test Bench was already never made. Opening it up is a
+  layout change.
+- **Wide shots from a rolling ball are harder.** The low right scoop of each home playfield (Gravebound's Crypt
+  Stair, Neon Descent's Sewer Grate, the Test Bench's Hatch) is found on 2 timings of 156 where it was 4;
+  Starfall's Airlock on 2 where it was 6. In bot play the Crypt Stair fell from 20 to 9 in 80 minutes and the Sewer
+  Grate from 15 to 5; Starfall's Airlock rose from 16 to 41.
+- **Side ramps are easier to find**: the ones that were found on 1 timing in 156 are found on 4, on every table;
+  the centre ramps on 18 where it was 15.
+- **Ramps are still made far more often than they fail**, with a few failing a little more because the middling
+  strike is softer. Made / failed in 80 minutes, before and after: Gravebound's Forest Road 20/6 and 31/11, Chapel
+  Loop 89/20 and 59/14, Ruined Road 18/11 and 23/10, Wolf Run 26/0 and 32/7, Tower 48/8 and 34/6. Starfall's
+  Slingshot 109/8 and 144/19. Neon Descent's Helix Spiral 48/5 and 49/11; its other ramps within a few either way.
+- Ten flipper-and-shot pairs that `reach` found on 1 or 2 timings before are not found now: the home right orbit
+  and the Town Gate from Gravebound's left home flipper; their twins on Neon Descent; and on the Test Bench the
+  Bridge and the Rails from the East Works' flippers and the Guard from the home left flipper. The bot still made
+  every one of those in play except the two home right orbits (Neon Descent's it never made before either). (As many pairs that were not found before are found now.)
+
+### Not verified in stage 4
+
+- **How it feels.** Every number above is a bot or a timed flip. Whether the new stroke feels right, too mild, or
+  wrong is for thumbs. The Flippers switch in Options is there for exactly that comparison.
+- **Whether "mild" is what was wanted.** The owner asked for force that varies through the swing, more at the first
+  punch than at the end. What shipped has that, but only as much of it as the existing tables' shots allow. A
+  stronger version (`heavy`, or a longer weak end to the swing) needs tables laid out for it, or these retuned.
+- **The stroke on mini and long flippers** was measured only through `reach` and the Test Bench soak, not on its own.
+- **`points` in a real table.** No table sets any; the override was checked by loading one, not by playing.
+- **The `fast`, `slow` and `lively` presets with the new stroke.** Not re-run.
+
+---
+
+## Stage 3, the same morning
+
+### What changed in stage 3: from "an engine that makes Gravebound" to "a ruleset and optional parts"
 
 The owner's verdict on stages 1 and 2: far off track. What he asked for was a ruleset, so that he never has to say
 "make sure the table has lights, make sure the lights show state, make sure there are multipliers, make sure a
@@ -45,8 +142,8 @@ and feel the same, not match to the pixel. This stage does that.
   spinner or a rollover instead of stopping there. Tests take `--feel`.
 
 **What was re-recorded, on purpose:** the three layout recordings, because every ramp now carries a `calls` value
-(nothing else in them changed). **No replay recording was touched**: Gravebound, Neon Descent and the test bench
-play exactly as they did before this stage.
+(nothing else in them changed). **No replay recording was touched** in stage 3: Gravebound, Neon Descent and the test bench
+played exactly as they did before it. (Stage 4 renewed all four on purpose, for the new flipper.)
 
 ## What exists
 
@@ -70,7 +167,7 @@ play exactly as they did before this stage.
   `standards` (against the ruleset), `switches` (each system off). **Bundler**: one-file builds.
 - Not built: a table editor; table size as a setting. Both are later, on the owner's say-so.
 
-## Verified in this stage
+## Verified in stage 3
 
 | What | How | Result |
 |---|---|---|
@@ -106,7 +203,7 @@ These are findings, not changes. Nothing was altered on these tables; whether to
 - The Test Bench's West Wing has a flipper gap of 98 units (4.5 balls): mini flippers at the foot of a room, built
   that way on purpose to show what it does.
 
-## Not verified
+## Not verified in stage 3
 
 - **Nobody has played Starfall.** Every check ran in headless Chromium with a bot that flips but does not aim. The
   checks say it is not broken. Whether it is any good (`PINBALL.md` section 10: flow, rhythm, risk you choose) is
@@ -166,7 +263,7 @@ Two versions:
 What already works without it: a bigger table is more fields on the grid; a smaller or oddly shaped play area is a
 field with its standard parts switched off and its own walls; a faster or slower table is `feel`.
 
-## Left out of this stage, on purpose
+## Left out, on purpose
 
 Said before starting: table size as a setting (above); the front-end editor; the diamond Neon Descent.
 
