@@ -19,7 +19,7 @@ import {hurt} from './score.js';
 import {updateSpells} from './spells.js';
 import {manageSpawns, updatePickups} from './waves.js';
 import {wingHoldsDoor} from './wings.js';
-import {RULES, TEXT, WINGS, WING_KEYS} from '../table/content.js';
+import {RULES, TEXT, USE, WINGS, WING_KEYS} from '../table/content.js';
 import {FY, GRID, GT, H, HW, WT0, tierOf} from '../table/layout.js';
 import {A} from '../ui/audio.js';
 import {popup} from '../ui/ui.js';
@@ -126,7 +126,7 @@ export function updateRules(dt) {
     !G.choice &&
     !G.sub &&
     G.mode !== 'over' &&
-    !(G.run.main === null && !G.opt.endless) &&
+    !(USE.quests && G.run.main === null && !G.opt.endless) &&
     (G.opt.autoPick ||
       G.plunge.ready ||
       G.balls.some(b => b.st === 'held' || b.st === 'tunnel') ||

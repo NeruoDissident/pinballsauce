@@ -1,6 +1,5 @@
 {
  "table": "gravebound",
- "source": "Taken from the original Gravebound 3D 0.21 (commit aeadf66), where the table was hand-written code.",
  "sections": {
   "banks": {
    "n": 9,
@@ -48,7 +47,7 @@
   },
   "rails": {
    "n": 5,
-   "hash": "dc7c74b9f4a73f19"
+   "hash": "64a2fae4cda400b3"
   },
   "segs": {
    "n": 497,

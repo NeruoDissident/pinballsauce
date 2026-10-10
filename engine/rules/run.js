@@ -12,8 +12,8 @@ import {PERKS, RELICS} from './perks.js';
 import {qBegin, qResume, quests} from './quests.js';
 import {gold} from './score.js';
 import {buildTable} from '../table/build.js';
-import {BOSSES, CAMPAIGNS, DEF, RULES, SIDE, setContent} from '../table/content.js';
-import {BT, TY, setLayout} from '../table/layout.js';
+import {BOSSES, CAMPAIGNS, DEF, RULES, SIDE, USE, setContent} from '../table/content.js';
+import {BT, TY, setFeel, setLayout} from '../table/layout.js';
 import {A} from '../ui/audio.js';
 import {UI, popup} from '../ui/ui.js';
 
@@ -21,8 +21,9 @@ import {UI, popup} from '../ui/ui.js';
 export function initGame(def) {
   setStoreNs('pinballsauce.' + (def.store || def.id) + '.');
   setLayout(def.layout);
+  setFeel(def.feel);
   setContent(def);
-  applyNames(def.content.names);
+  applyNames((def.content || {}).names);
   buildTable(def);
   checkLamps();
   G.statues = T.statues.map(s => ({x: s.x, y: s.y, r: s.r, tier: s.tier, id: s.id, on: true, flash: 0, cool: 0}));
@@ -83,6 +84,7 @@ export function resetWorld() {
 }
 /* ---------- run ---------- */
 export function newRun(cls, comp) {
+  if (!USE.classes || !CLASSES[cls]) cls = USE.classes ? Object.keys(CLASSES)[0] : 'plain';
   const c = CLASSES[cls],
     meta = store.get('meta', {}),
     leg = G.demo ? 0 : Math.min(100, (meta.bosses || 0) * 10);
@@ -90,7 +92,7 @@ export function newRun(cls, comp) {
     cls,
     score: 0,
     ballNum: 1,
-    ballsLeft: 3,
+    ballsLeft: DEF.balls || 3,
     level: 1,
     xp: 0,
     hp: c.hp,
@@ -126,9 +128,11 @@ export function newRun(cls, comp) {
   if (RULES.newRun) RULES.newRun(r);
   recalc();
   r.hp = G.mods.maxHp;
-  if (comp && COMPANIONS[comp]) recruit(comp);
-  else if (G.demo) recruit(pick(Object.keys(COMPANIONS)));
-  r.main = makeCampaign(r);
+  if (USE.party) {
+    if (comp && COMPANIONS[comp]) recruit(comp);
+    else if (G.demo) recruit(pick(Object.keys(COMPANIONS)));
+  }
+  r.main = USE.quests ? makeCampaign(r) : null;
   return r;
 }
 export function recalc() {
@@ -205,7 +209,7 @@ export function makeCampaign(r) {
     keys = all.filter(k => !r.arcs.includes(k)),
     key = pick(keys.length ? keys : all);
   r.arcs.push(key);
-  r.tavern = TAVERN_RECRUITS ? drawRecruits(3) : [];
+  r.tavern = TAVERN_RECRUITS && USE.party ? drawRecruits(3) : [];
   r.wing = {key: CAMPAIGNS[key].wing ? CAMPAIGNS[key].wing.key : null, open: false, done: false, prog: 0};
   const c = CAMPAIGNS[key],
     cp = o => Object.assign({}, o),
@@ -227,6 +231,7 @@ export function makeCampaign(r) {
       stages.push(p.stage);
     } else if (p.boss) {
       const b = p.boss === '$boss' ? c.boss : p.boss;
+      if (!USE.bosses || !BOSSES[b]) continue;
       steps.push({t: 'boss', boss: b, n: 1, text: p.text || 'Destroy ' + BOSSES[b].name});
       stages.push(p.stage);
     } else if (p.wing) {
@@ -242,6 +247,7 @@ export function makeCampaign(r) {
   return {main: true, key, name: c.name, text: c.intro, steps, stages, si: 0, prog: 0, tl: 0};
 }
 export function giveRelic() {
+  if (!USE.cards) return null;
   const r = G.run,
     pool = RELICS.filter(x => !x.stack && !r.relics.includes(x.id));
   if (!pool.length) {
@@ -289,17 +295,19 @@ export function startRun(cls, comp) {
   G.mode = 'play';
   newRun(cls, comp);
   G.cam.y = TY[BT] - 20;
-  qBegin(G.run.main);
+  if (G.run.main) qBegin(G.run.main);
   startBall();
-  popup(G.run.main.name, G.run.main.text, 'main');
+  if (G.run.main) popup(G.run.main.name, G.run.main.text, 'main');
   newSideQuiet();
   UI.sync(true);
 }
 export function newSideQuiet() {
+  if (!USE.side) return;
   const r = G.run,
     pool = SIDE.filter(
       s => s.steps[0].tier === BT || (s.steps[0].id && T.shots[s.steps[0].id] && T.shots[s.steps[0].id].tier === BT)
     );
+  if (!pool.length) return;
   const s = pick(pool);
   const q = {
     id: s.id,
@@ -343,7 +351,7 @@ export function continueRun() {
   }
   recalc();
   G.cam.y = TY[BT] - 20;
-  if (!G.run.main) {
+  if (!G.run.main && USE.quests) {
     G.run.main = makeCampaign(G.run);
     qBegin(G.run.main);
   } else quests().forEach(qResume);
@@ -357,7 +365,7 @@ export function startDemo() {
   resetWorld();
   G.mode = 'title';
   newRun(pick(Object.keys(CLASSES)));
-  qBegin(G.run.main);
+  if (G.run.main) qBegin(G.run.main);
   newSideQuiet();
   G.bot = {hl: 0, hr: 0, tl: rand(20, 60), tr: rand(20, 60), pl: 0, plT: rand(0.3, 0.9)};
   startBall();

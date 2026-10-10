@@ -10,7 +10,7 @@ import {collideActors} from '../rules/foes.js';
 import {guardHit, liveGuards} from '../rules/party.js';
 import {TEXT} from '../table/content.js';
 import {railPos} from '../table/geometry.js';
-import {BR, CELL, GRAV, NM, OX, VMAX, YTOP, tierOf} from '../table/layout.js';
+import {BR, CELL, FEEL, GRAV, NM, OX, VMAX, YTOP, tierOf} from '../table/layout.js';
 import {A} from '../ui/audio.js';
 
 /* ================= PHYSICS ================= */
@@ -83,7 +83,7 @@ export function hitSeg(b, s) {
   if (imp < 55) return;
   if (s.kind === 'sling') {
     if (t > 0.1 && t < 0.9 && nx * s.kx + ny * s.ky > 0.5) {
-      const k = (G.slingRun > 4 ? 140 : rand(420, 580)) * (0.5 + 0.5 * b.kx);
+      const k = (G.slingRun > 4 ? 140 : rand(420, 580)) * (0.5 + 0.5 * b.kx) * FEEL.sling;
       b.vx += s.kx * k;
       b.vy += s.ky * k + rand(-50, 30);
       s.flash = 1;
@@ -170,7 +170,7 @@ export function stepFlippers(h) {
     const pw = G.flipPow || 1,
       dead = G.tilt > 0;
     const target = f.on && !dead ? f.up : f.rest,
-      sp = f.on && !dead ? -21 * pw : 13;
+      sp = f.on && !dead ? -21 * pw * FEEL.flipper : 13;
     let na = f.a + sp * h;
     if (sp < 0 && na < target) na = target;
     if (sp > 0 && na > target) na = target;
@@ -183,7 +183,7 @@ export function stepBall(b, h) {
     const r = b.rail,
       p = railPos(r, b.rs, b);
     b.rv += GRAV * r.k * p.ty * h;
-    b.rv -= b.rv * (r.drag === undefined ? 0.1 : r.drag) * h;
+    b.rv -= b.rv * (r.drag === undefined ? FEEL.ramp.drag : r.drag) * h;
     if (r.drain && b.rv < 140) b.rv = 140; // a drain ramp never lets a ball roll back
     b.rs += b.rv * h;
     b.hgt = Math.min(1, b.rs / 80, (r.len - b.rs) / 80);

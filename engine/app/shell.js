@@ -27,8 +27,8 @@ import {continueRun, initGame, saveRun, startDemo, startRun} from '../rules/run.
 import {CRADLE_ARM, CRADLE_RALLY} from '../rules/score.js';
 import {gameStep} from '../rules/step.js';
 import {enterWing} from '../rules/wings.js';
-import {DEF, RULES, TEXT, WINGS, WING_KEYS} from '../table/content.js';
-import {BT, CX, GT, GY, H, NM, OX, TY} from '../table/layout.js';
+import {DEF, RULES, TEXT, USE, WINGS, WING_KEYS} from '../table/content.js';
+import {BT, CX, FEELS, GT, GY, H, NM, OX, TY} from '../table/layout.js';
 import {UI, bindInput, popup} from '../ui/ui.js';
 
 /* ================= 3D SHELL: settings, overlay, resize, loop, boot ================= */
@@ -104,7 +104,7 @@ export function devKey(k) {
   } else if (dn >= 0) {
     const t = dn;
     if (t === NM) {
-      if (G.inGrave) return;
+      if (G.inGrave || !USE.grave) return;
       G.save = 0;
       r.shield = false;
       G.plunge.auto = 0;
@@ -125,7 +125,7 @@ export function devKey(k) {
     }
   } else if (k === 'dg') {
     const g = r.grave;
-    if (G.inGrave) return;
+    if (G.inGrave || !USE.grave) return;
     g.open = !g.open;
     g.hits = g.open ? g.need : 0;
     if (g.open) popup('The Grave Opens', 'Your next lost ball falls into it', 'good');
@@ -498,6 +498,12 @@ window.__gb = {
   get rules() {
     return RULES;
   },
+  get def() {
+    return DEF;
+  },
+  get uses() {
+    return USE;
+  },
   // the fields as the layout lists them: id, and the corner each one's own numbers are measured from
   get fields() {
     return DEF.layout.fields.map((f, i) => ({id: f.id, x: OX[i], y: TY[i]}));
@@ -547,6 +553,9 @@ window.__gb = {
 window.__pb = {ready: () => R3.ready, api: window.__gb};
 export function boot(def, opt) {
   mountPage();
+  // ?feel=fast on the address tries this table on another feel preset, without editing it
+  const tryFeel = new URLSearchParams(location.search).get('feel');
+  if (tryFeel && FEELS[tryFeel]) def = Object.assign({}, def, {feel: tryFeel});
   initGame(def);
   $('hCoin').textContent = TEXT.coin;
   R3.camMode = (GFX.cam | 0) % CAMS.length;

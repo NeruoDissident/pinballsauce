@@ -145,8 +145,8 @@ export const layout={
      that leaves the foot of the named field. k is how hard gravity pulls along a ramp (0.2 unless given), exitV the
      fastest it lets a ball leave (520), drag the share of its speed a ball loses each second (0.1). ---------- */
   ramps:[
-    // the Whip: once round the Crown and back to the right inlane, fast
-    {id:'whip',name:'The Whip',from:'crown',to:'crown',k:.1,exitV:1000,drag:.02,
+    // the Whip: once round the Crown and back to the right inlane, fast. `calls:2`: two foes follow the ball round
+    {id:'whip',name:'The Whip',from:'crown',to:'crown',calls:2,k:.1,exitV:1000,drag:.02,
       path:[['#crown',118,310],['#crown',92,220],['#crown',118,142],['#crown',200,86],['#crown',320,66],['#crown',440,86],['#crown',522,142],['#crown',550,220],['#crown',560,420],['#crown',559,680],['#crown',559,716]]},
     // the Climb: Apex to Crown, to the right inlane
     {id:'climb',name:'The Climb',from:'apex',to:'crown',up:true,

@@ -5,7 +5,7 @@ import {interruptBoss} from './bosses.js';
 import {CLASSES} from './classes.js';
 import {qEvent} from './quests.js';
 import {recalc} from './run.js';
-import {TEXT} from '../table/content.js';
+import {TEXT, USE} from '../table/content.js';
 import {heroBalls} from './spells.js';
 import {A} from '../ui/audio.js';
 import {popup} from '../ui/ui.js';
@@ -24,7 +24,7 @@ export function score(n, x, y, label) {
   return v;
 }
 export function gold(n, x, y) {
-  if (n <= 0) return;
+  if (n <= 0 || !USE.gold) return;
   const r = G.run,
     v = Math.ceil(n * G.mods.gold * (G.buffs.stealth > 0 ? 2 : 1));
   r.gold += v;
@@ -32,6 +32,7 @@ export function gold(n, x, y) {
   if (x !== undefined) float(x + 10, y - 16, '+' + v + TEXT.coinMark, '#ffd24a', 12);
 }
 export function xp(n) {
+  if (!USE.levels) return;
   const r = G.run;
   r.xp += n * G.mods.xp;
   G.dirty = true;
@@ -53,7 +54,7 @@ export function heal(n) {
 }
 // The ball is your life. Player health is switched off while we find whether it fits: a strike still lands (shake, sound,
 // and a Death Wish still drains the meter) but nothing can make you fall.
-export const PLAYER_HP = () => G.playerHp !== false;
+export const PLAYER_HP = () => USE.health && G.playerHp !== false;
 export const HURT_K = 0.3;
 // health is on and tuned way down: foes hit for 30% of their old damage
 export const CRADLE_ARM = 0.8;
@@ -105,7 +106,7 @@ export function hurt(n) {
 export function charge(n, src) {
   const r = G.run,
     k = CLASSES[r.cls].ch[src];
-  if (!k || G.fallen) return;
+  if (!k || G.fallen || !USE.meter) return;
   const was = r.charge;
   r.charge = Math.min(100, r.charge + (k * n * G.mods.charge) / Math.max(1, heroBalls().length));
   G.dirty = true;

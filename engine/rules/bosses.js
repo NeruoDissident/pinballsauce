@@ -11,7 +11,7 @@ import {qCur, qEvent} from './quests.js';
 import {metaAdd, recalc} from './run.js';
 import {charge, gold, hurt, score, xp} from './score.js';
 import {spellOn, spellVal} from './spells.js';
-import {BOSSES, ENEMY, hook} from '../table/content.js';
+import {BOSSES, ENEMY, USE, hook} from '../table/content.js';
 import {OX, TY} from '../table/layout.js';
 import {A} from '../ui/audio.js';
 import {popup} from '../ui/ui.js';
@@ -27,7 +27,7 @@ export function wakeInfo(tier) {
   let pb = -1,
     bi = -1;
   for (let i = 0; i < st.length; i++)
-    if (st[i].t === 'boss') {
+    if (st[i].t === 'boss' && BOSSES[st[i].boss]) {
       if (BOSSES[st[i].boss].tier === tier) {
         bi = i;
         break;
@@ -349,7 +349,7 @@ export function killBoss(bo) {
   }
   popup('Boss Slain', d.name, 'main', note);
   r.shop = true;
-  if (!G.demo) G.pending.push('perk');
+  if (!G.demo && USE.cards) G.pending.push('perk');
   later(2.2, () => {
     if (G.boss === bo) {
       G.boss = null;

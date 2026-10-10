@@ -12,6 +12,7 @@ import {
   BT,
   CELL,
   CX,
+  FEEL,
   FIELD_INDEX,
   GRAV,
   GT,
@@ -428,7 +429,8 @@ export function buildTable(def) {
     lamps: [],
     drains: [],
     std: [],
-    roads: null
+    roads: null,
+    roadList: null
   });
   for (let t = 0; t < NT; t++) T.spawn.push([]);
   const S = (T.std = L.fields.map(standardOf));
@@ -470,7 +472,7 @@ export function buildTable(def) {
     T.spawn[i] = (f.spawn || []).map(o);
   }
   if (!T.shooter) throw new Error('layout: the bottom field needs a {t:"shooter"} piece');
-  from('grave', () => buildGrave(L.grave, C));
+  if (L.grave) from('grave', () => buildGrave(L.grave, C)); // a table without one simply loses the ball at the drain
   (L.wings || []).forEach((wd, k) => from(wd.key + ' room', () => buildWing(wd, k, C)));
   // a field named by id or by index; a point given on the plane, or inside a field as ['#fieldId', x, y]
   const fi = v => {
@@ -484,6 +486,7 @@ export function buildTable(def) {
     if (r.up) o.up = true;
     if (r.lift) o.lift = r.lift;
     if (r.col) o.col = r.col;
+    if (r.calls) o.calls = r.calls; // a ramp that calls this many foes of the campaign each time it is made
     if (r.k !== undefined) o.k = r.k; // how hard gravity pulls along it (0.2)
     if (r.exitV !== undefined) o.exitV = r.exitV; // the fastest it lets a ball leave (520)
     if (r.drag !== undefined) o.drag = r.drag; // the share of its speed a ball loses each second (0.1)
@@ -511,7 +514,7 @@ export function buildTable(def) {
         ),
         6
       ),
-      {id: r.id, name: r.name, k: 0.2, exitV: 520},
+      {id: r.id, name: r.name, k: FEEL.ramp.k, exitV: FEEL.ramp.exitV},
       o
     );
   }
@@ -570,7 +573,7 @@ export function buildTable(def) {
     const h = H_[id],
       tx = f.x + f.dir * 46,
       ty = f.y - 8,
-      vy = 260,
+      vy = 260 * FEEL.speed,
       dy = ty - h.y,
       t = (-vy + Math.sqrt(vy * vy + 2 * GRAV * dy)) / GRAV;
     h.ev = [(tx - h.x) / t, vy];

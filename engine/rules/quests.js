@@ -59,7 +59,7 @@ export function qAdd(q, n) {
     else {
       qBegin(q);
       popup(
-        q.main ? (q.stages || STAGES)[q.si] || 'Main Quest' : 'Quest Updated',
+        q.main ? (q.stages || STAGES)[q.si] || TEXT.mainHead : 'Quest Updated',
         qCur(q).text,
         q.main ? 'main' : 'quest'
       );
@@ -92,7 +92,7 @@ export function qFinish(q) {
     score(250000);
     xp(150);
     gold(100);
-    popup('Main Quest Complete', c.win, 'main');
+    popup(TEXT.mainDone, c.win, 'main');
     A.s('victory');
     metaAdd('wins');
     r.threat++;

@@ -1,11 +1,13 @@
 # Making a new table
 
-For "today I want a space pinball game". Follow it top to bottom, with `TABLE_FORMAT.md` open beside it for the exact
-keys. Read `tables/test-bench/layout.js` before you start: it is the shortest layout that uses every feature.
+For "today I want a space pinball game". **Read `PINBALL.md` first**: it says what the table has to have without
+being asked (lights on every goal, state on the playfield, goals that build, a fair launch). This page is the order
+to do the work in, with `TABLE_FORMAT.md` open beside it for the exact keys.
 
-The engine gives you the cabinet and the rules. **The playfield is yours**: how many fields, where they stand, what
-is in each one, how many flippers and how long, where the roads go and how fast they are. What is not yours is the
-physics, the scoring and the size of a field: those are the manufacturer, and they are why two tables feel related.
+Everything is the table's to decide: how many fields, where they stand, what is in each one, how many flippers and
+how long, where the roads go, how fast the ball is (`feel`), and which game systems it has at all (`uses`). The
+only fixed things are the ones the physics is built on: a field is 640 by 1040 with its flipper shelf at y 900, and
+the plunger runs up the right side of the home field.
 
 ## The priorities
 
@@ -18,7 +20,8 @@ When two things pull against each other, the earlier one wins. Check your table 
    What the game is doing is on lamps, where a real table would put them.
 5. Then the theme.
 
-Each has a test (step 8). A table that fails 1, 2 or 3 is not finished however good it looks.
+Each has a test (step 8). A table that fails 1, 2 or 3 is not finished however good it looks. These four are
+`PINBALL.md` sections 2 to 4 in the order to settle arguments by.
 
 ## 0. Settle the brief (ask the owner, or decide and say what you decided)
 
@@ -26,9 +29,14 @@ Each has a test (step 8). A table that fails 1, 2 or 3 is not finished however g
 2. **The shape**: how many fields and how they stand (step 1). This is the first thing a player sees. If the owner
    described a shape ("a diamond", "one big table", "a tower"), build that shape. If you think another would play
    better, say so and ask. Do not quietly build the other one.
-3. The journey: where the ball starts, where the last boss stands, how the player gets there.
-4. What makes it this table: one or two things (fast freeways, a third flipper, a room with tiny flippers).
-5. Wings (side rooms) or not. Optional.
+3. **Which optional systems** (`PINBALL.md` section 9). The two ends are "plain pinball" (none: shots, lights,
+   a multiplier, table goals; Starfall) and "the RPG kind" (classes, levels, health, enemies, bosses, quests, party,
+   cards, a Grave; Gravebound). Anything between is fine: enemies but no classes, quests but no health. If the
+   request does not say, ask; do not assume the RPG kind.
+4. The big goal: what the table is about and how a run ends (a last shot, a last boss, a score). Then the ladder up
+   to it (`PINBALL.md` section 5).
+5. What makes it this table: one or two things (fast freeways, a third flipper, a room with tiny flippers).
+6. How it should feel, if the owner said: fast, floaty, lively (`feel`). Otherwise `standard`.
 
 ## 1. Choose the shape
 
@@ -57,11 +65,12 @@ Write the plan down as a list before any geometry: field, where it stands, how t
 ## 2. Start from a copy
 
 ```
-cp -r tables/test-bench tables/<id>       # plain, no art, a grid.     Or tables/neon-descent (themed, a stack, no
-                                          # wings) or tables/gravebound (themed, a stack, wings).
+cp -r tables/starfall tables/<id>         # plain pinball, one field, every optional system off, no art
+cp -r tables/test-bench tables/<id>       # an unusual shape: a grid, a room with no standard parts. No art
+cp -r tables/gravebound tables/<id>       # the RPG kind, every system on, a stack, wings, a full theme
 ```
 
-- `table.js`: set `id`, `name`, `store` (all new), `blurb`, `accent`.
+- `table.js`: set `id`, `name`, `store` (all new), `blurb`, `accent`, and `uses`, `balls`, `feel` from the brief.
 - `index.html`: the `<title>` and `theme-color`.
 - Root `index.html`: add the table to the list.
 - If you copied a themed table, empty `theme/index.js` down to `export const theme={};` and delete the other theme
@@ -92,7 +101,12 @@ cp -r tables/test-bench tables/<id>       # plain, no art, a grid.     Or tables
   another way; use one where you want that, and nowhere by accident.
 - **Standups stand on something** (the face of a block or a wall). Drops may stand free.
 - **A ramp mouth needs a wall on each side of its throat** (`'@id.lb','@id.lt'` and `'@id.rb','@id.rt'`), or a block.
-- **Leave room for foes**: open floor round (cx, 400) and (cx, 650), or give the field `rise`, `line` and `drop`.
+- **If the table has foes, leave room for them**: open floor round (cx, 400) and (cx, 650), or give the field
+  `rise`, `line` and `drop`.
+- **Check the launch early.** Plunge at a tap, a half pull and a full pull and watch where the ball goes with
+  nobody flipping. If a full pull rides the orbit round to an inlane and flies over the flipper, put a one-way
+  `gate` at the head of that orbit so the ball drops into the top lanes instead. A small `post` under the gap
+  between the flippers turns many straight-down drains into a second chance. Starfall has both.
 
 ### Flippers and shots
 
@@ -147,26 +161,46 @@ spinner, lane set and statue, and `orbitL<n>` / `orbitR<n>` for a field with orb
 
 - An arrow sits 40 to 60 units in front of its shot, on the line the ball takes, pointing at it (`ang`).
 - A `kind:'dot'` is for what you hit rather than enter: a bumper nest, a spinner, a lane set.
-- The engine lights them: gold for the main quest, blue for errands, green for the lock, red for a boss's spell.
+- The engine lights them for goals written as data: gold for the main goal, blue for side goals, red for a boss's
+  spell. The table's `rules.lamps` lights the rest: what is available, what a bank will give, the lock.
+- **Every goal gets one. Every shot gets one.** `npm run standards` lists any that do not.
 
 **Status lamps** (`lamp` pieces): put the state of the game on the floor, where a player looks.
 
 | Lamp | Where a real table puts it |
 |---|---|
 | `mult2` to `mult6` | a column up the middle of the home field, above the flippers, 2x nearest the player |
-| `save` | above the gap between the flippers (not in it: the party's guard stands there, with a name tag) |
+| `save` | above the gap between the flippers (on a table with a party not in it: the guard stands there, with a name tag) |
 | `kickback` | in the left outlane |
 | `lockLit`, `lock1` | beside the scoop that locks |
 | `rally`, `grave`, `mb`, `combo` | in the middle, either side of the column |
 | your own (`rules.status`) | beside the feature it belongs to |
 
-Keep lamps 28 or more apart, label each in one or two words, keep them out from under ramps, and keep them off the
-rune ring (twelve dots on a circle of radius 96 round (cx, 650) on every field; the test bench's column steps over
-the one at (cx, 746)).
+Keep lamps 28 or more apart, label each in one or two words, and keep them out from under ramps. On a table with
+levels, keep them off the rune ring too (twelve dots on a circle of radius 96 round (cx, 650) on every field; the
+test bench's column steps over the one at (cx, 746)).
+
+The least a table shows on its floor: the multiplier, the ball save, the kickback if it has one, the lock if it has
+one, and progress toward its big goal. How many lamps that takes and where they go is yours.
 
 ## 6. Content and rules
 
-Work in this order; each step only needs the one before.
+**Every table**, plain or not:
+
+1. **The ladder** (`PINBALL.md` section 5). Decide what each bank, lane set and scoop *gives* (`rules.onComplete`,
+   `rules.onScoop`): something raises the multiplier, something relights the kickback, something lights the lock,
+   something starts a timed bonus. Then what those add up to, and the big goal.
+2. **Write the big goal's path as data if you can** (`content.campaigns` and `plan`: steps of `shot` and `done`).
+   The engine then tracks it, flashes each step's light, lists it in the journal and ends the run with a summary.
+   Anything data cannot say goes in `rules.js`, with `rules.objective` for the goal line.
+3. **One feature of the table's own** with a risk in it (Starfall's cargo: build it, bank it or lose it with the
+   ball), a status lamp for it (`rules.status`), and a line in the end-of-ball bonus if it counts something
+   (`rules.bonus`).
+4. **`lamps`** (in rules): light what is available and what leads to it (the lock, and the bank that lights it).
+5. **Words**: `text` (the engine's default words are Gravebound's: give your own title, headings, `lost`,
+   `overWon`, `overLost`), `help` (your own pages).
+
+**If the table has the RPG systems**, add these, in this order; each step only needs the one before.
 
 1. **Foes**: one per job you want (all eight is normal). Copy the numbers from Gravebound's foe with that job.
    Pick a `figure` and `tint`. Flag machines or undead `undead:1`.
@@ -174,11 +208,11 @@ Work in this order; each step only needs the one before.
    field; `summon` (and `wardBy`) foes you defined. Copy a Gravebound boss's numbers for the same place in the order.
 3. **Campaign(s)**: pools of steps per stage, and a `plan`. Every step id must have an insert. One campaign is
    enough; three (as Gravebound) gives runs variety.
-4. **Side quests**: 12 to 16 for a full table. At least one must begin on the home field (a run starts with one).
-5. **Features**: decide what each bank, lane set and scoop does, then write `rules.js`. The house roles below are
-   what Gravebound gives its features; you do not need all of them. You do need: a multiplier, a kickback relight,
-   a scoop that hands out side quests (and recruits, if you want the party to grow), a lock, a way on from every
-   field, and bumpers with `opensGrave:true`.
+4. **Side quests**: as many as the brief says (Gravebound has 16). At least one must begin on the home field (a
+   run starts with one). A scoop hands them out (`newSide()`).
+5. **Features**: the roles below are what Gravebound gives its features. Take what suits; none is required. A table
+   with a party wants a scoop that sells recruits; a table with a Grave wants bumpers flagged `opensGrave:true`;
+   a table with more than one field wants a way on from every field.
 
 | House role (Gravebound) | Its effect | Neon Descent |
 |---|---|---|
@@ -198,11 +232,8 @@ Work in this order; each step only needs the one before.
 | Standups, top field (Armory) | half damage 30 s, calls 1 | Black ICE |
 | Right pocket, top field (Oubliette) | tunnel down to the home field | Service Elevator |
 
-6. **`lamps`** (in rules): light what is available (the lock, a timed boon, the quest scoop, a door).
-   **`on`**: anything a plain event should add on this table (a ramp that pays more each time round, a slingshot
-   that counts). **`status`**: states for your own status lamps.
-7. **Words**: `names` (classes, abilities, companions, relics, boons in your theme's voice), `text` (title, the
-   Grave's words, the coin's name), `help` (your own pages), `spinCalls`, `graveStir`, `noPerks`.
+6. **Words for the systems you switched on**: `names` (classes, abilities, companions, relics, boons in your theme's
+   voice), `text` (the Grave's words, the coin's name), `spinCalls`, `graveStir`, `noPerks`.
 
 ## 7. Theme, in this order (stop whenever it is good enough)
 
@@ -219,17 +250,22 @@ tables/<id>/index.html?inspect                        # every field, top-down an
 npm run reach -- <id>                                 # priority 3: every shot on some flipper's list, no idle flipper
 node tests/soak.mjs 20 --table <id> --seeds 8         # priorities 1 and 2: no pockets; every ramp made more than
                                                       #   failed; every chute ridden; NEVER (none), or explained
+npm run standards -- <id>                             # PINBALL.md: 9 launches in 10 reach a flipper; a light on every
+                                                      #   goal and shot; state lamps. Read every NOTE: fix it, or
+                                                      #   say why the table is that way on purpose
 node tests/table.mjs --table <id> --record            # record the layout
 node tests/replay.mjs 10 --table <id> --record        # record 20 replay scenarios; then run without --record: must MATCH
 npm test                                              # the other tables must still match their recordings
 ```
 
-Then add the table to the `test` and `test:full` scripts in `package.json`, and play it: each class for a few
-minutes, every field, one boss. The bot only flips, it does not aim; neither test can tell you whether it is fun.
+Then add the table to the `test` and `test:full` scripts in `package.json`, and play it: every field, the big goal,
+and each class and one boss if it has them. The bot only flips, it does not aim; no test can tell you whether it
+is fun, and the last section of `PINBALL.md` ("What makes a table good") is judged only by playing.
 
 **Done means:** the checks above pass; every field has been looked at tilted in inspect mode with both flippers and
-both outlanes in view; the title, a ball on each field and a boss have been seen in play; `docs/STATUS.md` has a
-line for the table saying what was verified and how, and what was not.
+both outlanes in view; the title, a ball on each field, the HUD and the end-of-run screen have been seen in play
+and show nothing from a system the table does not use; `docs/STATUS.md` has a line for the table saying what was
+verified and how, and what was not.
 
 ---
 
@@ -331,13 +367,14 @@ between two posts; its own slingshots (`a:[100,650], b:[100,770], c:[175,800]` a
 
 ## Appendix B: what fits a table, what needs the engine
 
-Fits a table today (no engine change): the shape of the table on the grid; the shape of any field; any number, size
-and place of flippers; walls, gates, posts, slingshots, rollovers, lamps; ramp speeds; what any bank, lane set, scoop
-or plain event does; timers; flags on the run; extra multiballs; which foes appear where and when; boss sequences;
-wing rules of the three kinds; all words and art; re-skinning classes.
+Fits a table today (no engine change): which game systems it has (`uses`); how many balls; how the ball feels
+(`feel`: speed, gravity, bounce, kicks, flipper strength, plunger, ramp defaults); the shape of the table on the
+grid; the shape of any field; any number, size and place of flippers; walls, gates, posts, slingshots, rollovers,
+lamps; ramp speeds; what any bank, lane set, scoop or plain event does; goals as data or as rules; timers; flags on
+the run; extra multiballs; end-of-ball bonus lines; which foes appear where and when; boss sequences; wing rules
+of the three kinds; all words and art; re-skinning classes.
 
-Needs a general engine feature first (propose it; do not special-case a table): a new piece type (a magnet, a
-captive ball, a moving target, a second plunger); a new foe job; a new wing rule; a new curse or buff; a field that
-is not 640 by 1040; more than one door; reshaping the Grave; a new class or ability.
-
-Never: a different gravity, flipper strength or scoring table for one machine.
+Needs a general feature in the shared code first (propose it; do not special-case a table): a new piece type (a
+magnet, a captive ball, a moving target, a second plunger); a new foe job; a new wing rule; a new curse or buff; a
+field that is not 640 by 1040; more than one door; reshaping the Grave; a new class or ability; a different value
+for a shot on one table (base scores are shared so that scores compare; a table pays extra through its rules).

@@ -5,7 +5,7 @@ import {spawnEnemy} from './foes.js';
 import {qCur, qEvent, quests} from './quests.js';
 import {charge, gold, heal, score} from './score.js';
 import {wingOfTier, wingProg} from './wings.js';
-import {CAMPAIGNS, ENEMY, TEXT, WINGS} from '../table/content.js';
+import {CAMPAIGNS, ENEMY, TEXT, USE, WINGS} from '../table/content.js';
 import {NM} from '../table/layout.js';
 import {A} from '../ui/audio.js';
 import {popup} from '../ui/ui.js';
@@ -18,6 +18,7 @@ export function startWave(tier, why) {
   const r = G.run,
     W = G.wave,
     camp = CAMPAIGNS[r.arcs[r.arcs.length - 1]];
+  if (!USE.foes || !camp || !(camp.foes || []).length) return false;
   if (tier >= NM || G.enemies.length >= FOE_CAP || foesOn(tier) >= TIER_CAP) return false;
   let budget = 3 + r.level * 0.6 + (r.threat - 1) * 2 + (why === 'bell' ? 2 : 0);
   const foes = camp.foes,
@@ -40,6 +41,7 @@ export function startWave(tier, why) {
 }
 // put a list of foes on a level as one wave; waves overlap freely, each pays its own bounty when cleared
 export function launchWave(tier, list, why, camp, quiet) {
+  if (!USE.foes || !list.length) return false;
   const W = G.wave;
   W.n++;
   const wv = {tier, n: W.n, left: list.length, total: list.length};
@@ -77,6 +79,7 @@ export function waveJoin(e, tier) {
 }
 // a shot on the table calls foes onto its level: a small wave of its own
 export function callFoes(tier, types, text, x, y) {
+  if (!USE.foes || !types.length) return false;
   if (G.demo || tier >= NM || G.inGrave || G.enemies.length >= FOE_CAP || foesOn(tier) >= TIER_CAP) return false;
   const k = 'call' + tier + text;
   if ((G.calls || (G.calls = {}))[k] > G.t) return false;
@@ -91,6 +94,7 @@ export function campFoes(n) {
   const r = G.run,
     c = CAMPAIGNS[r.arcs[r.arcs.length - 1]],
     o = [];
+  if (!USE.foes || !c || !(c.foes || []).length) return o;
   for (let i = 0; i < n; i++) o.push(pick(c.foes));
   return o;
 }
@@ -122,6 +126,7 @@ export function waveTick() {
 }
 export function manageSpawns() {
   const r = G.run;
+  if (!USE.foes) return;
   if (!G.balls.length || G.sub || G.fallen || G.inGrave) return;
   {
     const tw = wingOfTier(G.focusTier),

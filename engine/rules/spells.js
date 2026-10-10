@@ -10,7 +10,7 @@ import {damageEnemy} from './foes.js';
 import {relight} from './lamps.js';
 import {heal} from './score.js';
 import {callFoes, campFoes, foesOn} from './waves.js';
-import {TEXT} from '../table/content.js';
+import {TEXT, USE} from '../table/content.js';
 import {BT, NM, OX, TY} from '../table/layout.js';
 import {A} from '../ui/audio.js';
 import {popup} from '../ui/ui.js';
@@ -645,7 +645,7 @@ export function bookChoice() {
     };
   });
   if (opts.every(o => /full/.test(o.tag))) {
-    G.pending.unshift('perk');
+    if (USE.cards) G.pending.unshift('perk');
     return bookDone();
   } // nothing left to learn: a boon instead
   return {kind: 'book', title: 'Level ' + r.level, sub: 'Your spellbook. Unlock an ability, or level one up', opts};

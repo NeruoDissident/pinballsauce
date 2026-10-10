@@ -27,7 +27,7 @@ footer a{color:var(--cyan)}
 <body>
 <main>
   <h1>Pinballsauce</h1>
-  <p class="lead">One pinball engine, several tables. Same ball, same flippers, same rules on every one of them.</p>
+  <p class="lead">Several pinball tables built from the same parts. Same ball and flippers on every one; each table switches on only the game systems it wants.</p>
   <ul id="tables"></ul>
   <footer>Inspect opens a table frozen, top-down, with a coordinate grid and a label on every piece. Docs are in <a href="docs/LLM_GUIDE.md">docs/</a>.</footer>
 </main>
@@ -36,6 +36,7 @@ footer a{color:var(--cyan)}
 const TABLES=[
   {id:'gravebound',name:'Gravebound Pinball',line:'Dark fantasy. Three levels, a grave and one campaign.',c:'#d9a441'},
   {id:'neon-descent',name:'Neon Descent',line:'Cyberpunk. Four districts joined by freeways.',c:'#43e7ed'},
+  {id:'starfall',name:'Starfall',line:'Plain pinball. One playfield, three balls, no health bar and no RPG: shots, lights, a multiplier and a mission.',c:'#7ad0ff'},
   {id:'test-bench',name:'Test Bench',line:'Plain on purpose. Five fields on a grid, three flipper sizes, drains that are ramps: the engine\'s own test table.',c:'#62d8ff'}
 ];
 const ul=document.getElementById('tables');

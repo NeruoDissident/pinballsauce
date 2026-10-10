@@ -1,17 +1,25 @@
 # pinballsauce
 
 Read `docs/LLM_GUIDE.md` before anything else. It is one page: the map of the repo, the house rules, and which
-single other doc to open for the job in hand. Do not read the codebase to get your bearings; the guide is the bearings.
+other doc to open for the job in hand. Do not read the codebase to get your bearings; the guide is the bearings.
+For any job that makes or changes a table, read `docs/PINBALL.md` next: it is what a table has without being asked.
 
-Short version of the house rules:
+What this repo is for: the owner makes pinball tables and does not want to repeat the basics each time. So:
 
-- A table imports only from `engine/api.js`. Layout and content are data; a table's own behaviour goes in its
-  `rules.js` hooks. The engine never names a table.
-- Never change an engine number (physics, class stats, scores, timers) for one table.
-- After any change: `npm run check`, then `npm test`. A replay failure means you changed how the game plays:
-  re-record only if you meant to, and say so.
-- A new layout follows the priorities in `docs/NEW_TABLE_CHECKLIST.md` (the ball never sticks, it always comes back
-  to a flipper, every shot can be made, the table can be read) and must pass `tests/soak.mjs` and `tests/reach.mjs`.
-- Build the shape the owner asked for. If you think another would play better, ask; do not substitute.
-- Art never calls `Math.random` (use `hash`).
-- The owner wants to hear what you will change and why before a large change, and verified over guessed.
+- `docs/PINBALL.md` is the default for everything a request does not say (lights on every goal, game state on the
+  playfield, goals that build, a fair launch, shots for every flipper). It is guidelines, not law: a request that
+  contradicts it wins. Never ask him something it already answers.
+- Nothing is core. Classes, levels, health, enemies, bosses, quests, the party, cards, the Grave are switches
+  (`uses` in a table's `table.js`). Never tell him a table must have one. If a table cannot run without one, fix
+  the shared code.
+- Hard rules are only the ones code depends on: a table imports only from `engine/api.js`; the engine never names
+  a table; art never calls `Math.random` (use `hash`).
+- One table's feel is its own: set `feel` in its `table.js`. Do not edit a shared number to suit one table.
+  Changing a shared default changes every table: do it only when that is what he asked for, and say so.
+- After any change: `npm run check`, then `npm test`. The recordings are an alarm: a replay failure means you
+  changed how that table plays. Re-record only if you meant to, and say so.
+- A new or changed layout: `npm run soak`, `reach` and `standards` for that table. Read every note they print.
+- Build the shape he asked for. If you think another would play better, ask; do not substitute. Ask too when a
+  request leaves the shape or the optional systems unclear.
+- He wants to hear what you will change and why before a large change, and verified over guessed. Passing the
+  checks means a table is not broken; whether it is good is decided by playing it.

@@ -1,16 +1,18 @@
 {
   "name": "pinballsauce",
   "version": "0.1.0",
-  "description": "A pinball engine and the tables that run on it. No build step: open index.html through any static server.",
+  "description": "Pinball tables built from shared parts: a ruleset (docs/PINBALL.md), shared physics, and optional game systems. No build step: open index.html through any static server.",
   "private": true,
   "type": "module",
   "scripts": {
     "start": "node tests/serve.mjs . 4187",
     "check": "node tests/check.mjs",
-    "test": "node tests/check.mjs && node tests/table.mjs && node tests/table.mjs --table neon-descent && node tests/table.mjs --table test-bench && node tests/replay.mjs 5 && node tests/replay.mjs 5 --table neon-descent && node tests/replay.mjs 5 --table test-bench",
-    "test:full": "node tests/check.mjs && node tests/table.mjs && node tests/table.mjs --table neon-descent && node tests/table.mjs --table test-bench && node tests/replay.mjs 25 && node tests/replay.mjs 10 --table neon-descent && node tests/replay.mjs 10 --table test-bench && node tests/soak.mjs 20 --table gravebound && node tests/soak.mjs 20 --table neon-descent && node tests/soak.mjs 20 --table test-bench && node tests/reach.mjs --table test-bench",
+    "test": "node tests/check.mjs && node tests/table.mjs && node tests/table.mjs --table neon-descent && node tests/table.mjs --table test-bench && node tests/table.mjs --table starfall && node tests/replay.mjs 5 && node tests/replay.mjs 5 --table neon-descent && node tests/replay.mjs 5 --table test-bench && node tests/replay.mjs 5 --table starfall",
+    "test:full": "node tests/check.mjs && node tests/table.mjs && node tests/table.mjs --table neon-descent && node tests/table.mjs --table test-bench && node tests/table.mjs --table starfall && node tests/replay.mjs 25 && node tests/replay.mjs 10 --table neon-descent && node tests/replay.mjs 10 --table test-bench && node tests/replay.mjs 10 --table starfall && node tests/soak.mjs 20 --table gravebound && node tests/soak.mjs 20 --table neon-descent && node tests/soak.mjs 20 --table test-bench && node tests/soak.mjs 20 --table starfall && node tests/reach.mjs --table test-bench && node tests/reach.mjs --table starfall && node tests/standards.mjs --table starfall",
     "soak": "node tests/soak.mjs 20 --table",
     "reach": "node tests/reach.mjs --table",
+    "standards": "node tests/standards.mjs --table",
+    "switches": "node tests/switches.mjs 3 --table",
     "bundle": "node tools/bundle.mjs",
     "format": "prettier --write \"engine/**/*.js\" \"tables/*/rules.js\" \"tables/*/table.js\" \"tables/*/main.js\" \"tables/*/theme/*.js\" \"tests/*.mjs\" \"tools/*.mjs\" \"engine/ui/page.css\" \"tables/*/theme/*.css\""
   },

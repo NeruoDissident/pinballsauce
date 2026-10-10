@@ -16,7 +16,7 @@ import {PLAYER_HP} from '../rules/score.js';
 import {SLOTS_ORDER, SLOT_GOAL, goalText, spellDef, spellOf, spellOn, spellRank} from '../rules/spells.js';
 import {portrait} from '../rules/tavern.js';
 import {wingText} from '../rules/wings.js';
-import {BOSSES, CAMPAIGNS, HELP, STAGES, TEXT, WINGS, WING_KEYS} from '../table/content.js';
+import {BOSSES, CAMPAIGNS, HELP, RULES, STAGES, TEXT, USE, WINGS, WING_KEYS} from '../table/content.js';
 import {GT, LEVEL_NAMES, NM, WT0} from '../table/layout.js';
 import {A} from './audio.js';
 import {explainStep, glossary} from './help.js';
@@ -91,9 +91,16 @@ export const UI = {
     const m = G.mods,
       c = CLASSES[r.cls];
     $('hScore').textContent = fmt(r.score);
+    // the HUD shows only what this table uses
+    $('hLv').hidden = !USE.levels;
     $('hLv').textContent = 'Lv ' + r.level;
-    $('hCls').textContent = c.name;
+    $('hCls').textContent = USE.classes ? c.name : '';
+    $('hGold').hidden = $('hCoin').hidden = !USE.gold;
     $('hGold').textContent = r.gold;
+    $('bXp').parentNode.hidden = !USE.levels;
+    $('bCh').parentNode.hidden = !USE.meter;
+    $('journal').hidden = !USE.quests && !USE.side;
+    $('sheet').hidden = !USE.classes && !USE.party && !USE.cards;
     $('bHp').parentNode.hidden = !PLAYER_HP();
     $('bHp').style.width = clamp((r.hp / m.maxHp) * 100, 0, 100) + '%';
     $('tHp').textContent = Math.ceil(r.hp) + ' / ' + m.maxHp;
@@ -116,7 +123,11 @@ export const UI = {
         ? wingText()
         : r.main
           ? UI.objText(r.main)
-          : TEXT.quiet;
+          : !USE.quests
+            ? RULES.objective
+              ? RULES.objective(r) || ''
+              : ''
+            : TEXT.quiet;
     const chips = [];
     const ch = (t, k) => chips.push('<span class="chip ' + (k || '') + '">' + esc(t) + '</span>');
     if (G.pending.length)
@@ -136,11 +147,11 @@ export const UI = {
     else if (G.focusTier > GT)
       ch(WINGS[WING_KEYS[G.focusTier - WT0]].clock + Math.ceil(G.wingT || 0) + 's', G.wingT < 12 ? 'bad' : 'moss');
     else if (G.wave.active) ch('Wave ' + G.wave.active.n + ' · ' + G.wave.active.left + ' left', 'bad');
-    else if (g.open) ch(TEXT.graveChip + ' open', 'moss');
-    else if (g.hits > 0) ch(TEXT.graveChip + ' ' + g.hits + '/' + g.need, '');
+    else if (USE.grave && g.open) ch(TEXT.graveChip + ' open', 'moss');
+    else if (USE.grave && g.hits > 0) ch(TEXT.graveChip + ' ' + g.hits + '/' + g.need, '');
     if (armed) ch(G.balls.some(b => b.pow) ? c.shot : c.shot + ' armed. Flip to release', 'violet');
-    else if (r.charge >= 33 && !G.plunge.ready)
-      ch(r.charge >= 100 ? 'Cradle 1.5 s to Rally the party' : 'Cradle the ball: ' + c.shot, 'frost');
+    else if (!G.plunge.ready && r.charge >= 100 && USE.party) ch('Cradle 1.5 s to Rally the party', 'frost');
+    else if (!G.plunge.ready && r.charge >= 33 && USE.classes) ch('Cradle the ball: ' + c.shot, 'frost');
     if (G.rallyT > 0) ch('Rally ' + Math.ceil(G.rallyT) + 's', 'gold');
     for (const cs of G.casts) ch(spellDef(cs.id).name + ' ' + Math.ceil(cs.t) + 's', 'violet');
     for (const sl of SLOTS_ORDER) {
@@ -150,10 +161,10 @@ export const UI = {
     if (G.mb) ch(G.mb.name + ' multiball', 'gold');
     if (r.lockLit) ch('Lock lit' + (r.locks ? ' ' + r.locks + '/2' : ''), 'moss');
     if (G.combo > 1 && G.comboT > 0) ch('Combo ' + G.combo + 'x', 'violet');
-    if (G.buffs.sharp > 0) ch('Sharpened', 'gold');
-    if (G.buffs.stealth > 0) ch('Shadowstrike', 'violet');
-    if (G.buffs.aegis > 0) ch('Aegis', 'frost');
-    if (G.buffs.moon > 0) ch('Moonlight 2x', 'frost');
+    if (G.buffs.sharp > 0) ch(TEXT.buffs.sharp, 'gold');
+    if (G.buffs.stealth > 0) ch(TEXT.buffs.stealth, 'violet');
+    if (G.buffs.aegis > 0) ch(TEXT.buffs.aegis, 'frost');
+    if (G.buffs.moon > 0) ch(TEXT.buffs.moon, 'frost');
     if (G.curse.dark > 0) ch('Darkness', 'bad');
     if (G.curse.weak > 0) ch('Weakened', 'bad');
     if (G.curse.hex > 0) ch('Hexed', 'bad');
@@ -207,8 +218,12 @@ export const UI = {
           '</li>';
       });
       h += '</ol>';
-    } else h = '<p class="flav">' + esc(TEXT.noMain) + '</p>';
+    } else h = USE.quests ? '<p class="flav">' + esc(TEXT.noMain) + '</p>' : '';
     $('jMain').innerHTML = h;
+    $('jMain').previousElementSibling.textContent = TEXT.mainHead;
+    $('jMain').previousElementSibling.hidden = $('jMain').hidden = !USE.quests;
+    $('jSide').previousElementSibling.textContent = TEXT.sideHead;
+    $('jSide').previousElementSibling.hidden = $('jSide').hidden = !USE.side;
     h = '';
     for (const q of r.side)
       h +=
@@ -224,124 +239,134 @@ export const UI = {
     r.perks.forEach(p => (cnt[p] = (cnt[p] || 0) + 1));
     const rc = {};
     r.relics.forEach(p => (rc[p] = (rc[p] || 0) + 1));
-    h =
-      '<h4 style="color:' +
-      c.color +
-      '">' +
-      c.name +
-      '</h4><p class="flav">' +
-      esc(c.tag) +
-      '</p><dl><dt>Level</dt><dd>' +
-      r.level +
-      '</dd><dt>Power</dt><dd>' +
-      Math.round(m.pow) +
-      '</dd><dt>Crit</dt><dd>' +
-      Math.round(m.crit * 100) +
-      '%</dd><dt>' +
-      esc(TEXT.coin[0].toUpperCase() + TEXT.coin.slice(1)) +
-      '</dt><dd>' +
-      r.gold +
-      '</dd><dt>Slain</dt><dd>' +
-      r.kills +
-      '</dd><dt>Threat</dt><dd>' +
-      r.threat +
-      '</dd></dl>' +
-      '<h3>Powers</h3><p class="pw"><b>Nudge: ' +
-      esc(c.nudge) +
-      '.</b> ' +
-      esc(c.nudgeText) +
-      '</p><p class="pw"><b>Cradle: ' +
-      esc(c.shot) +
-      '.</b> ' +
-      esc(c.shotText) +
-      '</p><p class="pw"><b>Full meter: Rally.</b> Cradle 1.5 s and the party comes out.</p><h3>Spellbook</h3>' +
-      SLOTS_ORDER.map(sl => {
-        const d = spellOf(r.cls, sl),
-          rk = spellRank(d.id);
-        return (
-          '<p class="pw"' +
-          (rk < 0 ? ' style="opacity:.5"' : '') +
-          '><b>' +
-          esc(d.name) +
-          (rk >= 0 ? ' ' + (rk + 1) : '') +
-          '.</b> ' +
-          (rk < 0 ? 'Locked. ' : '') +
-          esc(SLOT_GOAL[sl].text) +
-          (rk >= 0 ? ' <small>' + esc(goalText(sl)) + '</small>' : '') +
-          '</p>'
-        );
-      }).join('') +
-      '<h3>Boons</h3><ul class="tags">' +
-      (Object.keys(cnt)
-        .map(id => {
-          const p = PERKS.find(x => x.id === id);
-          if (!p) return '';
+    // the sheet beside the table: one section for each system this table uses
+    h = '';
+    if (USE.classes)
+      h +=
+        '<h4 style="color:' +
+        c.color +
+        '">' +
+        c.name +
+        '</h4><p class="flav">' +
+        esc(c.tag) +
+        '</p><dl>' +
+        (USE.levels ? '<dt>Level</dt><dd>' + r.level + '</dd>' : '') +
+        '<dt>Power</dt><dd>' +
+        Math.round(m.pow) +
+        '</dd><dt>Crit</dt><dd>' +
+        Math.round(m.crit * 100) +
+        '%</dd>' +
+        (USE.gold
+          ? '<dt>' + esc(TEXT.coin[0].toUpperCase() + TEXT.coin.slice(1)) + '</dt><dd>' + r.gold + '</dd>'
+          : '') +
+        (USE.foes ? '<dt>Slain</dt><dd>' + r.kills + '</dd>' : '') +
+        '<dt>Threat</dt><dd>' +
+        r.threat +
+        '</dd></dl>' +
+        '<h3>Powers</h3><p class="pw"><b>Nudge: ' +
+        esc(c.nudge) +
+        '.</b> ' +
+        esc(c.nudgeText) +
+        '</p><p class="pw"><b>Cradle: ' +
+        esc(c.shot) +
+        '.</b> ' +
+        esc(c.shotText) +
+        '</p>';
+    if (USE.party) h += '<p class="pw"><b>Full meter: Rally.</b> Cradle 1.5 s and the party comes out.</p>';
+    if (USE.levels)
+      h +=
+        '<h3>Spellbook</h3>' +
+        SLOTS_ORDER.map(sl => {
+          const d = spellOf(r.cls, sl),
+            rk = spellRank(d.id);
           return (
-            '<li class="' +
-            p.kind +
-            '" title="' +
-            esc(p.desc) +
-            '">' +
-            esc(p.name) +
-            (cnt[id] > 1 ? ' ' + cnt[id] : '') +
-            '</li>'
-          );
-        })
-        .join('') || '<li class="none">None yet</li>') +
-      '</ul>' +
-      '<h3>Relics</h3><ul class="tags">' +
-      (Object.keys(rc)
-        .map(id => {
-          const p = RELICS.find(x => x.id === id);
-          return '<li title="' + esc(p.desc) + '">' + esc(p.name) + (rc[id] > 1 ? ' ' + rc[id] : '') + '</li>';
-        })
-        .join('') || '<li class="none">None yet</li>') +
-      '</ul>' +
-      '<h3>Party</h3>' +
-      (r.recruits || [])
-        .map(q => {
-          const cc = CLASSES[q.cls],
-            sp = spellDef(q.spell);
-          return (
-            '<p class="pw mate"><i class="orb" style="--c:' +
-            cc.color +
-            ';--g:' +
-            cc.glow +
-            '"></i><b style="color:' +
-            cc.glow +
-            '">' +
-            cc.name +
-            '</b> <small>' +
-            esc(sp.name) +
-            '</small></p>'
-          );
-        })
-        .join('') +
-      ((r.party || [])
-        .map(q => {
-          const d = COMPANIONS[q.id],
-            R = ROLES[d.role];
-          return (
-            '<p class="pw mate" title="' +
-            esc(d.desc) +
-            '"><b style="color:' +
-            R.col +
-            '">' +
+            '<p class="pw"' +
+            (rk < 0 ? ' style="opacity:.5"' : '') +
+            '><b>' +
             esc(d.name) +
-            '</b> <small>' +
-            R.name +
-            ', ' +
-            q.slot +
-            ' post</small><i class="bar"><i style="width:' +
-            Math.round((100 * q.hp) / q.maxHp) +
-            '%;background:' +
-            (q.hp > 0 ? R.col : '#553') +
-            '"></i></i>' +
-            (q.hp <= 0 ? ' <small>wounded</small>' : '') +
+            (rk >= 0 ? ' ' + (rk + 1) : '') +
+            '.</b> ' +
+            (rk < 0 ? 'Locked. ' : '') +
+            esc(SLOT_GOAL[sl].text) +
+            (rk >= 0 ? ' <small>' + esc(goalText(sl)) + '</small>' : '') +
             '</p>'
           );
-        })
-        .join('') || '<p class="flav">' + esc(TEXT.alone) + '</p>');
+        }).join('');
+    if (USE.cards)
+      h +=
+        '<h3>Boons</h3><ul class="tags">' +
+        (Object.keys(cnt)
+          .map(id => {
+            const p = PERKS.find(x => x.id === id);
+            if (!p) return '';
+            return (
+              '<li class="' +
+              p.kind +
+              '" title="' +
+              esc(p.desc) +
+              '">' +
+              esc(p.name) +
+              (cnt[id] > 1 ? ' ' + cnt[id] : '') +
+              '</li>'
+            );
+          })
+          .join('') || '<li class="none">None yet</li>') +
+        '</ul>' +
+        '<h3>Relics</h3><ul class="tags">' +
+        (Object.keys(rc)
+          .map(id => {
+            const p = RELICS.find(x => x.id === id);
+            return '<li title="' + esc(p.desc) + '">' + esc(p.name) + (rc[id] > 1 ? ' ' + rc[id] : '') + '</li>';
+          })
+          .join('') || '<li class="none">None yet</li>') +
+        '</ul>';
+    if (USE.party)
+      h +=
+        '<h3>Party</h3>' +
+        (r.recruits || [])
+          .map(q => {
+            const cc = CLASSES[q.cls],
+              sp = spellDef(q.spell);
+            return (
+              '<p class="pw mate"><i class="orb" style="--c:' +
+              cc.color +
+              ';--g:' +
+              cc.glow +
+              '"></i><b style="color:' +
+              cc.glow +
+              '">' +
+              cc.name +
+              '</b> <small>' +
+              esc(sp.name) +
+              '</small></p>'
+            );
+          })
+          .join('') +
+        ((r.party || [])
+          .map(q => {
+            const d = COMPANIONS[q.id],
+              R = ROLES[d.role];
+            return (
+              '<p class="pw mate" title="' +
+              esc(d.desc) +
+              '"><b style="color:' +
+              R.col +
+              '">' +
+              esc(d.name) +
+              '</b> <small>' +
+              R.name +
+              ', ' +
+              q.slot +
+              ' post</small><i class="bar"><i style="width:' +
+              Math.round((100 * q.hp) / q.maxHp) +
+              '%;background:' +
+              (q.hp > 0 ? R.col : '#553') +
+              '"></i></i>' +
+              (q.hp <= 0 ? ' <small>wounded</small>' : '') +
+              '</p>'
+            );
+          })
+          .join('') || '<p class="flav">' + esc(TEXT.alone) + '</p>');
     $('sheetBody').innerHTML = h;
   },
   bonus(b, more) {
@@ -441,11 +466,15 @@ export const UI = {
           ? btn(
               'continue',
               'Continue <small>' +
-                esc(CLASSES[sv.run.cls].name) +
-                ', level ' +
-                sv.run.level +
-                ', ball ' +
-                sv.run.ballNum +
+                esc(
+                  [
+                    USE.classes && CLASSES[sv.run.cls] ? CLASSES[sv.run.cls].name : '',
+                    USE.levels ? 'level ' + sv.run.level : '',
+                    'ball ' + sv.run.ballNum
+                  ]
+                    .filter(Boolean)
+                    .join(', ')
+                ) +
                 '</small>'
             )
           : '') +
@@ -456,7 +485,7 @@ export const UI = {
         btn('inspect', 'Inspect table') +
         (window.__pbTables ? btn('tables', 'Other tables') : '') +
         '</nav>' +
-        (meta.bosses
+        (meta.bosses && USE.gold
           ? '<p class="hint">Legacy: ' +
             meta.bosses +
             ' bosses slain. New heroes start with ' +
@@ -511,7 +540,9 @@ export const UI = {
       h =
         '<div class="pane"><h2>High scores</h2>' +
         (sc.length
-          ? '<table><thead><tr><th></th><th>Name</th><th>Score</th><th>Hero</th></tr></thead><tbody>' +
+          ? '<table><thead><tr><th></th><th>Name</th><th>Score</th>' +
+            (USE.classes ? '<th>' + esc(TEXT.heroHead) + '</th>' : '') +
+            '</tr></thead><tbody>' +
             sc
               .map(
                 (s, i) =>
@@ -523,15 +554,13 @@ export const UI = {
                   esc(s.name) +
                   '</td><td>' +
                   fmt(s.score) +
-                  '</td><td>' +
-                  esc(s.cls) +
-                  ' ' +
-                  s.level +
-                  '</td></tr>'
+                  '</td>' +
+                  (USE.classes ? '<td>' + esc(s.cls) + (USE.levels ? ' ' + s.level : '') + '</td>' : '') +
+                  '</tr>'
               )
               .join('') +
             '</tbody></table>'
-          : '<p class="lead">No scores yet. The first name on the stone is yours to carve.</p>') +
+          : '<p class="lead">' + esc(TEXT.noScores) + '</p>') +
         '<nav class="row">' +
         btn('title', 'Back') +
         '</nav></div>';
@@ -564,11 +593,17 @@ export const UI = {
         '"></label>' +
         '<label for="optShake" class="check"><input id="optShake" type="checkbox"' +
         (G.opt.shake ? ' checked' : '') +
-        '>Screen shake</label><label for="optAuto" class="check"><input id="optAuto" type="checkbox"' +
+        '>Screen shake</label><label for="optAuto" class="check"' +
+        (USE.levels || USE.cards || USE.party ? '' : ' hidden') +
+        '><input id="optAuto" type="checkbox"' +
         (G.opt.autoPick ? ' checked' : '') +
-        '>Auto pick: level-ups, boons and hires are chosen for you, no interruptions</label><label for="optEndless" class="check"><input id="optEndless" type="checkbox"' +
+        '>Auto pick: level-ups, boons and hires are chosen for you, no interruptions</label><label for="optEndless" class="check"' +
+        (USE.quests ? '' : ' hidden') +
+        '><input id="optEndless" type="checkbox"' +
         (G.opt.endless ? ' checked' : '') +
-        '>Endless: a new shadow rises after every campaign, instead of the run ending</label><nav>' +
+        '>' +
+        esc(TEXT.endlessNote) +
+        '</label><nav>' +
         btn('gfxCam', 'View: ' + CAMS[R3.camMode].name) +
         btn('gfxQual', 'Detail: ' + (R3.q ? R3.q.label : '')) +
         btn('erase', 'Erase saved run and scores') +
@@ -576,8 +611,16 @@ export const UI = {
         '</nav></div>';
     } else if (name === 'controls') {
       h =
-        '<div class="pane"><h2>Controls</h2><dl class="keys"><dt>Left flippers</dt><dd>Z, Left Arrow or Left Shift</dd><dt>Right flippers</dt><dd>/, Right Arrow or Right Shift</dd><dt>Nudge</dt><dd>Space</dd><dt>Launch</dt><dd>Hold Space or the right flipper, then release</dd><dt>Class power</dt><dd>Hold the ball still on a raised flipper until the ring fills, then let it roll and flip</dd><dt>Pause</dt><dd>P or Esc</dd><dt>View, detail, full screen</dt><dd>C, Q and F</dd><dt>Touch</dt><dd>Left and right halves of the screen flip. The centre button nudges and launches.</dd></dl>' +
-        '<p class="lead">Every left flipper on the table moves together, and so does every right one. Flashing gold arrows are your main quest. Blue ones are side quests. Ramps climb to the level above; the gap between the upper flippers drops you to the level below.</p><nav class="row">' +
+        '<div class="pane"><h2>Controls</h2><dl class="keys"><dt>Left flippers</dt><dd>Z, Left Arrow or Left Shift</dd><dt>Right flippers</dt><dd>/, Right Arrow or Right Shift</dd><dt>Nudge</dt><dd>Space</dd><dt>Launch</dt><dd>Hold Space or the right flipper, then release</dd>' +
+        (USE.classes
+          ? '<dt>Class power</dt><dd>Hold the ball still on a raised flipper until the ring fills, then let it roll and flip</dd>'
+          : USE.party
+            ? '<dt>Rally</dt><dd>With a full meter, hold the ball still on a raised flipper until the ring fills</dd>'
+            : '') +
+        '<dt>Pause</dt><dd>P or Esc</dd><dt>View, detail, full screen</dt><dd>C, Q and F</dd><dt>Touch</dt><dd>Left and right halves of the screen flip. The centre button nudges and launches.</dd></dl>' +
+        '<p class="lead">Every left flipper on the table moves together, and so does every right one. ' +
+        esc(TEXT.controlsNote) +
+        '</p><nav class="row">' +
         btn(UI.back || 'title', 'Back') +
         '</nav></div>';
     } else if (name === 'pause') {
@@ -634,43 +677,56 @@ export const UI = {
         camp = r.arcs.map(k => CAMPAIGNS[k].name).join(', ');
       h =
         '<div class="pane"><p class="eyebrow">' +
-        (won ? 'The expedition is over' : 'The hero falls') +
+        esc(won ? TEXT.overWon : TEXT.overLost) +
         '</p><h2 class="score">' +
         fmt(r.score) +
         '</h2><p class="lead">' +
-        esc(won ? (G.opt.endless ? '' : '') + CAMPAIGNS[r.arcs[r.arcs.length - 1]].win : TEXT.lost) +
-        '</p><dl><dt>Hero</dt><dd>' +
-        CLASSES[r.cls].name +
-        ', level ' +
-        r.level +
-        '</dd><dt>Campaign' +
-        (r.arcs.length > 1 ? 's' : '') +
-        '</dt><dd>' +
-        esc(camp) +
-        (won ? ' <small>complete</small>' : '') +
-        '</dd><dt>Bosses slain</dt><dd>' +
-        r.bossKills +
-        '</dd><dt>Foes slain</dt><dd>' +
-        r.kills +
-        '</dd><dt>Side quests done</dt><dd>' +
-        r.questsDone +
-        '</dd><dt>Wing</dt><dd>' +
-        (r.wing && r.wing.done
-          ? esc(WINGS[r.wing.key].name) + ' cleared'
-          : r.wing && r.wing.key
-            ? esc(WINGS[r.wing.key].name) + ' left standing'
-            : 'none') +
-        '</dd><dt>Relics</dt><dd>' +
-        (r.relics.length
-          ? r.relics
-              .map(id => {
-                const x = RELICS.find(q => q.id === id);
-                return x ? esc(x.name) : '';
-              })
-              .filter(Boolean)
-              .join(', ')
-          : 'none') +
-        '</dd><dt>Best combo</dt><dd>' +
+        esc(won && r.arcs.length ? CAMPAIGNS[r.arcs[r.arcs.length - 1]].win : won ? '' : TEXT.lost) +
+        '</p><dl>' +
+        // one line for each system this table uses
+        (USE.classes
+          ? '<dt>' +
+            esc(TEXT.heroHead) +
+            '</dt><dd>' +
+            CLASSES[r.cls].name +
+            (USE.levels ? ', level ' + r.level : '') +
+            '</dd>'
+          : '') +
+        (USE.quests
+          ? '<dt>' +
+            esc(TEXT.campHead) +
+            (r.arcs.length > 1 ? 's' : '') +
+            '</dt><dd>' +
+            esc(camp) +
+            (won ? ' <small>complete</small>' : '') +
+            '</dd>'
+          : '') +
+        (USE.bosses ? '<dt>Bosses slain</dt><dd>' + r.bossKills + '</dd>' : '') +
+        (USE.foes ? '<dt>Foes slain</dt><dd>' + r.kills + '</dd>' : '') +
+        (USE.side ? '<dt>' + esc(TEXT.sideHead) + ' done</dt><dd>' + r.questsDone + '</dd>' : '') +
+        (WING_KEYS.length
+          ? '<dt>Wing</dt><dd>' +
+            (r.wing && r.wing.done
+              ? esc(WINGS[r.wing.key].name) + ' cleared'
+              : r.wing && r.wing.key
+                ? esc(WINGS[r.wing.key].name) + ' left standing'
+                : 'none') +
+            '</dd>'
+          : '') +
+        (USE.cards
+          ? '<dt>Relics</dt><dd>' +
+            (r.relics.length
+              ? r.relics
+                  .map(id => {
+                    const x = RELICS.find(q => q.id === id);
+                    return x ? esc(x.name) : '';
+                  })
+                  .filter(Boolean)
+                  .join(', ')
+              : 'none') +
+            '</dd>'
+          : '') +
+        '<dt>Best combo</dt><dd>' +
         r.stat.bestCombo +
         'x</dd><dt>Balls lost</dt><dd>' +
         (won ? r.ballNum - 1 : r.ballNum) +
@@ -679,7 +735,9 @@ export const UI = {
         ':' +
         ('0' + (t % 60)).slice(-2) +
         '</dd></dl>' +
-        '<label for="hsName">Carve your name<input id="hsName" type="text" maxlength="12" autocomplete="off" value="' +
+        '<label for="hsName">' +
+        esc(TEXT.nameAsk) +
+        '<input id="hsName" type="text" maxlength="12" autocomplete="off" value="' +
         esc(store.get('name', '')) +
         '" placeholder="Name"></label><nav>' +
         btn('saveScore', 'Save score') +
@@ -694,13 +752,17 @@ export const UI = {
     A.init();
     A.s('ui');
     switch (a) {
-      case 'new':
-        UI.menu('class');
-        break;
+      case 'new': // pick a class ball if the table has classes, a companion if it has a party, else just play
       case 'class':
-        UI.cls = el.dataset.k;
-        UI.firstPick = Object.keys(COMPANIONS);
-        UI.menu('party');
+        UI.cls = a === 'class' ? el.dataset.k : 'plain';
+        if (a === 'new' && USE.classes) UI.menu('class');
+        else if (USE.party) {
+          UI.firstPick = Object.keys(COMPANIONS);
+          UI.menu('party');
+        } else {
+          UI.menu(null);
+          startRun(UI.cls, null);
+        }
         break;
       case 'recruit':
         UI.menu(null);

@@ -78,13 +78,16 @@ export function pickTable(tables, css) {
         c = t.accent || (pal ? pal[L.fields.length - 1].acc : '#d9a441'),
         face = (th.fonts && th.fonts.fontD) || '"Grenze Gotisch","Old English Text MT",Georgia,serif',
         x = t.content.text || {};
-      const facts = [
-        n(L.fields.length, 'field'),
-        n(Object.keys(t.content.bosses).length, 'boss', 'bosses'),
-        n(Object.keys(t.content.campaigns).length, 'campaign')
-      ];
+      // only what the table has: a plain table lists its playfield and its ramps and nothing else
+      const count = o => Object.keys(o || {}).length,
+        u = t.uses || {},
+        facts = [n(L.fields.length, 'playfield')];
+      if (u.foes !== false && count(t.content.foes)) facts.push(n(count(t.content.foes), 'foe'));
+      if (u.bosses !== false && count(t.content.bosses)) facts.push(n(count(t.content.bosses), 'boss', 'bosses'));
+      if (u.quests !== false && count(t.content.campaigns))
+        facts.push(n(count(t.content.campaigns), t.content.foes ? 'campaign' : 'mission'));
       if ((L.wings || []).length) facts.push(n(L.wings.length, 'wing'));
-      if (L.ramps) facts.push(n(L.ramps.length, 'ramp'));
+      if ((L.ramps || []).length) facts.push(n(L.ramps.length, 'ramp'));
       return (
         '<li style="--c:' +
         esc(c) +
@@ -110,9 +113,9 @@ export function pickTable(tables, css) {
   const el = document.createElement('main');
   el.id = 'pk';
   el.innerHTML =
-    '<div><header><h1>Pinballsauce</h1><p>One pinball engine, ' +
-    n(tables.length, 'table') +
-    '. Every table shares the same ball, flippers, classes and rules; each has its own layout and its own world.</p></header><ol>' +
+    '<div><header><h1>Pinballsauce</h1><p>' +
+    n(tables.length, 'pinball table') +
+    ' built from the same parts. The ball and the flippers are shared; each table has its own layout, its own world, and only the game systems it wants.</p></header><ol>' +
     cards +
     '</ol>' +
     '<footer><p>Play is the game. Inspect opens the table top-down with every piece labelled, a coordinate grid, pan, zoom and a screenshot button.</p><p>In a table: <kbd>Z</kbd> and <kbd>/</kbd> flip, <kbd>Space</kbd> launches and nudges, <kbd>I</kbd> toggles inspect. On a phone, tap the left and right halves. Saves stay in this browser.</p></footer></div>';

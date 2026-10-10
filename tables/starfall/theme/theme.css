@@ -1,0 +1,19 @@
+/* Starfall: the page's skin. Loaded after engine/ui/page.css; it only re-colours and re-letters, by setting the
+   variables page.css is written with. Without this file a table gets the engine's default page, which is
+   Gravebound's (blackletter titles on dark stone). */
+:root {
+  --void: #050a16;
+  --stone: #0b1528;
+  --stone-2: #12203a;
+  --line: #2d4264;
+  --bone: #eaf3ff;
+  --ash: #93a7c2;
+  --gold: #ffcf6b;
+  --frost: #7ad0ff;
+  --display: 'Avenir Next', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --label: 'Avenir Next', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --body: system-ui, -apple-system, 'Segoe UI', Arial, sans-serif;
+}
+#app {
+  background: radial-gradient(120% 80% at 50% 0%, #0d1a3a 0%, var(--void) 70%);
+}

@@ -1,18 +1,30 @@
 # The rule set
 
-What every table on this engine does, whatever it looks like. These rules and numbers are the manufacturer: a table
-changes layout, content, words and art, not these. Each section names the file that holds it. Numbers are read from
-the code; if this page and the code disagree, the code is right and this page needs fixing.
+What the shared code does: the machine, the scoring, and each optional game system in detail. `PINBALL.md` says
+what a table should have and why; this page is the reference for how each part behaves and what its numbers are.
 
-Units: table units (the table is 640 wide), seconds. Words in `code` are engine ids.
+**Nothing below section 3 is compulsory.** Sections 1 to 3 and 6 (the machine, a ball's life, scoring, lock and
+multiball) are on every table. Every other section describes an optional system: it applies only to a table that
+has switched that system on (`uses` in `table.js`, or the data that brings it; see TABLE_FORMAT). Each heading says
+which.
+
+These are defaults, not law. A table changes how the ball moves with its `feel`, and what its own features do in
+its `rules.js`. Changing a number on this page changes it for every table: do that when the owner wants every table
+changed, and say so. Each section names the file that holds it. Numbers are read from the code; if this page and
+the code disagree, the code is right and this page needs fixing.
+
+Units: table units (a playfield is 640 wide), seconds. Words in `code` are engine ids.
 
 ## 1. The machine (`engine/physics/physics.js`, `engine/table/parts.js`)
+
+The numbers in this section are the `standard` feel. A table on another feel has its own (TABLE_FORMAT, "`feel`").
 
 - Physics runs at 480 steps a second, 1920 while a flipper is swinging. The game logic steps at 120.
 - Gravity 1150 down the table. Top ball speed 2300. Planar: height is drawn only.
 - Flippers are 82 long. **Every left flipper on the table moves together, and every right one.**
 - Plunger: hold to charge (0.85 s to full), release to launch at 1330 to 1950.
-- Nudge: kicks every live ball up 230 and 90 toward the centre, and fires the class nudge power (2.5 s cooldown).
+- Nudge: kicks every live ball up 230 and 90 toward the centre, and on a table with classes fires the class nudge
+  power (2.5 s cooldown).
   A fifth nudge inside 4 seconds is a **tilt**: flippers dead, ball save gone, bonus forfeit. The fourth is a warning.
 - A ball that sits still for 2 seconds (or stays within 46 units for 6) is shaken loose by the engine.
 - Ramps: a ball enters a mouth if it is moving more than 90 into it. On a ramp, gravity pulls along the path at
@@ -21,17 +33,19 @@ Units: table units (the table is 640 wide), seconds. Words in `code` are engine 
 
 ## 2. A ball's life (`engine/rules/ball.js`, `score.js`)
 
-- Three balls a run. Multiplier, kickback, ball-reset lane sets, curses and buffs reset each ball. Health is topped
-  up to 60% at the start of a ball.
-- **Ball save** runs from the plunger launch: 10 seconds, plus the class's bonus. A saved ball is re-served.
+- Three balls a run (`balls` in `table.js`). Multiplier, kickback, ball-reset lane sets, curses and buffs reset each
+  ball. On a table with health, it is topped up to 60% at the start of a ball.
+- **Ball save** runs from the plunger launch: 10 seconds, plus the class's bonus if there are classes. A saved ball
+  is re-served.
 - **Kickback** (where the layout puts it: the left outlane of the home field on the shipped tables) fires once, then
   must be relit.
-- **Drain**: on the home field, with no save, ward or open Grave, the ball is lost. A field joined above another
+- **Drain**: on the home field, with no save (and, where the table has them, no ward and no open Grave), the ball
+  is lost. A field joined above another
   drops the ball into it; any other field hands it to a chute that carries it to a field the layout names.
-- **Health**: foes and boss casts wound the hero (at 30% of their listed damage). At zero the hero is *fallen*:
-  flippers dead until the ball drains.
-- **End-of-ball bonus**: foes slain x 400 + side quests x 8000 + ramps x 300 + level x 2500, times the multiplier.
-  Nothing on a tilt.
+- **Health** (tables with enemies or bosses, unless switched off): foes and boss casts wound the hero (at 30% of
+  their listed damage). At zero the hero is *fallen*: flippers dead until the ball drains.
+- **End-of-ball bonus**: ramps x 300, plus one line for each system the table has (foes slain x 400, side quests
+  x 8000, level x 2500), plus any lines the table's `rules.bonus` adds; times the multiplier. Nothing on a tilt.
 
 ## 3. Scoring (`engine/rules/events.js`, `score.js`)
 
@@ -57,7 +71,9 @@ Everything is multiplied by the **multiplier** (1x to 6x; resets each ball), dou
 the `hex` curse. **Combo**: ramps, orbits, scoops and completed banks made within 5 seconds of each other count up;
 the combo factor is 1 + 0.25 per step, to 3x.
 
-## 4. The four classes (`engine/rules/classes.js`, `powers.js`)
+## 4. The four classes (`engine/rules/classes.js`, `powers.js`) — optional: `classes`
+
+A table without classes plays one plain ball: radius 11, no passive, no nudge power, no cradle shot.
 
 | id | Health | Power | Crit | Takes | Ball | Passive |
 |---|---|---|---|---|---|---|
@@ -76,7 +92,9 @@ the combo factor is 1 + 0.25 per step, to 3x.
 
 A table may rename classes and re-colour them (`content.names`). The ids and the numbers stay.
 
-## 5. Levelling, the spellbook, boons, relics (`score.js`, `spells.js`, `choices.js`, `perks.js`)
+## 5. Levelling, the spellbook, boons, relics (`score.js`, `spells.js`, `choices.js`, `perks.js`) — optional: `levels`, `cards`
+
+Levelling and the spellbook come with `levels` (which needs classes). Boons and relics come with `cards`.
 
 - XP for the next level: 45 x 1.32^(level-1). A level gives +8 max health, +2 power, 20 health, and a **spellbook
   card**, taken at the next scoop: unlock one of the class's four abilities or raise one of an unlocked ability's
@@ -114,7 +132,7 @@ A table may rename classes and re-colour them (`content.names`). The ids and the
 - `startMultiball(name, extra, fromScoop)`: ball save 8 s; ramps and orbits pay jackpots while more than one ball is
   in play. At most five balls on the table.
 
-## 7. The party (`party.js`, `tavern.js`, `rally.js`)
+## 7. The party (`party.js`, `tavern.js`, `rally.js`) — optional: `party`
 
 - **Companion** (picked with the class): `tank` (130 health), `healer` (80), `dps` (70). It stands on a post in the
   bottom drain. A ball that would go out bounces off it at a cost of 12 of its health, and fires its perk (tank takes
@@ -126,7 +144,7 @@ A table may rename classes and re-colour them (`content.names`). The ids and the
   (bolts, shockwaves, heals) and recruits run their ability. The camera stays on your ball; losing it ends the Rally.
   Party balls cannot enter scoops.
 
-## 8. Foes and waves (`foes.js`, `waves.js`)
+## 8. Foes and waves (`foes.js`, `waves.js`) — optional: on when the table lists foes
 
 Every foe has a job, a visible wind-up before it strikes, and a shot that answers it. Hitting it during the wind-up
 cancels the strike.
@@ -145,9 +163,10 @@ cancels the strike.
 - **Waves** come on a clock that runs on the ball's field (three times as fast while the field is empty), every 30 s
   less 1.5 a level, never under 14. A wave's budget is 3 + 0.6 a level (+2 per finished campaign); foes cost their
   `cost`. Clearing a wave pays 8 + 3 a foe in coin. At most 22 foes on the table, 10 on a field.
-- Features **call** small waves (`callFoes`): a loop ramp, a spinner every 18 turns, a table's own banks.
+- Features **call** small waves (`callFoes`): a ramp whose layout line says `calls:n`, a spinner every 18 turns
+  (`content.spinCalls`), a table's own banks.
 
-## 9. Bosses (`bosses.js`)
+## 9. Bosses (`bosses.js`) — optional: on when the table lists bosses
 
 A boss stands on its field's circle. The circle's runes fill as the main quest closes in on its step; then it rises.
 It loops through its `seq`:
@@ -162,9 +181,13 @@ It loops through its `seq`:
 
 Killing a boss pays 150,000, its `xp`, `gold` and `relic`, and a boon. Health scales +40% per finished campaign.
 
-## 10. Quests (`quests.js`, `run.js`, `lamps.js`)
+## 10. Quests and lamps (`quests.js`, `run.js`, `lamps.js`) — quests optional: on when the table lists campaigns
 
-- A run has one **main quest**, assembled from the campaign by the table's `plan`, and up to two **side quests**.
+Lamps and status lamps (the last two points here) are on every table, quests or not: a table without quests lights
+its own shots through `rules.lamps`.
+
+- A run has one **main quest**, assembled from the campaign by the table's `plan`, and up to two **side quests**
+  if the table lists any. A main quest needs no enemies: its steps can all be shots and banks (Starfall's are).
 - Steps: `shot`, `done`, `kill`, `collect`, `boss` (see TABLE_FORMAT). Progress is called out where it was made.
 - Winning the main quest pays 250,000 and ends the run, or in endless mode starts the next campaign one notch harder.
 - **Lamps**: every insert has a state. Flashing: do this now. Steady: available. Dim: collected. Colours: gold
@@ -176,7 +199,7 @@ Killing a boss pays 150,000, its `xp`, `gold` and `relic`, and a boon. Health sc
   save, the kickback, the lock, a full meter, an open Grave, or a state of the table's own (TABLE_FORMAT, "Status
   lamps"). They change nothing; they show.
 
-## 11. The Grave (`grave.js`)
+## 11. The Grave (`grave.js`) — optional: on when the layout has a `grave`
 
 - Bumpers flagged `opensGrave` count hits: 8 open it (12 the second time, 16 the third; the cleric counts double).
 - An open Grave takes the next lost ball, tilted or not, instead of draining it: a room with its own flippers and a
@@ -185,7 +208,7 @@ Killing a boss pays 150,000, its `xp`, `gold` and `relic`, and a boon. Health sc
   through the table's `rise` tunnel. The two bumpers add a second each, four times.
 - Out of time, the flippers die. A ball lost in the Grave is lost.
 
-## 12. Wings (`wings.js`)
+## 12. Wings (`wings.js`) — optional: on when the layout lists wings
 
 A side room with its own flippers, reached through its `gate` scoop once the main quest opens it. A clock runs
 (`time`, 80 s in Gravebound). Meet the room's `rule` to break the seal on its scoop: `targets` (light its bank; +6 s
@@ -195,12 +218,13 @@ Draining or running out of time carries the ball back to the `out` scoop; it is 
 ## 13. Saves (`run.js`, `core/util.js`)
 
 Saved under `pinballsauce.<store>.` in local storage: the run (at each ball, each main-quest step, each finished
-quest), options, high scores, and a legacy count (bosses slain: new runs start with 10 coin each, to 100).
+quest), options, high scores, and on a table with bosses and coin a legacy count (bosses slain: new runs start
+with 10 coin each, to 100).
 A run that used dev keys is marked.
 
 ## What a table decides
 
-Where everything is; which scoop is the lock, which sells recruits and side quests, which are tunnels; what each
-bank and lane set pays (`rules.onComplete`); its foes' and bosses' names, numbers and looks; its campaign; every
-word. Gravebound's choices are the house defaults: a new table should start from them and change what its theme
-needs (see NEW_TABLE_CHECKLIST, "Feature map").
+Which of the optional systems it has, and its feel. Where everything is; which scoop is the lock, which sells
+recruits and side quests, which are tunnels; what each bank and lane set gives (`rules.onComplete`); its foes' and
+bosses' names, numbers and looks; its goals; every word. For a table that uses the RPG systems, Gravebound's
+choices are a good place to start from (NEW_TABLE_CHECKLIST, "Feature map"); for a plain one, Starfall's.

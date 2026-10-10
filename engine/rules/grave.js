@@ -5,7 +5,7 @@ import {G, T, float} from '../core/state.js';
 import {relight} from './lamps.js';
 import {heroBalls} from './spells.js';
 import {catmull, resample} from '../table/geometry.js';
-import {TEXT} from '../table/content.js';
+import {TEXT, USE} from '../table/content.js';
 import {GY} from '../table/layout.js';
 import {A} from '../ui/audio.js';
 import {popup} from '../ui/ui.js';
@@ -14,7 +14,7 @@ import {popup} from '../ui/ui.js';
 export function graveHit(o) {
   const r = G.run,
     g = r.grave;
-  if (g.open || G.inGrave) return;
+  if (!USE.grave || g.open || G.inGrave) return;
   g.hits = Math.min(g.need, g.hits + (r.cls === 'cleric' ? 2 : 1));
   G.dirty = true;
   if (g.hits >= g.need) {
@@ -27,6 +27,7 @@ export function graveHit(o) {
     float(o.x, o.y - 34, TEXT.graveCount + ' ' + g.hits + '/' + g.need, '#9dffc8', 12);
 }
 export function graveCatch(b) {
+  if (!USE.grave) return false;
   const r = G.run,
     g = r.grave,
     ok = !G.fallen && G.tilt <= 0; // an open Grave always takes the ball, tilted or fallen or not

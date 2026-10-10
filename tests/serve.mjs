@@ -42,6 +42,25 @@ export function serve(root, port) {
     );
   });
 }
+/* The tests' page routing. Nothing leaves the machine. And `patch`, if given, is laid over the table's definition
+   before it boots, without touching its files: that is how a test tries a table with another feel, another number
+   of balls, or with game systems switched off. {feel: 'fast'}   {balls: 5}   {uses: {party: false}} */
+export function local(pg, table, patch) {
+  return pg.route('**/*', r => {
+    const u = r.request().url();
+    if (!/^http:\/\/127\.0\.0\.1/.test(u)) return r.abort();
+    if (patch && u.split('?')[0].endsWith('/tables/' + table + '/main.js'))
+      return r.fulfill({
+        contentType: 'application/javascript',
+        body:
+          "import {boot} from '../../engine/app/shell.js';import table from './table.js';const p=" +
+          JSON.stringify(patch) +
+          ';if(p.uses)table.uses=Object.assign({},table.uses,p.uses);' +
+          "if('feel' in p)table.feel=p.feel;if(p.balls)table.balls=p.balls;boot(table);"
+      });
+    return r.continue();
+  });
+}
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const r = await serve(process.argv[2] || '.', +process.argv[3] || 4187);
   console.log('serving on ' + r.url + '  (open ' + r.url + '/ for the table list)');

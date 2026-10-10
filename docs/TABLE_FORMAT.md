@@ -1,13 +1,17 @@
 # Table format
 
 A table is a folder under `tables/`. The engine reads it; nothing in the engine knows any table by name.
-Three tables ship, and each is a reference for something different:
+What a table should *have* (lights, goals, a fair launch) is in `PINBALL.md`. This page is how to write it down.
+Four tables ship, and each is a reference for something different:
 
+- `tables/starfall` — plain pinball: one playfield, every optional game system off, goals written as data and as
+  rules, state lamps on the playfield. **Read this one first for a table with no RPG in it.**
 - `tables/test-bench` — plain, no art. Uses every layout feature: fields on a grid, fields with no standard parts,
   three flipper sizes, extra flippers, gates, posts, status lamps, fast ramps, drain ramps. **Read its `layout.js`
-  first**; it is short and commented.
-- `tables/gravebound` — every *game* feature (wings, doors, three campaigns, a full theme). A plain stack.
-- `tables/neon-descent` — a second themed table on the same rules. A plain stack.
+  first for an unusual shape**; it is short and commented.
+- `tables/gravebound` — every optional game system on (classes, enemies, bosses, wings, doors, three campaigns, a
+  full theme). A plain stack.
+- `tables/neon-descent` — a second themed table with everything on. A plain stack.
 
 ```
 tables/<id>/
@@ -21,8 +25,69 @@ tables/<id>/
 ```
 
 `id` is the folder name. `store` namespaces saves (`pinballsauce.<store>.`); changing it orphans players' saves.
-Optional on `table.js`: `blurb` (one line) and `accent` (a colour) for the picker of a combined build.
-A table imports only from `engine/api.js`.
+Optional on `table.js`: `blurb` (one line) and `accent` (a colour) for the picker of a combined build, and the three
+keys below. A table imports only from `engine/api.js`.
+
+### What the table uses (`uses`), how many balls (`balls`), how it feels (`feel`)
+
+```js
+export default {id:'starfall', name:'Starfall', store:'starfall', layout, content, rules, theme,
+  uses:{classes:false, party:false, cards:false, gold:false},   // the game systems this table leaves out
+  balls:3,                                                       // balls in a run (3)
+  feel:'standard'};                                              // or 'fast', or {preset:'fast', bounce:.5}
+```
+
+**`uses`: nothing is core.** Every game system is a switch. Some are on unless `uses` says `false`; the rest are on
+when the table gives them data, and off when it does not. Leave a thing out and the table simply does not have it:
+no bar in the HUD, no page in the menus, no lamp for it.
+
+| Switch | On when | Off means |
+|---|---|---|
+| `classes` | unless `uses:{classes:false}` | one plain ball: no class picker, no nudge power, no cradle shot, and so no levels |
+| `levels` | classes are on, unless `uses:{levels:false}` | no experience, no level-ups, no ability book, no rune ring in the floor |
+| `party` | unless `uses:{party:false}` | no companions, no guard post under the flippers, no Rally |
+| `cards` | unless `uses:{cards:false}` | no boons and no relics |
+| `gold` | unless `uses:{gold:false}` | no currency |
+| `foes` | `content.foes` lists any | no enemies and no waves |
+| `bosses` | `content.bosses` lists any | no bosses |
+| `health` | the table has foes or bosses, unless `uses:{health:false}` | no health bar; nothing can kill the flippers |
+| `quests` | `content.campaigns` lists any | no main quest and no journal; say what to shoot with `rules.objective` and `rules.lamps` |
+| `side` | `content.side` lists any | no side quests |
+| `grave` | `layout.grave` is given | a lost ball is lost; the cabinet simply ends below the flippers |
+
+Any of the data-driven ones can also be forced off (`uses:{foes:false}`) without deleting the data. Wings are on
+when `layout.wings` lists any. `npm run switches -- <id>` loads a table with each of its systems off in turn and
+bot-plays it, to prove none of them is holding the table up.
+
+**`feel`: how the ball moves.** The numbers are shared code so that my tables feel related, and a table picks a
+preset. `standard` is what Gravebound was tuned on.
+
+| Preset | What changes |
+|---|---|
+| `standard` | gravity 1150, top speed 2300, walls give back 0.45, bumper kick 470, plunger 1330 to 1950, ramps `k` 0.2, `drag` 0.1, `exitV` 520 |
+| `fast` | `speed:1.15`: everything about 15% quicker |
+| `slow` | `speed:0.88`: everything about 12% slower: a floatier, easier table |
+| `lively` | walls give back 0.52, slingshots kick 12% harder, bumpers 520: the ball is thrown about more |
+
+Give an object to start from a preset and change single numbers: `feel:{preset:'fast', bounce:.5}`. The numbers:
+
+| Key | Standard | What it is |
+|---|---|---|
+| `speed` | 1 | The one to reach for first. It scales the whole game in time: flippers, kicks, the plunger and ramp exits by `speed`, gravity by `speed²`. The ball follows the same paths, sooner, so a layout that works at 1 still works |
+| `gravity` | 1150 | pull down the table. Changing it alone changes how far a flipper shot climbs: check `npm run reach` |
+| `maxSpeed` | 2300 | nothing moves faster |
+| `bounce` | 0.45 | what a plain wall gives back (a wall's own `bounce` still wins) |
+| `flipper` | 1 | flipper strength |
+| `sling`, `bumper` | 1, 470 | slingshot kick (a factor); pop-bumper kick (a bumper's own `kick` still wins) |
+| `plunge` | `[1330, 1950]` | launch speed, from a tap to a full pull |
+| `ramp` | `{k:.2, drag:.1, exitV:520}` | what a ramp has unless its layout line says otherwise |
+
+A feel is one table's. It never changes another table. After changing one, run `npm run soak`, `reach` and
+`standards` for that table: a faster ball finds different pockets.
+
+To try a preset before committing to it: open the table with `?feel=fast` on the address
+(`tables/starfall/?feel=fast`) and play it, or give a check `--feel` (`node tests/soak.mjs 15 --table starfall
+--feel fast`; `standards.mjs` and `reach.mjs` take it too). Neither changes the table's files.
 
 ---
 
@@ -36,17 +101,20 @@ export const layout={fields:[...], grave:{...}, wings:[...], ramps:[...], tunnel
 
 The **cabinet** is fixed. A field is always 640 wide and 1040 deep, with side walls at x 20 and x 620, a shelf for
 the flippers at y 900 and a way out below it. The plunger is always the lane up the right side of the home field.
-Under the home field there is always the Grave.
+These are the only things a layout cannot change, because the physics is built on them.
 
 Everything else is the layout's: where the fields stand, how many there are, what is inside each one, how many
 flippers it has and how long they are, where the ramps go and how fast they are.
 
-Two things the engine puts on a field at fixed places, which a layout has to leave room for:
+Two things the engine puts on a field at fixed places, on a table that uses the system they belong to. Such a
+table has to leave room for them:
 
-- **The rune ring**, on every field: twelve dots (each about 21 across) on a circle of radius 96 round (cx, 650).
-  They are the spellbook's lamps. Keep inserts, lamps and scoops off the dots; inside the ring is free.
-- **The guard post**, on the home field only: a round post of radius 24 at (cx, 936), just below the gap between
-  the flippers. It is there while the party has someone standing guard, and the ball bounces off it.
+- **The rune ring** (tables with levels), on every field: twelve dots (each about 21 across) on a circle of radius
+  96 round (cx, 650). They are the spellbook's lamps. Keep inserts, lamps and scoops off the dots; inside the ring
+  is free.
+- **The guard post** (tables with a party), on the home field only: a round post of radius 24 at (cx, 936), just
+  below the gap between the flippers. It is there while the party has someone standing guard, and the ball bounces
+  off it.
 
 ### Fields on a grid
 
@@ -63,8 +131,8 @@ Each field stands in a cell: `at: [column, row]`.
 upper one's flippers drops through a chute into the lower one's arch, and the upper one's outlanes lead down too.
 That is how Gravebound and Neon Descent are built.
 
-**The home field** is the last one in the list. It has `shooter:true` (the plunger), the real drain, and the Grave
-under it. It stands in column 0 on the lowest row.
+**The home field** is the last one in the list. It has `shooter:true` (the plunger) and the real drain, with the
+Grave under it if the table has one. It stands in column 0 on the lowest row.
 
 **A field with nothing joined below it** (and which is not the home field) cannot lose the ball. It drains into a
 **drain ramp** that carries the ball to a field you name (see Ramps). The engine refuses to load a layout that
@@ -81,8 +149,9 @@ leaves such a field without one.
 
 ### The standard parts, and switching them off
 
-Unless told otherwise every field is built with the standard parts (`engine/table/parts.js`), so that two tables
-feel like one manufacturer made them:
+Unless told otherwise every field is built with the standard parts (`engine/table/parts.js`): a ready-made top
+and bottom that are known to play well, so a field only has to describe its middle. Any of them can be switched
+off:
 
 | Part | What it is (local coordinates) | `standard:{...}` |
 |---|---|---|
@@ -175,7 +244,7 @@ A mouth must be listed before pieces that refer to it.
 - The bat points right from the pivot for a left-button flipper and left for a right-button one. `dir:1` or `dir:-1`
   says otherwise.
 - `rest` (0.5) and `up` (-0.44) are its two angles, in radians below the horizontal. Leave them unless you mean it.
-- Every flipper swings at the same rate (that is the manufacturer), so a longer bat throws harder. The best strikes
+- Every flipper on a table swings at the same rate (the table's `feel` sets it), so a longer bat throws harder. The best strikes
   leave a mini at about 1400 units a second, a standard at about 1950, a long at about 2200: enough to climb roughly
   820, 1650 and 2050 units of table. `npm run reach -- <id>` tells you what each flipper of your table can hit.
 - A flipper needs something to bring the ball to it: the standard shelf, a wall, a gate, the end of a ramp.
@@ -205,15 +274,17 @@ the lock. A `lamp` piece is one of those.
 
 `col` defaults to the field's glow colour. A lamp is not a shot: quests and `rules.lamps` do not address it.
 
-### Grave
+### Grave (optional)
 
 ```js
 grave:{name:'The Grave', short:'the Grave', light:'The Light', nails:'Coffin Nails', torches:['#c','#c','#c']}
 ```
 
-The room itself is a standard part (a coffin with its own flippers, a two-target bank, a way out, two bumpers).
+A room under the home field that catches a lost ball for one more chance, once something on the table has opened
+it (a bumper flagged `opensGrave:true`). Leave `grave` out and the table has none: a ball lost on the home field is
+lost. The room itself is a stock part (a coffin with its own flippers, a two-target bank, a way out, two bumpers).
 Reserved ids inside it: bank `nails`, hole `rise`, bumper group `bones`. A table names it and words it
-(`content.text.grave*`); it cannot reshape it.
+(`content.text.grave*`); it cannot reshape it yet.
 
 ### Wings (optional)
 
@@ -239,6 +310,7 @@ Its rule (`targets`, `kills` or `coins`) is in `content.wings[key]`.
  exitV:520,         // optional: the fastest it lets a ball leave (520)
  drag:.1,           // optional: the share of its speed a ball loses each second (0.1)
  lift:30,           // optional: extra height, so two ramps can cross
+ calls:2,           // optional: making it calls that many of the campaign's foes onto the field it ends on
  col:'#rrggbb'}     // optional: its own colour (else theme.rampCol of the field it leaves)
 ```
 
@@ -246,7 +318,8 @@ Its rule (`targets`, `kills` or `coins`) is in `content.wings[key]`.
 - `path` continues from the mouth and ends where the ball is released, heading the way the last two points run. End
   somewhere that feeds a flipper: at a standard inlane that is `(81, 712)` on the left and `(559, 716)` on the right
   (`(525, 716)` on the home field), arriving downward.
-- A ramp with `from === to` is a loop (it calls foes when made).
+- A ramp with `from === to` is a loop: it brings the ball back to the field it left. Gravebound's loops carry
+  `calls:2` (a lap wakes two foes); a loop without `calls` is just a shot.
 
 **How fast.** A ball enters a ramp at the speed it was shot (it needs at least 90 along the mouth). On the ramp only
 two things change its speed. Gravity pulls along the *up-and-down-the-table* part of the path: climbing `d` units of
@@ -310,6 +383,9 @@ export const content={foes, bosses, campaigns, plan, side, wings, help, names, n
                       graveStir, ways, spinCalls, text};
 ```
 
+**Every key is optional.** A table with no `foes` has no enemies; with no `bosses`, no bosses; with no `campaigns`,
+no main quest; with no `side`, no side quests (see `uses`, above). The smallest content is `{help, text}`.
+
 Wherever content gives a `tier` (a boss, a quest step) it may be the field's id (`tier:'west'`) or its place in the
 layout's list (`tier:2`). Ids survive reordering the fields; use them.
 
@@ -347,6 +423,10 @@ cast; `closes` bars a ramp for the cast; `frenzy` drives that foe type wild; `fi
 ### Campaigns and the plan
 
 A run is one campaign. A campaign is a set of pools of quest steps; the `plan` says how the main quest is assembled.
+This is the goal ladder of `PINBALL.md` section 5 written as data: the engine tracks each step, flashes its light
+gold, shows the list in the journal and ends the run with a summary after the last one. It needs no enemies:
+Starfall's whole mission is `shot` and `done` steps. `boss`, `foes`, `threat` and `wing` are for tables that have
+those things.
 
 ```js
 campaigns:{necro:{name, threat, boss:'necro', foes:['skeleton','spirit','cultist'], intro, win,
@@ -380,8 +460,8 @@ draws from pools is the order random numbers are consumed, so changing a plan ch
 {id, name, giver, text, steps:[step, ...], rw:{gold, xp, heal, relic:1}}
 ```
 
-At least one side quest must begin on the home field (its first step a kill there or a shot there): a run starts
-with one.
+If the table has side quests, at least one must begin on the home field (its first step a kill there or a shot
+there): a run starts with one.
 
 ### Wings
 
@@ -404,7 +484,7 @@ crypt:{name, gate:'catacombs', out:'catacombs', time:80, rule:'targets', bank:'s
 | `ways` | Optional. Which shots to light when a quest step is on another field. **Leave it out** and the engine works it out: it lights the ramps and tunnel scoops that begin the shortest road from the field the ball is on to the field the step is on (and lights nothing when the shortest road is down the drain). Written by hand it is `{up:{n:[shot ids]}, down:{n:[shot ids]}}`, keyed by the field's place in the list, where up means toward the start of the list; that form only makes sense for a stack. |
 | `spinCalls` | `{spinnerId:{foes:[...]} or {camp:n}, text}`: what a spinner calls every 18 turns. |
 | `help` | `[[heading, paragraph], ...]`: the How to Play pages. Written per table. |
-| `text` | Words. Every key has an engine default in `engine/table/content.js` (`TEXT0`): title, titleSmall, eyebrow, version, hintFresh, quiet, lost, noMain, noSide, alone, tavern, tavernWaits, lockMb, coin, coinMark, wave, bell, watch, followed, barred, the Grave's (graveOpen, graveIn, graveObjNails, graveObjLight, graveLost, graveLid, graveClosed, graveCount, graveChip, graveStir, risen), and `explain:{shotId:'...'}` for the pause screen. |
+| `text` | Words. Every key has an engine default in `engine/table/content.js` (`TEXT0`), and the defaults are Gravebound's, so a table with another theme should give its own: title, titleSmall, eyebrow, version, hintFresh, quiet, lost, noMain, noSide, alone, tavern, tavernWaits, lockMb, coin, coinMark, wave, bell, watch, followed, barred; the headings mainHead ("Main Quest"), mainDone, sideHead, heroHead, campHead; the end of a run: overWon, overLost, nameAsk, noScores; `buffs:{sharp, stealth, aegis, moon}` (the names of the timed bonuses; `moon` is double scoring); controlsNote and endlessNote (two lines in the menus); the Grave's (graveOpen, graveIn, graveObjNails, graveObjLight, graveLost, graveLid, graveClosed, graveCount, graveChip, graveStir, risen); and `explain:{shotId:'...'}` for the pause screen. |
 
 ---
 
@@ -418,6 +498,9 @@ export const rules={
   tick(dt, r){},            // every step: this table's own timers
   lamps(add, r){},          // add(shotId, colour, state)   colour main|side|lock|gold|soft|danger|spell   state flash|lit|done
   status:{name: r => 0},    // this table's own status-lamp states: 0 dark, 1 lit, 2 flashing (a `lamp` piece shows one)
+  objective(r){ return 'Bank the cargo at the Dock'; },   // the goal line in the HUD, for a table with no quests
+  bonus(r, bb){ return [['Targets', bb.targets, bb.targets * 150]]; },   // extra end-of-ball bonus lines:
+                            //   [label, count, points]. bb is this ball's tally (r.bb); keep your own counts in it
   onComplete:{bankOrSetId(x, y, r){}},     // a bank knocked down or a lane set lit
   onScoop:{holeId(h, b, hd, r){}},         // a ball in a scoop. hd.plan = 'eject' | 'tunnel' | 'wait'; hd.delay seconds
   on:{event(what, ball, r, impact){}}      // plain events (below)

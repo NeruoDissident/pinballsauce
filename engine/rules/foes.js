@@ -11,7 +11,7 @@ import {qEvent} from './quests.js';
 import {charge, gold, heal, hurt, score, shot, xp} from './score.js';
 import {endCast, spellCast, spellOn, spellVal} from './spells.js';
 import {wingProg} from './wings.js';
-import {DEF, ENEMY, TEXT, WINGS, hook} from '../table/content.js';
+import {DEF, ENEMY, TEXT, USE, WINGS, hook} from '../table/content.js';
 import {CX, NM, OX, TY, tierOf} from '../table/layout.js';
 import {A} from '../ui/audio.js';
 
@@ -66,6 +66,7 @@ export function stepTo(e, x, y, max) {
   return l <= max ? [x, y] : [e.x + (dx / l) * max, e.y + (dy / l) * max];
 }
 export function spawnEnemy(type, tier, quest, minion) {
+  if (!USE.foes || !ENEMY[type]) return null;
   const def = ENEMY[type],
     r = G.run,
     P = foePosts(tier),

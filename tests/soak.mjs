@@ -1,7 +1,7 @@
 /* The soak test for a table's LAYOUT: the bot plays every field for a while and the engine reports where balls got
    stuck, which shots were never made, and whether anything threw.
 
-     node tests/soak.mjs [minutes=8] [--table neon-descent] [--seeds 4]
+     node tests/soak.mjs [minutes=8] [--table neon-descent] [--seeds 4] [--feel fast]
 
    Every run uses a fixed seed, so a finding can be reproduced. Every 45 s of game time the ball is dropped on the
    next field in turn, so the upper fields get as much play as the bottom one.
@@ -17,7 +17,7 @@
 import {chromium} from 'playwright';
 import path from 'path';
 import {fileURLToPath} from 'url';
-import {serve} from './serve.mjs';
+import {serve, local} from './serve.mjs';
 import {init} from './scenarios.mjs';
 const here = path.dirname(fileURLToPath(import.meta.url)),
   args = process.argv.slice(2);
@@ -27,7 +27,8 @@ const opt = n => {
 };
 const mins = +(args.find(a => /^\d+(\.\d+)?$/.test(a)) || 8),
   table = opt('table') || 'gravebound',
-  nSeeds = +(opt('seeds') || 4);
+  nSeeds = +(opt('seeds') || 4),
+  feel = opt('feel'); // try the table on another feel preset without editing it
 const srv = await serve(path.join(here, '..'));
 const url = srv.url + '/tables/' + table + '/index.html';
 const br = await chromium.launch({
@@ -126,7 +127,7 @@ for (let k = 0; k < nSeeds; k++) {
   pg.on('pageerror', e =>
     logs.push('PAGE ERROR ' + e.message + ' ' + (e.stack || '').split('\n').slice(1, 4).join(' | '))
   );
-  await pg.route('**/*', r => (/^http:\/\/127\.0\.0\.1/.test(r.request().url()) ? r.continue() : r.abort()));
+  await local(pg, table, feel && {feel});
   await pg.addInitScript(init, 7000 + k * 131);
   await pg.goto(url);
   await pg.waitForFunction(() => window.__pb && window.__pb.ready(), null, {timeout: 180000, polling: 300});
@@ -180,10 +181,12 @@ const total = time.reduce((a, b) => a + b, 0),
 console.log(
   '\nTIME BY FIELD  ' +
     time
-      .map(
-        (v, i) =>
-          (i < meta.NM ? F[i].id : i === meta.NM ? 'grave' : 'wings') + ' ' + ((100 * v) / total).toFixed(0) + '%'
+      .map((v, i) =>
+        i >= meta.NM && !v // a table with no Grave or no wings spends no time there: leave them out
+          ? ''
+          : (i < meta.NM ? F[i].id : i === meta.NM ? 'grave' : 'wings') + ' ' + ((100 * v) / total).toFixed(0) + '%'
       )
+      .filter(Boolean)
       .join('   ')
 );
 const cells = {};

@@ -15,11 +15,9 @@ export const LAMP_RANK = {done: 1, lit: 2, flash: 3};
 /* The way from one field to another, when the content does not list it (`ways`): the shots that begin a shortest
    road there. A road is made of ramps, scoops with a tunnel, and falls (the chute to the field joined below, or a
    drain ramp). If the shortest road begins with a fall there is nothing to light: the way is down the drain. */
-export function roadTo(a, b) {
-  if (a === b || a >= NM || b >= NM) return [];
-  const R = T.roads || (T.roads = {}),
-    key = a + '>' + b;
-  if (R[key]) return R[key];
+// every way from one field straight to another: {to, id}. id is the shot that takes it, or null for a fall
+export function roads() {
+  if (T.roadList) return T.roadList;
   const out = [];
   for (let i = 0; i < NM; i++) out.push([]);
   for (const id in T.rails) {
@@ -33,6 +31,14 @@ export function roadTo(a, b) {
     if (h && t && h.tier < NM && t.tier < NM && h.tier !== t.tier && T.shots[id]) out[h.tier].push({to: t.tier, id});
   }
   for (let i = 0; i < NM; i++) if (BELOW[i] >= 0) out[i].push({to: BELOW[i], id: null});
+  return (T.roadList = out);
+}
+export function roadTo(a, b) {
+  if (a === b || a >= NM || b >= NM) return [];
+  const R = T.roads || (T.roads = {}),
+    key = a + '>' + b;
+  if (R[key]) return R[key];
+  const out = roads();
   // how many hops each field is from b, counted backwards from b
   const d = new Array(NM).fill(1e9);
   d[b] = 0;

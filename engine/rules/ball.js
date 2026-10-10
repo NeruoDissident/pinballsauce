@@ -13,9 +13,9 @@ import {gameOver, saveRun, startDemo} from './run.js';
 import {gold} from './score.js';
 import {spellCast, spellVal} from './spells.js';
 import {leaveWing} from './wings.js';
-import {TEXT, WING_KEYS, hook} from '../table/content.js';
+import {RULES, TEXT, USE, WING_KEYS, hook} from '../table/content.js';
 import {railPos} from '../table/geometry.js';
-import {CX, GRID, GT, H, HW, TY, WLEN, WT0, tierOf} from '../table/layout.js';
+import {CX, FEEL, GRID, GT, H, HW, TY, WLEN, WT0, tierOf} from '../table/layout.js';
 import {DRAIN_Y} from '../table/parts.js';
 import {A} from '../ui/audio.js';
 import {UI, popup} from '../ui/ui.js';
@@ -101,7 +101,7 @@ export function updatePlunger(dt) {
     p.held = true;
   } else if (p.held) {
     p.held = false;
-    b.vy = -(1330 + 620 * p.charge);
+    b.vy = -(FEEL.plunge[0] + (FEEL.plunge[1] - FEEL.plunge[0]) * p.charge);
     b.y -= 3;
     p.charge = 0;
     A.s('launch');
@@ -124,8 +124,8 @@ export function nudge() {
   for (const b of G.balls)
     if (b.st === 'live') {
       const cx = CX[b.tier];
-      b.vy -= 230;
-      b.vx += (b.x < cx ? 1 : -1) * 90 + rand(-40, 40);
+      b.vy -= 230 * FEEL.speed;
+      b.vx += ((b.x < cx ? 1 : -1) * 90 + rand(-40, 40)) * FEEL.speed;
     }
   G.cam.shake = Math.max(G.cam.shake, 10);
   G.nudgeT = 0.25;
@@ -348,12 +348,17 @@ export function endBall() {
   }
   const bb = r.bb || {kills: 0, quests: 0, ramps: 0},
     tilt = G.tilt > 0,
+    // one line for each thing this table counts; a table's rules may add lines of their own: bonus(run, counts)
+    // returns [[label, count, points], ...]. `counts` is the run's tally for this ball (run.bb); rules may keep
+    // their own numbers in it.
     lines = [
-      ['Foes slain', bb.kills, bb.kills * 400],
-      ['Side quests done', bb.quests, bb.quests * 8000],
+      USE.foes && ['Foes slain', bb.kills, bb.kills * 400],
+      USE.side && ['Side quests done', bb.quests, bb.quests * 8000],
       ['Ramps', bb.ramps, bb.ramps * 300],
-      ['Level', r.level, r.level * 2500]
-    ];
+      USE.levels && ['Level', r.level, r.level * 2500]
+    ]
+      .filter(Boolean)
+      .concat((RULES.bonus && RULES.bonus(r, bb)) || []);
   const base = lines.reduce((a, l) => a + l[2], 0),
     total = tilt ? 0 : base * r.mult;
   r.score += total;

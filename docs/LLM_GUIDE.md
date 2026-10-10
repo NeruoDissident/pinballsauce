@@ -6,34 +6,43 @@ then only the files that doc names.
 
 ## What this is
 
-A pinball **engine** and the **tables** that run on it. The engine holds everything that makes two tables feel like
-the same manufacturer built them: the ball, the flippers, nudge and tilt, the camera, the four classes, levelling,
-the spellbook, the party and the Rally (party multiball), cards, the Grave, wings, quests, foes, bosses, saves, the
-HUD. A table is data plus a few small hook functions plus art.
+The owner's kit for making pinball tables without saying the basics twice. It has three parts:
 
-The split to keep in your head: **the cabinet and the rules are the engine's; the playfield is the table's.** A
-field is always 640 by 1040 with a flipper shelf and a way out. How many fields there are, where they stand, what
-shape each is inside, how many flippers it has and how long, and where the ramps go, is all layout data.
+1. **`docs/PINBALL.md`: what a pinball table is, and how his work by default.** Lights on every goal, state shown
+   on the playfield, goals that build, a fair launch, several shots per flipper. Guidelines, not law: how many of a
+   thing and where it goes is each table's call. **Any job that makes or changes a table starts there.**
+2. **Shared code for the things that must behave the same everywhere**: how the ball, the flippers and the plunger
+   feel, what a lit, dim or flashing light means, what a shot scores, the camera, saves, the HUD.
+3. **Optional game systems, each a switch**: classes, levels, health, enemies, bosses, quests, side quests, a party
+   and its Rally, cards, coin, the Grave, wings. They were built for Gravebound. **None of them is core.** A table
+   switches on the ones it wants (`uses` in its `table.js`, or simply by giving the data); a table with none of
+   them is a plain pinball table and is complete.
+
+A table is data plus a few small hook functions plus art. The code that reads it is called "the engine" below, for
+want of a shorter word; read that as "the shared parts", not as a rule book.
 
 - No build step. Plain ES modules, opened through any static server (`npm start`, GitHub Pages, Vercel).
 - Three.js r128 is vendored in `vendor/three` and loaded as classic scripts, so `THREE` is a global.
-- Three tables ship. `tables/test-bench`: plain, no art, uses every *layout* feature (a grid of fields, a field
-  with no standard parts, three flipper sizes, drain ramps, status lamps); the first layout to read.
-  `tables/gravebound`: the reference for every *game* feature (wings, doors, campaigns, a full theme).
-  `tables/neon-descent`: a second themed table on the same rules.
+- Four tables ship. `tables/starfall`: one playfield, every optional system off: the reference for plain pinball.
+  `tables/gravebound`: three levels, every optional system on: the reference for the RPG kind.
+  `tables/neon-descent`: a second themed table with everything on. `tables/test-bench`: no art, uses every
+  *layout* feature (a grid of fields, a field with no standard parts, three flipper sizes, drain ramps).
+- Still ahead, not started: a front-end editor (inspect mode is its first half), and table size as a setting.
 
 ## Map
 
 ```
 index.html                 table picker
 engine/api.js              the ONLY file a table imports from (re-exports the whole engine)
-engine/table/              layout.js  the level model (fields on a grid, Grave, wings; sizes; tierOf)
+engine/table/              layout.js  the level model (fields on a grid, Grave, wings; sizes; tierOf) and the feel
+                                      presets (FEELS: gravity, bounce, kicks, plunger, ramp defaults)
                            build.js   layout data -> walls, flippers, sensors (piece types live here)
                            parts.js   standard parts a field gets unless it says not (arch, orbits, slings, flippers,
                                       lanes) and the cabinet parts it always gets (shelf, way out)
                            geometry.js primitives (seg, bank, bumper, hole, mouth, rail)
-                           content.js a table's content as live bindings + default text (TEXT0)
-engine/physics/physics.js  the feel of the ball. Do not touch without re-recording on purpose.
+                           content.js a table's content as live bindings, default text (TEXT0), and USE: which
+                                      game systems this table has switched on
+engine/physics/physics.js  how the ball moves. Its numbers come from the table's feel preset.
 engine/rules/              one file per subject: classes, spells, perks, party, rally, tavern (recruits), foes, waves,
                            bosses, quests, lamps, score, powers, grave, wings, events (what a hit is worth), ball,
                            choices (cards), run (start, save, campaign plan), step (the per-frame order), names
@@ -43,30 +52,35 @@ engine/ui/                 page.js + page.css (markup, HUD), ui.js (menus), audi
 engine/app/                shell.js (boot, loop, input, dev keys), inspect.js (inspect mode)
 tables/<id>/               index.html, main.js, table.js, layout.js, content.js, rules.js, theme/
 tests/                     check.mjs (static), table.mjs (layout), replay.mjs (simulation), soak.mjs (bot),
-                           reach.mjs (which shots each flipper can make), golden/
+                           reach.mjs (which shots each flipper can make), standards.mjs (a table against
+                           PINBALL.md), switches.mjs (each game system off in turn), golden/
 tools/bundle.mjs           one-file builds: a table, or all of them behind a picker (engine/app/picker.js)
-docs/                      this guide, TABLE_FORMAT, RULESET, NEW_TABLE_CHECKLIST, STATUS
+docs/                      this guide, PINBALL, TABLE_FORMAT, RULESET, NEW_TABLE_CHECKLIST, STATUS
 ```
 
 ## Which doc for which job
 
 | Job | Open |
 |---|---|
-| Make a new table ("today I want a space pinball game") | `NEW_TABLE_CHECKLIST.md`, then `TABLE_FORMAT.md` |
-| Change a table's layout, words, quests, art | `TABLE_FORMAT.md` and that table's files |
-| What does the game do? What is a Rally, a ward, a lamp colour? | `RULESET.md` |
+| Make a new table ("today I want a space pinball game") | `PINBALL.md`, then `NEW_TABLE_CHECKLIST.md`, then `TABLE_FORMAT.md` |
+| Change a table's layout, words, goals, art | `PINBALL.md` (what it should still have), `TABLE_FORMAT.md` and that table's files |
+| Make a table faster, bouncier, easier | `TABLE_FORMAT.md`, "`feel`" |
+| Add or drop a game system on a table (health, enemies, classes...) | `TABLE_FORMAT.md`, "`uses`" |
+| What does an optional system do? What is a Rally, a ward, a lamp colour? | `RULESET.md` |
 | Change how every table plays | `RULESET.md`, then the one file in `engine/rules/` it names |
 | What is finished, what is verified, known limits | `STATUS.md` |
 
 ## The level model (you need this for everything)
 
-- A **field** is one playfield: 640 wide, 1040 deep, flippers at its own y 900. That size never changes.
+- A **field** is one playfield: 640 wide, 1040 deep, flippers at its own y 900. That size is fixed for now.
 - Fields stand on a grid: `at: [column, row]` in the layout. Rows run down the table. A layout that gives no `at`
   is a plain stack, top first. On the whole table a field's corner is at x `690 * column`, y `40 + 1040 * row`.
 - Same column, next row: the two fields are **joined** (the upper one's drain falls into the lower one's arch).
-- The **home field** is the last one listed: the plunger (`shooter:true`), the real drain, the Grave under it.
+- The **home field** is the last one listed: the plunger (`shooter:true`), the real drain, and the Grave under it
+  if the table has one.
 - Any other field with nothing joined below it drains into a **drain ramp** (a "chute") to a field the layout names.
-- A **tier** is an index: fields `0..NM-1` in the order listed, then the Grave (`NM`), then wings (`NM+1..`).
+- A **tier** is an index: fields `0..NM-1` in the order listed, then the Grave (`NM`; the slot is kept even on a
+  table without one), then wings (`NM+1..`).
   Layout and content name fields by id; the engine and `rules.js` work in indices (`FIELD_INDEX.<id>`).
 - Inside a field, points are local: `[x, y]` from the field's own corner. Points that cross fields (ramp paths,
   tunnel waypoints) are written `['#fieldId', x, y]`.
@@ -76,21 +90,37 @@ docs/                      this guide, TABLE_FORMAT, RULESET, NEW_TABLE_CHECKLIS
 
 ## House rules
 
+Two kinds. The first kind is hard because code or the tests break otherwise. The second kind is how the owner
+wants the work done.
+
+**Hard (things break):**
+
 1. **A table imports only from `engine/api.js`.** The engine never imports from a table.
-2. **Layout and content are data.** Behaviour a table needs goes in `rules.js` hooks (`onComplete`, `onScoop`,
-   `on`, `lamps`, `status`, `tick`, `init`, `newRun`). If a hook cannot do it, the engine gains a general feature with a data flag;
-   it never gains `if(table==='x')`.
-3. **Never change an engine number for one table.** Physics constants, flipper strength, class stats, scores and
-   timers are the manufacturer. Tables differ by layout, content and art.
-4. **Base modules import nothing upward.** `core/util.js`, `core/state.js`, `table/layout.js`, `table/content.js` are
+2. **Base modules import nothing upward.** `core/util.js`, `core/state.js`, `table/layout.js`, `table/content.js` are
    read by everything; they must not import rules, render or ui (ES module evaluation order breaks otherwise).
-5. **Nothing reads layout or content bindings while a module is being evaluated.** They are filled by `initGame()`.
-6. **Art never calls `Math.random`.** Use `hash(n)` from the api. The simulation's random numbers are replayed in
+3. **Nothing reads layout or content bindings while a module is being evaluated.** They are filled by `initGame()`.
+4. **Art never calls `Math.random`.** Use `hash(n)` from the api. The simulation's random numbers are replayed in
    tests; art that consumes them shifts the game.
-7. **A layout is judged by the priorities in the checklist**, in order: the ball never sticks, it always comes back
-   to a flipper, every shot can be made, the table can be read. `tests/soak.mjs` and `tests/reach.mjs` check the
-   first three. Build the shape the owner asked for; if you think another is better, ask, do not substitute.
-8. **Tell the owner before a large change**, with what and why. He wants verified over guessed.
+5. **The engine never names a table.** No `if(table==='x')`. If a table needs something the shared code cannot do,
+   the shared code gains a general feature that any table can switch on with data.
+
+**How the work is done:**
+
+6. **`PINBALL.md` is the default for everything a request does not say.** Do not make the owner repeat it. Do not
+   treat it as law either: if he asks for something that contradicts it, build what he asked for.
+7. **Nothing is core.** Never tell the owner a table must have a system (a Grave, bosses, a health bar, classes).
+   If a table cannot run without one, that is a bug in the shared code: fix it there, behind the switch.
+8. **Layout and content are data; a table's own behaviour goes in its `rules.js` hooks** (`onComplete`, `onScoop`,
+   `on`, `lamps`, `status`, `objective`, `bonus`, `tick`, `init`, `newRun`).
+9. **One table's feel is that table's.** To make a table faster or bouncier, set its `feel` (a preset, or a preset
+   with single numbers changed). Do not edit a shared number to suit one table: that changes every table.
+10. **Changing a shared default changes every table**, and the recordings will say so. That is allowed when it is
+    what the owner wants; say it plainly and re-record on purpose.
+11. **A layout is judged by the priorities in the checklist**, in order: the ball never sticks, it always comes back
+    to a flipper, every shot can be made, the table can be read. `soak`, `reach` and `standards` report on them.
+12. **Build the shape the owner asked for.** If you think another would play better, ask; do not substitute. Ask
+    too when a request leaves the shape or the optional systems unclear. Ask nothing `PINBALL.md` already answers.
+13. **Tell the owner before a large change**, with what and why. He wants verified over guessed.
 
 ## Checking your work
 
@@ -98,19 +128,24 @@ docs/                      this guide, TABLE_FORMAT, RULESET, NEW_TABLE_CHECKLIS
 npm run check          static: every module parses, every import resolves, no undefined names   (seconds)
 node tests/table.mjs --table <id>      the layout still builds the recorded table
 node tests/replay.mjs 5 --table <id>   the simulation still matches the recording, step for step
-node tests/soak.mjs 20 --table <id>    a bot plays every field: stuck balls, shots never made, ramp failures
-node tests/reach.mjs --table <id>      every flipper, every timing: which shots it can make, which nobody can
+npm run soak -- <id>       a bot plays every field: stuck balls, shots never made, ramp failures
+npm run reach -- <id>      every flipper, every timing: which shots it can make, which nobody can
+npm run standards -- <id>  the table against PINBALL.md: fair launch, a light on every goal and shot, state lamps
+npm run switches -- <id>   the table with each of its game systems off in turn: does anything throw?
 npm test               check + layout + 5-minute replay, every table
 npm run bundle -- all  dist/pinballsauce.html (one file); check it with  node tests/replay.mjs 5 --url dist/pinballsauce.html#gravebound
 ```
 
-- A replay failure means you changed how the game plays. If you meant to, re-record with `--record` and say so in
-  the commit. If you did not, find it: the failure names the scenario and the second it first differs.
-- Gravebound's recording was made from the original game before the engine existed. Keep it passing.
+- The recordings are an alarm, not a law. A replay failure means you changed how that table plays. If you meant
+  to, re-record with `--record` and say so in the commit. If you did not, find it: the failure names the scenario
+  and the second it first differs.
+- `standards` prints notes, and notes never fail: they are guidelines the table does not follow, for someone to
+  decide whether that is on purpose.
+- Passing every check means the table is not broken. Whether it is good is judged by a person playing it.
 - Look at the table: `tables/<id>/index.html?inspect` opens inspect mode (pan, zoom, top-down, piece labels with the
   layout line that made each piece, a coordinate grid, a screenshot button). In the game, press `I`.
 - Dev keys in play (toggle with the backtick key): digits drop the ball on a field (then the Grave, then wings),
-  `G` opens the Grave, `B` adds a ball, `N` finishes the current main-quest step.
+  `G` opens the Grave (if there is one), `B` adds a ball, `N` finishes the current main-quest step.
 
 ## Vocabulary
 
@@ -123,5 +158,6 @@ pocket that holds the ball, pays, and ejects or tunnels it. **bank** a row of dr
 group of rollover lanes lit as one. **shot** anything addressable by id: a ramp, scoop, bank, bumper group, spinner,
 lane set, statue or orbit; quests and lamps talk about shots. **insert** the arrow or dot painted for a shot.
 **lamp** the lit state of an insert. **status lamp** a `lamp` piece: a light in the floor showing the game's state
-(2x, ball save, lock). **the Grave** the room under the home field that catches a lost ball once it
-is open. **wing** a side room with its own flippers. **Rally** party multiball.
+(2x, ball save, lock). **the Grave** an optional room under the home field that catches a lost ball once it
+is open. **wing** an optional side room with its own flippers. **Rally** party multiball. **switch** one entry of
+a table's `uses`: a game system the table has or has not. **feel** a table's ball-movement preset.

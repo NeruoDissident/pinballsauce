@@ -7,6 +7,7 @@ import {damageEnemy} from './foes.js';
 import {rally} from './rally.js';
 import {CRADLE_ARM, CRADLE_RALLY, heal, hurt} from './score.js';
 import {spellOn, spellVal} from './spells.js';
+import {USE} from '../table/content.js';
 import {tierOf} from '../table/layout.js';
 import {A} from '../ui/audio.js';
 
@@ -61,6 +62,7 @@ export function classNudge() {
     m = G.mods,
     c = r.cls,
     live = G.balls.filter(b => b.st === 'live');
+  if (!USE.classes) return; // a plain ball has no nudge power: a nudge is only a nudge
   if (G.nudgeCd > 0 || !live.length || G.fallen) return;
   G.nudgeCd = 2.5 + m.nudgeCd;
   const near = (e, d) => !e.dead && e.spawn <= 0 && live.some(b => Math.hypot(b.x - e.x, b.y - e.y) < d);
@@ -155,14 +157,14 @@ export function updatePowers(dt) {
     }
     // one hold, two stages: at 0.8 s the class shot arms (one bar, spent when the flip fires it); hold on to 1.5 s with a
     // full meter and the party rallies instead. Let go between the two and you keep the armed shot.
-    const full = r.charge >= 100;
+    const full = r.charge >= 100 && USE.party;
     let held = false;
     if (
       b.onFlip > 0 &&
       !b.pow &&
       !b.party &&
       G.tilt <= 0 &&
-      r.charge >= 33 &&
+      (USE.classes ? r.charge >= 33 : full) &&
       (!b.arm || full) &&
       Math.hypot(b.vx, b.vy) < 95
     )
@@ -173,7 +175,7 @@ export function updatePowers(dt) {
         }
     if (held) {
       b.cr += dt;
-      if (!b.arm && b.cr >= CRADLE_ARM) {
+      if (USE.classes && !b.arm && b.cr >= CRADLE_ARM) {
         b.arm = 9;
         b.armCost = 33;
         A.s('ward');

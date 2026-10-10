@@ -12,7 +12,7 @@
 
    Tiers. A "tier" is an index:
      0 .. NM-1   the fields, in the order the layout lists them   (BT = NM-1 is the home field)
-     GT = NM     the Grave                                        (every table has one)
+     GT = NM     the Grave                                        (the slot is kept on a table without one)
      WT0 ..      the wings, in the order the table lists them
    Physics runs on one plane. A field is the rectangle OX[i]..OX[i]+640 by TY[i]..TY[i]+1040 of it; the Grave and
    the wings are bands of y under the home field. These bindings are filled in by setLayout() when a table loads;
@@ -22,11 +22,60 @@ export const W = 640,
   WLEN = 640,
   BR = 11,
   CELL = 80,
-  GRAV = 1150,
-  VMAX = 2300,
   FIELD_H = 1040,
   FIELD_Y0 = 40,
   COL_W = 690;
+/* ================= FEEL =================
+   How the ball moves. One set of numbers, shared by every table so they feel related; a table may pick another preset
+   or change single numbers with `feel` in its table.js:
+       feel: 'fast'                              a preset by name
+       feel: {preset: 'standard', bounce: 0.5}   a preset with numbers changed
+       feel: {speed: 1.1}                        the same table, 10% quicker
+   `speed` is the safe knob: it speeds up everything the ball does together (gravity by its square, the rest in
+   step), so every shot still goes where it went, only sooner. The other numbers change where shots go: after
+   changing one, run the reach test. */
+export const FEELS = {
+  standard: {
+    speed: 1,
+    gravity: 1150, // units/s2 down the table
+    maxSpeed: 2300, // nothing moves faster
+    bounce: 0.45, // what a plain wall gives back
+    flipper: 1, // flipper strength (1 = 21 radians a second on the way up)
+    sling: 1, // slingshot kick (1 = 420 to 580)
+    bumper: 470, // pop-bumper kick
+    plunge: [1330, 1950], // launch speed, from a tap to a full pull
+    ramp: {k: 0.2, drag: 0.1, exitV: 520} // what a ramp has unless its layout says otherwise
+  },
+  fast: {speed: 1.15},
+  slow: {speed: 0.88},
+  lively: {bounce: 0.52, sling: 1.12, bumper: 520}
+};
+export let FEEL = FEELS.standard,
+  GRAV = 1150,
+  VMAX = 2300;
+export function setFeel(f) {
+  const o = typeof f === 'string' ? {preset: f} : f || {},
+    pre = FEELS[o.preset || 'standard'];
+  if (!pre)
+    throw new Error('table: there is no feel preset "' + o.preset + '" (' + Object.keys(FEELS).join(', ') + ')');
+  const m = Object.assign({}, FEELS.standard, pre, o);
+  m.ramp = Object.assign({}, FEELS.standard.ramp, pre.ramp || {}, o.ramp || {});
+  const s = m.speed;
+  // `speed` carries everything along with it
+  FEEL = {
+    speed: s,
+    gravity: m.gravity * s * s,
+    maxSpeed: m.maxSpeed * s,
+    bounce: m.bounce,
+    flipper: m.flipper * s,
+    sling: m.sling * s,
+    bumper: m.bumper * s,
+    plunge: [m.plunge[0] * s, m.plunge[1] * s],
+    ramp: {k: m.ramp.k, drag: m.ramp.drag, exitV: m.ramp.exitV * s}
+  };
+  GRAV = FEEL.gravity;
+  VMAX = FEEL.maxSpeed;
+}
 // the flipper lengths the manufacturer makes. Standard is what every field gets unless its layout says otherwise.
 export const FLIPPER = {mini: 58, standard: 82, long: 92};
 export let NM = 0,
@@ -120,8 +169,9 @@ export function setLayout(L) {
   OX.push(0);
   CX.push(320);
   XR.push(620);
-  TIER_NAME.push(L.grave.name);
-  LEVEL_NAMES[GT] = L.grave.short || L.grave.name;
+  const gv = L.grave || {name: ''}; // the room under the home field, if the table has one
+  TIER_NAME.push(gv.name);
+  LEVEL_NAMES[GT] = gv.short || gv.name;
   for (let k = 0; k < NW; k++) {
     const w = L.wings[k];
     WB.push(WY + k * WSTEP);

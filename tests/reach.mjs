@@ -1,15 +1,17 @@
 /* The reach test for a table's LAYOUT: which shots can each flipper actually make?
 
-     node tests/reach.mjs [--table test-bench] [--field west]
+     node tests/reach.mjs [--table test-bench] [--field west] [--feel fast]
 
    For every flipper on every field a ball is rolled down the bat and flipped, at every timing from "far too early"
-   to "far too late" and at three rolling speeds, with nothing else on the table. What the ball reaches first is
-   written down. That is the fan of shots the flipper has. Physics only: no foes, no bot, no luck.
+   to "far too late" and at three rolling speeds, with nothing else on the table. What the ball reaches is written
+   down: the first thing it strikes or enters, and any spinner, rollover or orbit it passes through on the way.
+   That is the fan of shots the flipper has. Physics only: no foes, no bot, no luck. It is a floor, not a ceiling:
+   the ball always starts by rolling down the bat, so shots off a bounce or a held ball are not found.
 
    Read the report like this:
-     under each flipper   the shots it reaches, with how many of the trials reached each one first. A shot with a
+     under each flipper   the shots it reaches, with how many of the trials reached each one. A shot with a
                           handful of hits out of several hundred is there, but it is a hard shot.
-     NOT REACHED          a shot on that field no flipper of the field reached first. It is not always a fault: a
+     NOT REACHED          a shot on that field no flipper of the field reached. It is not always a fault: a
                           lane set under the arch is fed by an orbit or the plunger, a scoop may be fed by a ramp.
                           If nothing is meant to feed it, it is a dead shot: move it, or move a flipper.
      nothing              a flipper that reaches no shot at all is standing in the wrong place.
@@ -17,7 +19,7 @@
 import {chromium} from 'playwright';
 import path from 'path';
 import {fileURLToPath} from 'url';
-import {serve} from './serve.mjs';
+import {serve, local} from './serve.mjs';
 import {init} from './scenarios.mjs';
 const here = path.dirname(fileURLToPath(import.meta.url)),
   args = process.argv.slice(2);
@@ -26,7 +28,8 @@ const opt = n => {
   return i < 0 ? null : args[i + 1];
 };
 const table = opt('table') || 'gravebound',
-  only = opt('field');
+  only = opt('field'),
+  feel = opt('feel'); // try the table on another feel preset without editing it
 
 const run = only => {
   const P = window.__pb.api,
@@ -53,11 +56,16 @@ const run = only => {
     hole: o => o.id,
     orbit: o => 'orbit' + (o.side < 0 ? 'L' : 'R') + o.tier
   };
+  // a spinner, a rollover and an orbit let the ball carry on to what is behind them; anything else ends the shot
+  const THROUGH = {spin: 1, lane: 1, orbit: 1};
+  let ended = false;
   R.on = {};
   for (const k in idOf)
     R.on[k] = what => {
       const id = idOf[k](what);
-      if (log && id) log.push(id);
+      if (!log || ended || !id) return;
+      if (!log.includes(id)) log.push(id);
+      if (!THROUGH[k]) ended = true;
     };
   const out = [],
     err = [];
@@ -80,6 +88,7 @@ const run = only => {
           }
           for (const id in T.banks) for (const s of T.banks[id].segs) s.on = true;
           for (const id in T.holes) T.holes[id].busy = 0;
+          for (const q of T.sens) if (q.kind === 'spin') q.rate = 0; // a spinner still turning from the last flip is not a hit
           for (const id in T.rails) T.rails[id].closed = false;
           G.enemies = [];
           G.tilt = 0;
@@ -92,15 +101,15 @@ const run = only => {
           );
           G.balls = [b];
           log = [];
-          for (let t = 0; t < 2.4 && !log.length; t += 1 / 120) {
+          ended = false;
+          for (let t = 0; t < 2.4 && !ended; t += 1 / 120) {
             const on = t >= wait && t < wait + 0.3;
             for (const g of T.flips) if (g.side === f.side) g.on = on;
             P.physics(1 / 120);
             if (b.st !== 'live') break; // on a ramp or in a scoop: the hook has already said which
             if (t > wait + 0.3 && b.y > f.y + 30 && b.vy > 0) break; // fell away below the flipper
           }
-          const id = log[0];
-          if (id) hits[id] = (hits[id] || 0) + 1;
+          for (const id of log) hits[id] = (hits[id] || 0) + 1;
         }
       out.push({
         field: F[f.tier].id,
@@ -134,7 +143,7 @@ const pg = await (await br.newContext({viewport: {width: 640, height: 400}})).ne
 pg.on('pageerror', e =>
   logs.push('PAGE ERROR ' + e.message + ' ' + (e.stack || '').split('\n').slice(1, 4).join(' | '))
 );
-await pg.route('**/*', r => (/^http:\/\/127\.0\.0\.1/.test(r.request().url()) ? r.continue() : r.abort()));
+await local(pg, table, feel && {feel});
 await pg.addInitScript(init, 4242);
 await pg.goto(srv.url + '/tables/' + table + '/index.html');
 let r;

@@ -17,8 +17,8 @@ import {charge, gold, heal, jackpot, major, score, shot, xp} from './score.js';
 import {holyFire, spellOn, spellProg, spellVal} from './spells.js';
 import {callFoes, campFoes, startWave, waveJoin} from './waves.js';
 import {breakSeal, wingDone} from './wings.js';
-import {DEF, PAL, RULES, TEXT, WINGS, hook} from '../table/content.js';
-import {GT} from '../table/layout.js';
+import {DEF, PAL, RULES, TEXT, USE, WINGS, hook} from '../table/content.js';
+import {FEEL, GT} from '../table/layout.js';
 import {A} from '../ui/audio.js';
 import {popup} from '../ui/ui.js';
 
@@ -79,7 +79,7 @@ export function ev(type, o, b, imp) {
         o.ward = false;
         wardHit(o);
       }
-      if (o.opensGrave) {
+      if (o.opensGrave && USE.grave) {
         graveHit(o);
         G.graveStir = (G.graveStir || 0) + 1;
         const gs = DEF.content.graveStir;
@@ -268,7 +268,7 @@ export function ev(type, o, b, imp) {
         G.kickT = 30;
         b.x = o.x;
         b.vx = 0;
-        b.vy = -2050;
+        b.vy = -2050 * FEEL.speed;
         A.s('kick');
         float(b.x + 40, b.y - 40, 'KICKBACK', '#9fe8ff', 15);
         burst(b.x, b.y, 14, '#9fe8ff', 300, 0.6);
@@ -280,7 +280,7 @@ export function ev(type, o, b, imp) {
       for (const e of G.enemies) if (e.job === 'ritual' && e.post && e.post.rail === o.id) ritualBroken(e);
       break;
     case 'ramp':
-      if (o.to === o.from && !b.party) callFoes(o.to, campFoes(2), TEXT.followed, b.x, b.y);
+      if (o.calls && !b.party) callFoes(o.to, campFoes(o.calls), TEXT.followed, b.x, b.y);
       r.stat.ramps++;
       if (r.bb) r.bb.ramps++;
       if (!b.party) spellProg('striker', 1, b.x, b.y);

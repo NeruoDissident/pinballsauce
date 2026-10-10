@@ -3,14 +3,14 @@
    inserts, target banks, ramp mouths and rails. Each adds itself to T. Used by table/parts.js and table/build.js. */
 import {T} from '../core/state.js';
 import {PI, clamp} from '../core/util.js';
-import {OX, TY} from './layout.js';
+import {FEEL, OX, TY} from './layout.js';
 
 export function seg(x1, y1, x2, y2, o) {
   const dx = x2 - x1,
     dy = y2 - y1,
     len = Math.hypot(dx, dy) || 1;
   const s = Object.assign(
-    {x1, y1, x2, y2, dx, dy, len, l2: len * len, e: 0.45, w: 0, kind: 'wall', on: true, flash: 0, cool: 0},
+    {x1, y1, x2, y2, dx, dy, len, l2: len * len, e: FEEL.bounce, w: 0, kind: 'wall', on: true, flash: 0, cool: 0},
     o || {}
   );
   T.segs.push(s);
@@ -50,7 +50,7 @@ export function block(pts, o) {
   T.blocks.push(Object.assign({pts}, o || {}));
 }
 export function bumper(x, y, r, group, tier, o) {
-  const b = Object.assign({x, y, r, group, tier, kick: 470, flash: 0, cool: 0, ward: false}, o || {});
+  const b = Object.assign({x, y, r, group, tier, kick: FEEL.bumper, flash: 0, cool: 0, ward: false}, o || {});
   T.bumps.push(b);
   return b;
 }
@@ -172,7 +172,7 @@ export function resample(pts, ds) {
 export function rail(id, name, mouth, pts, o) {
   const r = Object.assign(
     resample(catmull([mouth.c0, mouth.c1].concat(pts), 14), 6),
-    {id, name, k: 0.2, exitV: 520},
+    {id, name, k: FEEL.ramp.k, exitV: FEEL.ramp.exitV},
     o || {}
   );
   T.rails[id] = r;

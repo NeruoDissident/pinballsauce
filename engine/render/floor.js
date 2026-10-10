@@ -4,7 +4,7 @@ import {defaultPaintGrave} from './defaults.js';
 import {G, T} from '../core/state.js';
 import {PI, TAU, hash, lerp, mkCanvas} from '../core/util.js';
 import {R, fieldPath, flagstones, path} from './draw2d.js';
-import {PAL, THEME} from '../table/content.js';
+import {PAL, THEME, USE} from '../table/content.js';
 import {BT, CHAINS, FIELD_H, H, HW, NM, OX, TY, W, roofed} from '../table/layout.js';
 
 /* ================= PLAYFIELD ART FOR 3D =================
@@ -262,7 +262,7 @@ export function paintFloorChunks(ss) {
       out.push({cv, y0, y1: y0 + FLOOR_CH, ox, top, end});
     }
   }
-  {
+  if (USE.grave) {
     const cv = mkCanvas(Math.round(W * ss), Math.round((HW + 90 - (H + 10)) * ss)),
       c = cv.getContext('2d');
     c.setTransform(ss, 0, 0, ss, 0, -(H + 10) * ss);

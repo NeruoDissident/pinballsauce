@@ -1,0 +1,101 @@
+{
+ "table": "starfall",
+ "sections": {
+  "banks": {
+   "n": 3,
+   "hash": "e0a08859a9be4837"
+  },
+  "blocks": {
+   "n": 7,
+   "hash": "2004acc23a07b0f3"
+  },
+  "bossSpot": {
+   "n": 0,
+   "hash": "741638a53edf8317"
+  },
+  "bumps": {
+   "n": 3,
+   "hash": "695166ba35c47ced"
+  },
+  "chans": {
+   "n": 0,
+   "hash": "741638a53edf8317"
+  },
+  "flips": {
+   "n": 2,
+   "hash": "f7dd262b7f3697c1"
+  },
+  "grid": {
+   "n": 27,
+   "hash": "aa76d86856a97f97"
+  },
+  "holes": {
+   "n": 2,
+   "hash": "7c0e1f6036b4ab75"
+  },
+  "lamps": {
+   "n": 11,
+   "hash": "d287b08eb826a635"
+  },
+  "mouths": {
+   "n": 1,
+   "hash": "e0b3dd673e9a8af"
+  },
+  "rails": {
+   "n": 1,
+   "hash": "52d8ffb4b94f46c7"
+  },
+  "segs": {
+   "n": 151,
+   "hash": "670ca53ae8330e95"
+  },
+  "sens": {
+   "n": 11,
+   "hash": "74e1020e3e869b83"
+  },
+  "sets": {
+   "n": 1,
+   "hash": "de76776d324ebbf7"
+  },
+  "shooter": {
+   "n": 1,
+   "hash": "5e4bba4ab449ef9"
+  },
+  "shots": {
+   "n": 11,
+   "hash": "3d65f6ecaff87e79"
+  },
+  "slings": {
+   "n": 2,
+   "hash": "a64ae1d7c846d8df"
+  },
+  "spawn": {
+   "n": 2,
+   "hash": "d08749ad33cc5655"
+  },
+  "statueSpot": {
+   "n": 0,
+   "hash": "741638a53edf8317"
+  },
+  "statues": {
+   "n": 0,
+   "hash": "741638a53edf8317"
+  },
+  "torches": {
+   "n": 7,
+   "hash": "48e12c7ddbf11317"
+  },
+  "tunnels": {
+   "n": 0,
+   "hash": "741638a53edf8317"
+  },
+  "wallPaths": {
+   "n": 18,
+   "hash": "c94e6facc1fdd335"
+  },
+  "wings": {
+   "n": 0,
+   "hash": "741638a53edf8317"
+  }
+ }
+}

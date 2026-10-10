@@ -29,7 +29,7 @@ import {
   wingIdx,
   zshift
 } from './world.js';
-import {DEF, PAL, THEME, WINGS, WING_KEYS} from '../table/content.js';
+import {DEF, PAL, THEME, USE, WINGS, WING_KEYS} from '../table/content.js';
 import {arcPts} from '../table/geometry.js';
 import {
   ABOVE,
@@ -166,7 +166,7 @@ export function buildLights() {
   const cols = THEME.tierLight,
     zs = cols.map((c, i) => (i < NM ? TY[i] + 470 : GY + 320));
   R3.tierL = cols.map((c, i) => {
-    const l = new THREE.PointLight(new THREE.Color(c), i === GT ? 1 : 1.15, 1250, 1.4);
+    const l = new THREE.PointLight(new THREE.Color(c), i === GT ? (USE.grave ? 1 : 0) : 1.15, 1250, 1.4);
     l.position.set(OX[i] || 0, E[i] + 330, zs[i]);
     sc.add(l);
     return l;
@@ -350,7 +350,7 @@ export function buildStatic() {
   // ramps
   for (const id in T.rails) buildRail(T.rails[id], steel, iron);
   // the Grave: coffin walls, the pit around it
-  {
+  if (USE.grave) {
     const out = offsets(T.coffin, 16, false),
       c = [
         T.coffin.reduce((a, p) => a + p[0], 0) / T.coffin.length,
@@ -409,6 +409,19 @@ export function buildStatic() {
       ],
       0,
       {flat: E[BT] - 0.5, base: yb}
+    );
+  } else {
+    // no room under the table: the cabinet simply ends in a foot below the home field's drain
+    prism(
+      frame,
+      [
+        [-70, H + 34],
+        [710, H + 34],
+        [710, H + 120],
+        [-70, H + 120]
+      ],
+      0,
+      {flat: E[BT] + 34, base: E[BT] - 60}
     );
   }
   const add = (mb, mat, o) => {
@@ -852,7 +865,7 @@ export function buildDynamic() {
       bank: T.banks[id] || null
     };
   }
-  buildRunes();
+  if (USE.levels) buildRunes(); // the spellbook's ring of lamps
   // scoops glow
   for (const id in T.holes) {
     const h = T.holes[id],
@@ -895,8 +908,8 @@ export function buildDynamic() {
     sc.add(g);
     R3.plunger = g;
   }
-  // the light at the head of the coffin
-  {
+  // the light at the head of the coffin, the mark and the stone by the drain that show the Grave is open
+  if (USE.grave) {
     const sp = new THREE.Sprite(
       new THREE.SpriteMaterial({
         map: R3.glowTex,
@@ -941,6 +954,9 @@ export function buildDynamic() {
     st.castShadow = true;
     sc.add(st);
     R3.graveStone = gm;
+  }
+  // the glow over the drain while a ball save is running; the cleric's aura
+  {
     const sv = new THREE.Sprite(
       new THREE.SpriteMaterial({
         map: R3.glowTex,

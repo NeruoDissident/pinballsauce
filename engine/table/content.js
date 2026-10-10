@@ -7,7 +7,8 @@ import {FIELD_INDEX} from './layout.js';
 export let DEF = null,
   RULES = {},
   THEME = {},
-  TEXT = {};
+  TEXT = {},
+  USE = {}; // which game systems this table uses (see uses() below)
 export let ENEMY = {},
   BOSSES = {},
   CAMPAIGNS = {},
@@ -50,7 +51,21 @@ const TEXT0 = {
   coin: 'gold',
   coinMark: 'g',
   graveChip: 'Grave',
-  wave: ['They Come', '']
+  wave: ['They Come', ''],
+  mainHead: 'Main Quest', // what the table's ladder of goals is called (a plain table might say Goals)
+  mainDone: 'Main Quest Complete',
+  sideHead: 'Side quests',
+  heroHead: 'Hero',
+  campHead: 'Campaign',
+  overWon: 'The expedition is over',
+  overLost: 'The hero falls',
+  nameAsk: 'Carve your name',
+  noScores: 'No scores yet. The first name on the stone is yours to carve.',
+  // the timed effects a table's rules can switch on (G.buffs.<name> = seconds), as the HUD words them
+  buffs: {sharp: 'Sharpened', stealth: 'Shadowstrike', aegis: 'Aegis', moon: 'Moonlight 2x'},
+  endlessNote: 'Endless: a new shadow rises after every campaign, instead of the run ending',
+  controlsNote:
+    'Flashing gold arrows are your main quest. Blue ones are side quests. Ramps climb to the level above; the gap between the upper flippers drops you to the level below.'
 };
 // a palette per tier when the theme gives none: a, b floor gradient; acc, acc2 accents; glow; stone
 const PAL0 = [
@@ -102,16 +117,52 @@ function tiersById(o) {
   }
   for (const k in o) tiersById(o[k]);
 }
+/* Which game systems a table uses. Nothing is compulsory.
+   Systems that live in the engine are switches, on unless the table says `uses: {name: false}`:
+     health    the health bar: foes and boss spells wound, and at zero the flippers die
+     classes   class balls: a ball picked at the start, with its own weight, nudge power and cradle shot
+     levels    experience, level-ups and the spellbook (needs classes)
+     party     companions, recruits, the guard post and the Rally
+     cards     boons and relics
+     gold      the coin
+   Systems that are made of a table's own data are on when the data is there:
+     foes, bosses   content.foes, content.bosses
+     quests, side   content.campaigns (the main goals), content.side
+     grave          layout.grave
+   (`uses: {foes: false}` switches one of those off without deleting its data.) */
+function uses(def) {
+  const u = def.uses || {},
+    c = def.content || {},
+    on = k => u[k] !== false,
+    any = o => !!o && Object.keys(o).length > 0;
+  const U = {
+    classes: on('classes'),
+    party: on('party'),
+    cards: on('cards'),
+    gold: on('gold'),
+    foes: on('foes') && any(c.foes),
+    bosses: on('bosses') && any(c.bosses),
+    quests: on('quests') && any(c.campaigns),
+    side: on('side') && any(c.side),
+    grave: on('grave') && !!def.layout.grave
+  };
+  U.health = on('health') && (U.foes || U.bosses); // with nothing to wound you there is nothing to show
+  U.levels = on('levels') && U.classes;
+  U.meter = U.classes || U.party; // the power meter feeds the class shot and the Rally
+  return U;
+}
 export function setContent(def) {
   DEF = def;
-  const c = def.content;
+  const c = def.content || (def.content = {});
   tiersById(c);
+  USE = uses(def);
   RULES = def.rules || {};
   THEME = themeDefaults(def, def.theme || {});
   TEXT = Object.assign({}, TEXT0, c.text || {});
-  ENEMY = c.foes;
-  BOSSES = c.bosses;
-  CAMPAIGNS = c.campaigns;
+  TEXT.buffs = Object.assign({}, TEXT0.buffs, (c.text || {}).buffs || {});
+  ENEMY = c.foes || {};
+  BOSSES = c.bosses || {};
+  CAMPAIGNS = c.campaigns || {};
   SIDE = c.side || [];
   STAGES = c.stages || [];
   WINGS = c.wings || {};

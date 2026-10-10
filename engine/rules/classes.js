@@ -95,3 +95,32 @@ export const CLASSES = {
     ch: {hit: 0.16, kill: 2.2, shot: 1.8, spin: 0.06, lane: 2}
   }
 };
+
+/* A table that does not use classes plays with a plain ball: standard weight, no powers. It is kept out of the list
+   above (it is not something to pick), so CLASSES[run.cls] still works everywhere. */
+Object.defineProperty(CLASSES, 'plain', {
+  enumerable: false,
+  value: {
+    name: '',
+    tag: '',
+    hp: 100,
+    pow: 10,
+    flip: 1,
+    dr: 0,
+    save: 0,
+    crit: 0,
+    color: '#cdd6e0',
+    glow: '#9fb8d0',
+    sig: '',
+    r: 11,
+    kx: 1,
+    pass: '',
+    nudge: '',
+    nudgeText: '',
+    shot: '',
+    shotText: '',
+    abil: 'Rally',
+    abilText: '',
+    ch: {hit: 0.4, kill: 2, shot: 2, spin: 0.1, lane: 1.5} // how fast the meter fills, for a table with a party and no classes
+  }
+});

@@ -12,7 +12,7 @@ import {frameWing} from './wings.js';
 import {E, ZX, ZZ, elev, elevIn, zshift} from './world.js';
 import {CLASSES} from '../rules/classes.js';
 import {lampState} from '../rules/lamps.js';
-import {PAL, THEME} from '../table/content.js';
+import {PAL, THEME, USE} from '../table/content.js';
 import {railPos} from '../table/geometry.js';
 import {GRID, GT, GY, NM, OX, TY} from '../table/layout.js';
 
@@ -320,7 +320,7 @@ export function frame3D(dt) {
         1
       ) * 0.9;
   }
-  frameRunes(t);
+  if (USE.levels) frameRunes(t);
   for (const o of D.spins) {
     o.pv.rotation.x = o.s.ang || 0;
     o.mat.emissiveIntensity = o.s.rate > 0 ? 0.9 : 0.05;
@@ -333,7 +333,7 @@ export function frame3D(dt) {
   }
   // plunger, the Grave, ball save
   R3.plunger.position.z = T.shooter.y + 16 + G.plunge.charge * 30;
-  {
+  if (USE.grave) {
     const open = !T.banks.nails.segs.some(x => x.on),
       m = R3.graveGlow.material;
     m.opacity = open ? 0.8 + 0.15 * Math.sin(t * 6) : 0.28;
@@ -343,6 +343,8 @@ export function frame3D(dt) {
       f = g ? (g.open ? 1 : g.hits / g.need) : 0;
     R3.graveMark.material.opacity = g && g.open && !G.inGrave ? 0.45 + 0.3 * Math.sin(t * 4) : 0;
     R3.graveStone.emissiveIntensity = f * (g && g.open ? 1.6 + 0.5 * Math.sin(t * 4) : 0.9);
+  }
+  {
     const sv = run && (G.save > 0 || run.shield) && !G.inGrave,
       sm = R3.saveGlow.material;
     sm.opacity = sv ? 0.45 + 0.25 * Math.sin(t * 6) : 0;
@@ -400,7 +402,7 @@ export function frame3D(dt) {
       const h1 = hash(i * 7.13),
         h2 = hash(i * 1.91),
         h3 = hash(i * 4.4),
-        ti = i % (NM + 1),
+        ti = i % (USE.grave ? NM + 1 : NM),
         ms = THEME.motes[ti].style,
         ph = t * (0.3 + h1 * 0.4) + h1 * 40;
       const y0 = ti === GT ? GY + 40 : TY[ti] + 20,
