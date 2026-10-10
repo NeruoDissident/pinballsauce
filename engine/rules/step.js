@@ -20,7 +20,7 @@ import {updateSpells} from './spells.js';
 import {manageSpawns, updatePickups} from './waves.js';
 import {wingHoldsDoor} from './wings.js';
 import {RULES, TEXT, WINGS, WING_KEYS} from '../table/content.js';
-import {FY, GT, H, HW, WT0, tierOf} from '../table/layout.js';
+import {FY, GRID, GT, H, HW, WT0, tierOf} from '../table/layout.js';
 import {A} from '../ui/audio.js';
 import {popup} from '../ui/ui.js';
 
@@ -115,7 +115,7 @@ export function updateRules(dt) {
   updateRally(dt);
   const f = focusBall();
   if (f) {
-    const ft = tierOf(f.y);
+    const ft = GRID ? f.tier : tierOf(f.y);
     if (ft !== G.focusTier) {
       G.focusTier = ft;
       relight();
@@ -162,7 +162,7 @@ export function updateCam(dt) {
     b = focusBall();
   if (b) {
     let ty = b.y - vh * 0.52 + clamp(b.st === 'live' ? b.vy * 0.08 : 0, -90, 110);
-    const tier = tierOf(b.y),
+    const tier = GRID ? b.tier : tierOf(b.y),
       yF = FY[tier];
     if ((b.st === 'live' || b.st === 'held') && b.y < yF + 60) {
       const w = clamp((b.y - (yF - 640)) / 260, 0, 1);

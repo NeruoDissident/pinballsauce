@@ -7,8 +7,9 @@ same manufacturer built it. A table is a folder of data, a few hook functions an
 | | |
 |---|---|
 | `engine/` | the engine. Tables never edit it; they import from `engine/api.js` only |
-| `tables/gravebound/` | Gravebound Pinball, rebuilt on the engine. The reference table: it uses every feature |
-| `tables/neon-descent/` | Neon Descent: the same rules in a cyberpunk city. The model for a second table |
+| `tables/gravebound/` | Gravebound Pinball, rebuilt on the engine. The reference for every game feature |
+| `tables/neon-descent/` | Neon Descent: the same rules in a cyberpunk city |
+| `tables/test-bench/` | A plain table that uses every layout feature: fields on a grid, three flipper sizes, a room of its own shape, drains that are ramps, status lamps. The first layout to read |
 | `docs/` | start with [`docs/LLM_GUIDE.md`](docs/LLM_GUIDE.md); status in [`docs/STATUS.md`](docs/STATUS.md) |
 | `tests/` | the checks that prove a change did not alter how tables play |
 | `tools/bundle.mjs` | one-file builds |
@@ -30,9 +31,10 @@ npm start              # http://127.0.0.1:4187   the table picker
 ## Check it
 
 ```
-npm test               # static check, both layouts, a 5-minute replay of 20 scenarios on both tables   (about 5 minutes)
-npm run test:full      # the same with 25-minute replays and a bot soak of both tables                   (about 15 minutes)
+npm test               # static check, every layout, a 5-minute replay of 20 scenarios on every table    (about 7 minutes)
+npm run test:full      # the same with longer replays, a bot soak of every table and the reach test       (about 20 minutes)
 npm run soak -- <id>   # bot-play one table: stuck balls, shots never made, ramp failures
+npm run reach -- <id>  # which shots each flipper of a table can make
 npm run bundle -- all  # dist/pinballsauce.html: every table in one file, behind a picker
 ```
 

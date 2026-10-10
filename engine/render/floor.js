@@ -5,7 +5,7 @@ import {G, T} from '../core/state.js';
 import {PI, TAU, hash, lerp, mkCanvas} from '../core/util.js';
 import {R, fieldPath, flagstones, path} from './draw2d.js';
 import {PAL, THEME} from '../table/content.js';
-import {BT, H, HW, NM, TY, W} from '../table/layout.js';
+import {BT, CHAINS, FIELD_H, H, HW, NM, OX, TY, W, roofed} from '../table/layout.js';
 
 /* ================= PLAYFIELD ART FOR 3D =================
    The playfield is the 2D game's own painted art, laid flat as a texture. Walls, blocks, slings, ramps and
@@ -13,7 +13,9 @@ import {BT, H, HW, NM, TY, W} from '../table/layout.js';
    inserts and their names, plus soft contact shadows and light pools baked in. */
 export const FLOOR_CH = 820;
 export const FLOOR_Y0 = -60;
-export function drawFloor3D(c, ss) {
+// paints the whole table; `ox` is the left edge of the strip being painted, which is where the base stone goes
+export function drawFloor3D(c, ss, ox) {
+  if (ox) c.translate(ox, 0);
   c.fillStyle = '#08080c';
   c.fillRect(-10, -400, W + 20, H + 800);
   if (THEME.floorBase) THEME.floorBase(c);
@@ -36,12 +38,14 @@ export function drawFloor3D(c, ss) {
         c.fillRect(k * 52 + off + 1, y + 1, 50, 22);
       }
     }
+  if (ox) c.translate(-ox, 0);
   for (let i = 0; i < NM; i++) {
     const p = PAL[i],
       y = TY[i];
     c.save();
     fieldPath(c, i);
     c.clip();
+    if (OX[i]) c.translate(OX[i], 0); // a field's own art is painted in its own coordinates
     const g = c.createLinearGradient(0, y, 0, y + 920);
     g.addColorStop(0, p.a);
     g.addColorStop(1, p.b);
@@ -214,6 +218,22 @@ export function drawFloor3D(c, ss) {
     }
     c.restore();
   }
+  // status lamps: the insert's ring and what it says
+  for (const l of T.lamps) {
+    c.fillStyle = 'rgba(0,0,0,.55)';
+    c.beginPath();
+    c.arc(l.x, l.y, l.r + 1.5, 0, TAU);
+    c.fill();
+    c.strokeStyle = 'rgba(230,222,200,.45)';
+    c.lineWidth = 1.3;
+    c.stroke();
+    if (l.label) {
+      c.textAlign = 'center';
+      c.font = '700 8.5px ' + R.fontL;
+      c.fillStyle = 'rgba(235,225,200,.75)';
+      c.fillText(l.label.toUpperCase(), l.x, l.y + l.r + 9);
+    }
+  }
   for (const id in T.holes) {
     const h = T.holes[id];
     if (h.tier >= NM) continue;
@@ -223,15 +243,24 @@ export function drawFloor3D(c, ss) {
     c.fill();
   }
 }
+// one strip of floor per run of joined fields, cut into chunks; then the Grave
 export function paintFloorChunks(ss) {
   const out = [];
-  for (let k = 0; k < Math.ceil((H + 40 - FLOOR_Y0) / FLOOR_CH); k++) {
-    const y0 = FLOOR_Y0 + k * FLOOR_CH,
-      cv = mkCanvas(Math.round(W * ss), Math.round(FLOOR_CH * ss)),
-      c = cv.getContext('2d');
-    c.setTransform(ss, 0, 0, ss, 0, -y0 * ss);
-    drawFloor3D(c, ss);
-    out.push({cv, y0, y1: y0 + FLOOR_CH});
+  for (const ch of CHAINS) {
+    const top = ch[0],
+      b = ch[ch.length - 1],
+      ox = OX[top],
+      ya = roofed(top) ? TY[top] - 10 : TY[top] + FLOOR_Y0 - 40, // under the cap behind the arch, where there is one
+      yb = b === BT ? H + 40 : TY[b] + FIELD_H,
+      end = b === BT ? H + 36 : yb; // where the floor itself stops (the last chunk is not always full)
+    for (let k = 0; k < Math.ceil((yb - ya) / FLOOR_CH); k++) {
+      const y0 = ya + k * FLOOR_CH,
+        cv = mkCanvas(Math.round(W * ss), Math.round(FLOOR_CH * ss)),
+        c = cv.getContext('2d');
+      c.setTransform(ss, 0, 0, ss, -ox * ss, -y0 * ss);
+      drawFloor3D(c, ss, ox);
+      out.push({cv, y0, y1: y0 + FLOOR_CH, ox, top, end});
+    }
   }
   {
     const cv = mkCanvas(Math.round(W * ss), Math.round((HW + 90 - (H + 10)) * ss)),
@@ -240,7 +269,7 @@ export function paintFloorChunks(ss) {
     c.fillStyle = '#0a0806';
     c.fillRect(0, H + 10, W, HW + 90 - (H + 10));
     (THEME.paintGrave || defaultPaintGrave)(c);
-    out.push({cv, y0: H + 10, y1: HW + 90, grave: true});
+    out.push({cv, y0: H + 10, y1: HW + 90, grave: true, ox: 0, top: BT});
   }
   return out;
 }

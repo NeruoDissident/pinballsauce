@@ -11,8 +11,8 @@ import {qCur, qEvent} from './quests.js';
 import {metaAdd, recalc} from './run.js';
 import {charge, gold, hurt, score, xp} from './score.js';
 import {spellOn, spellVal} from './spells.js';
-import {BOSSES, ENEMY} from '../table/content.js';
-import {TY} from '../table/layout.js';
+import {BOSSES, ENEMY, hook} from '../table/content.js';
+import {OX, TY} from '../table/layout.js';
 import {A} from '../ui/audio.js';
 import {popup} from '../ui/ui.js';
 
@@ -152,7 +152,7 @@ export function bossNext(bo) {
       }
       if (d.cast.fire)
         G.zones.push({
-          x: d.cast.fire.x,
+          x: OX[bo.tier] + d.cast.fire.x,
           y: TY[bo.tier] + d.cast.fire.y,
           r: d.cast.fire.r,
           t: d.cast.time + 6,
@@ -164,6 +164,7 @@ export function bossNext(bo) {
       if (G.balls.length < 3 && G.balls.length > 0) startMultiball('Frenzy', 2, d.frenzyFrom);
       break;
   }
+  hook('boss', bo, null, G.run);
   relight();
 }
 export function updateBoss(dt) {
@@ -358,5 +359,6 @@ export function killBoss(bo) {
   });
   metaAdd('bosses');
   qEvent('boss', bo.key);
+  hook('bossDown', bo, null, r);
   relight();
 }

@@ -238,7 +238,7 @@ export function poseFoe(rig, e, dt) {
   // where it stands and which way it faces
   const wx = e.x - 320,
     wz = e.y,
-    gy = elev(e.y);
+    gy = elev(e.y, e.x);
   let yaw = rig.yaw;
   const fb = focusBall(),
     dx = fb && fb.tier === e.tier ? fb.x - e.x : 0,
@@ -386,7 +386,7 @@ export function frameAllies(dt) {
       let da = yaw - rig.yaw;
       da = Math.atan2(Math.sin(da), Math.cos(da));
       rig.yaw += da * Math.min(1, dt * 6);
-      g.position.set(post.x - 320, elev(post.y), post.y);
+      g.position.set(post.x - 320, elev(post.y, post.x), post.y);
       g.rotation.set(0, rig.yaw, 0);
       g.scale.setScalar(1.25 * (1 + Math.max(0, c.flash || 0) * 0.15));
       const bob = Math.sin(t * 2.5 + post.x) * 0.8;

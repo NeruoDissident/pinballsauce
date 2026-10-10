@@ -11,8 +11,8 @@ import {qEvent} from './quests.js';
 import {charge, gold, heal, hurt, score, shot, xp} from './score.js';
 import {endCast, spellCast, spellOn, spellVal} from './spells.js';
 import {wingProg} from './wings.js';
-import {ENEMY, TEXT, WINGS} from '../table/content.js';
-import {CX, NM, TY, tierOf} from '../table/layout.js';
+import {DEF, ENEMY, TEXT, WINGS, hook} from '../table/content.js';
+import {CX, NM, OX, TY, tierOf} from '../table/layout.js';
 import {A} from '../ui/audio.js';
 
 /* ---------- enemies ---------- */
@@ -27,22 +27,25 @@ export function foePosts(tier) {
   const y = TY[tier],
     main = tier < NM,
     cx = CX[tier],
+    F = main ? DEF.layout.fields[tier] : {}, // a field whose middle is not open floor says where its foes rise and line up
     near = (l, x, yy) =>
       l.reduce((a, q) => (!a || Math.hypot(q.x - x, q.y - yy) < Math.hypot(a.x - x, a.y - yy) ? q : a), null);
   const o = {
     cx,
-    line: main ? y + 690 : y + 430,
-    rise: main
-      ? [
-          [cx - 120, y + 400],
-          [cx, y + 392],
-          [cx + 120, y + 400],
-          [cx - 60, y + 372],
-          [cx + 60, y + 372]
-        ]
-      : T.spawn[tier].map(q => q.slice()),
+    line: main ? y + (F.line || 690) : y + 430,
+    rise: F.rise
+      ? F.rise.map(q => [OX[tier] + q[0], y + q[1]])
+      : main
+        ? [
+            [cx - 120, y + 400],
+            [cx, y + 392],
+            [cx + 120, y + 400],
+            [cx - 60, y + 372],
+            [cx + 60, y + 372]
+          ]
+        : T.spawn[tier].map(q => q.slice()),
     mouths: T.mouths
-      .filter(m => tierOf(m.y) === tier)
+      .filter(m => tierOf(m.y, m.x) === tier)
       .map(m => ({x: m.x - m.dx * 30, y: m.y - m.dy * 30, rail: m.rail})),
     orbits: T.sens
       .filter(q => q.kind === 'orbit' && q.tier === tier)
@@ -330,7 +333,7 @@ export function updateEnemies(dt) {
             const k = 1 - Math.max(0, e.lunge) / 0.4,
               hb = live.find(b => b.tier === e.tier && Math.hypot(b.x - e.tx, b.y - e.ty) < 160);
             if (hb) {
-              e.tx = clamp(hb.x, 40, 600);
+              e.tx = clamp(hb.x, OX[e.tier] + 40, OX[e.tier] + 600);
               e.ty = clamp(hb.y, TY[e.tier] + 300, P.line + 60);
             }
             e.x = lerp(e.lx, e.tx, k);
@@ -370,7 +373,7 @@ export function updateEnemies(dt) {
                 e.lunge = 0.4;
                 e.lx = e.x;
                 e.ly = e.y;
-                e.tx = clamp(b.x + b.vx * 0.22, 40, 600);
+                e.tx = clamp(b.x + b.vx * 0.22, OX[e.tier] + 40, OX[e.tier] + 600);
                 e.ty = clamp(b.y + b.vy * 0.22, TY[e.tier] + 300, P.line + 40);
                 float(e.x, e.y - 34, 'LUNGE', '#ff8a8a', 12);
                 A.s('kick');
@@ -717,6 +720,7 @@ export function killEnemy(e) {
   G.qxy = {x: e.x, y: e.y};
   qEvent('kill', e.type, e.tier);
   G.qxy = null;
+  hook('kill', e, null, r);
 }
 export function collideActors(b) {
   for (const e of G.enemies) {

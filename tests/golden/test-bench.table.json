@@ -1,0 +1,117 @@
+{
+ "table": "test-bench",
+ "sections": {
+  "banks": {
+   "n": 6,
+   "hash": "2f00990f9213a6eb"
+  },
+  "blocks": {
+   "n": 19,
+   "hash": "9f545a34639437f3"
+  },
+  "bossSpot": {
+   "n": 5,
+   "hash": "86eac934340ec53d"
+  },
+  "bumps": {
+   "n": 12,
+   "hash": "8661887369613ab7"
+  },
+  "chans": {
+   "n": 3,
+   "hash": "6a482f4fb614b985"
+  },
+  "coffin": {
+   "n": 8,
+   "hash": "6b8b1eb45dc2e87f"
+  },
+  "drains": {
+   "n": 5,
+   "hash": "cac56e925090a65d"
+  },
+  "flips": {
+   "n": 15,
+   "hash": "53191056e93a4b7d"
+  },
+  "graveIn": {
+   "n": 1,
+   "hash": "bc16b351bf4e5dab"
+  },
+  "grid": {
+   "n": 66,
+   "hash": "eff40390188f7d"
+  },
+  "holes": {
+   "n": 8,
+   "hash": "674fd438e041e67"
+  },
+  "lamps": {
+   "n": 11,
+   "hash": "c893a4245f11a293"
+  },
+  "mouths": {
+   "n": 6,
+   "hash": "500737d2c834037"
+  },
+  "place": {
+   "n": 5,
+   "hash": "6a94b269cd8c84af"
+  },
+  "rails": {
+   "n": 9,
+   "hash": "99847a33b53eca97"
+  },
+  "segs": {
+   "n": 549,
+   "hash": "b7c508d82916fff5"
+  },
+  "sens": {
+   "n": 39,
+   "hash": "d3915ba13398d305"
+  },
+  "sets": {
+   "n": 4,
+   "hash": "b95c70bd47c15de7"
+  },
+  "shooter": {
+   "n": 1,
+   "hash": "db141d528574ae55"
+  },
+  "shots": {
+   "n": 37,
+   "hash": "689f00bd023b96f"
+  },
+  "slings": {
+   "n": 10,
+   "hash": "94de3cb265f579f7"
+  },
+  "spawn": {
+   "n": 6,
+   "hash": "d3e1af4adcb6378b"
+  },
+  "statueSpot": {
+   "n": 0,
+   "hash": "741638a53edf8317"
+  },
+  "statues": {
+   "n": 0,
+   "hash": "741638a53edf8317"
+  },
+  "torches": {
+   "n": 28,
+   "hash": "22cd5fe4d38ef6f1"
+  },
+  "tunnels": {
+   "n": 3,
+   "hash": "5c12d774805e79c5"
+  },
+  "wallPaths": {
+   "n": 69,
+   "hash": "b5418f17494c4df5"
+  },
+  "wings": {
+   "n": 0,
+   "hash": "741638a53edf8317"
+  }
+ }
+}

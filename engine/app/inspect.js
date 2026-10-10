@@ -8,10 +8,29 @@
    Nothing here changes the table or the game: the simulation is frozen while it is open. */
 import {$, clamp, mkCanvas} from '../core/util.js';
 import {G, T} from '../core/state.js';
-import {TY, FY, CX, NM, GT, WT0, NW, NT, H, GY, HW, WLEN, TIER_NAME, tierOf} from '../table/layout.js';
+import {
+  BT,
+  CX,
+  FIELD_H,
+  FY,
+  GRID,
+  GT,
+  GY,
+  H,
+  HW,
+  NM,
+  NT,
+  NW,
+  OX,
+  TIER_NAME,
+  TY,
+  WLEN,
+  WT0,
+  tierOf
+} from '../table/layout.js';
 import {DEF} from '../table/content.js';
 import {R3} from '../render/core.js';
-import {E, ZX, ZZ, elev} from '../render/world.js';
+import {E, ZX, ZZ, elev, elevIn} from '../render/world.js';
 import {project3D, pxPerUnit} from '../render/camera.js';
 import {frame3D} from '../render/frame.js';
 import {UI} from '../ui/ui.js';
@@ -39,11 +58,11 @@ const LAYERS = [
 const COL = {wall: '#cfd8e0', gate: '#62d8ff', sling: '#ffb050', target: '#ffd24a', drop: '#7dffb0', seal: '#c9a6ff'};
 // the band of table y a tier covers, and its name in the layout file
 const tierTop = t => TY[t],
-  tierBot = t => (t < NM ? (t < NM - 1 ? TY[t + 1] : H + 60) : t === GT ? HW + 60 : TY[t] + WLEN + 60);
+  tierBot = t => (t < NM ? (t === BT ? H + 60 : TY[t] + FIELD_H) : t === GT ? HW + 60 : TY[t] + WLEN + 60);
 const tierId = t => (t < NM ? DEF.layout.fields[t].id : t === GT ? 'grave' : DEF.layout.wings[t - WT0].key);
 const local = (x, y) => {
-  const t = tierOf(y);
-  return {t, x: Math.round(x), y: Math.round(y - TY[t])};
+  const t = tierOf(y, x);
+  return {t, x: Math.round(x - OX[t]), y: Math.round(y - TY[t])};
 };
 
 function css() {
@@ -204,9 +223,9 @@ function sync() {
 }
 const unitPx = () => R3.h / INS.span; // screen pixels per table unit at the centre of the view
 function bound() {
-  INS.x = clamp(INS.x, -200, 840);
-  INS.y = clamp(INS.y, TY[0] - 200, TY[NT - 1] + WLEN + 300);
-  INS.tier = tierOf(INS.y);
+  INS.x = clamp(INS.x, Math.min(...OX) - 200, Math.max(...OX) + 840);
+  INS.y = clamp(INS.y, Math.min(...TY) - 200, TY[NT - 1] + WLEN + 300);
+  INS.tier = tierOf(INS.y, INS.x);
 }
 function zoom(k) {
   INS.span = clamp(INS.span * k, 120, 2600);
@@ -294,13 +313,15 @@ export function inspectKey(e) {
   return true;
 }
 
+// the height of a field's floor at a depth
+const floorAt = (t, y) => (GRID ? elevIn(t, y) : elev(y));
 // the camera: called every frame before the scene is drawn
 export function inspectCam() {
   if (!INS.on) return;
-  INS.tier = tierOf(INS.y);
+  INS.tier = tierOf(INS.y, INS.x);
   const tx = INS.x - 320 + ZX(INS.y),
     tz = INS.y + ZZ(INS.y),
-    ty = INS.tier < NM ? elev(clamp(INS.y, tierTop(INS.tier), FY[INS.tier])) : E[INS.tier],
+    ty = INS.tier < NM ? floorAt(INS.tier, clamp(INS.y, tierTop(INS.tier), FY[INS.tier])) : E[INS.tier],
     fov = 20,
     D = INS.span / 2 / Math.tan((fov * Math.PI) / 360);
   const a = ((INS.tilt ? 50 : 88.9) * Math.PI) / 180;
@@ -314,7 +335,7 @@ function under(px, py) {
   const v = new THREE.Vector3((px / R3.w) * 2 - 1, -((py / R3.h) * 2 - 1), 0.5).unproject(R3.camera),
     o = R3.camera.position,
     d = v.sub(o),
-    y0 = E[INS.tier] !== undefined && INS.tier >= NM ? E[INS.tier] : elev(INS.y);
+    y0 = E[INS.tier] !== undefined && INS.tier >= NM ? E[INS.tier] : floorAt(INS.tier, INS.y);
   if (Math.abs(d.y) < 1e-6) return null;
   const k = (y0 - o.y) / d.y,
     wx = o.x + d.x * k,
@@ -331,7 +352,8 @@ export function drawInspect() {
     L = INS.layers,
     t = INS.tier,
     y0 = tierTop(t),
-    y1 = tierBot(t);
+    y1 = tierBot(t),
+    ox = OX[t]; // the numbers shown are the layout file's: measured from the field's own corner
   c.setTransform(s, 0, 0, s, 0, 0);
   c.lineCap = 'round';
   c.lineJoin = 'round';
@@ -387,8 +409,10 @@ export function drawInspect() {
     c.textAlign = 'center';
     c.fillText(text, _a.x, Y + 8.5);
   };
-  const here = q => q.tier === t || (q.y !== undefined && q.tier === undefined && tierOf(q.y) === t),
-    xy = (x, y) => '(' + Math.round(x) + ',' + Math.round(y - TY[tierOf(y)]) + ')';
+  const xy = (x, y) => {
+    const q = tierOf(y, x);
+    return '(' + Math.round(x - OX[q]) + ',' + Math.round(y - TY[q]) + ')';
+  };
   // the grid: every 100 units, numbered the way layout.js counts (x across, y down from the top of this field or room)
   if (L.grid) {
     const fine = unitPx() > 0.9;
@@ -396,24 +420,24 @@ export function drawInspect() {
     for (let x = 0; x <= 640; x += fine ? 20 : 100) {
       const major = x % 100 === 0;
       c.strokeStyle = major ? 'rgba(98,216,255,.42)' : 'rgba(98,216,255,.13)';
-      for (let y = y0; y < y1; y += 80) line(x, y, x, Math.min(y1, y + 80));
+      for (let y = y0; y < y1; y += 80) line(ox + x, y, ox + x, Math.min(y1, y + 80));
     }
     for (let y = y0; y <= y1; y += fine ? 20 : 100) {
       const major = (y - y0) % 100 === 0;
       c.strokeStyle = major ? 'rgba(98,216,255,.42)' : 'rgba(98,216,255,.13)';
-      line(0, y, 640, y);
+      line(ox, y, ox + 640, y);
     }
     c.font = '600 10px ui-monospace,Menlo,monospace';
     c.fillStyle = '#9fe8ff';
     for (let x = 0; x <= 640; x += 100) {
-      project3D(x, y1, 1, _a);
+      project3D(ox + x, y1, 1, _a);
       if (_a.ok) {
         c.textAlign = 'center';
         c.fillText('x' + x, _a.x, Math.min(R3.h - 48, _a.y + 12));
       }
     }
     for (let y = y0; y <= y1; y += 100) {
-      project3D(0, y, 1, _a);
+      project3D(ox, y, 1, _a);
       if (_a.ok) {
         c.textAlign = 'right';
         c.fillText('y' + (y - y0), Math.max(34, _a.x - 6), _a.y);
@@ -472,7 +496,7 @@ export function drawInspect() {
     }
     for (const q of T.sens)
       if (q.tier === t && q.kind === 'spin') tag(q.x, q.y, 'spinner ' + q.id + ' ' + xy(q.x, q.y), '#b79cff', 16);
-    for (const m of T.mouths) if (tierOf(m.y) === t) tag(m.x, m.y, 'ramp ' + m.rail, '#62d8ff', 16);
+    for (const m of T.mouths) if (tierOf(m.y, m.x) === t) tag(m.x, m.y, 'ramp ' + m.rail, '#62d8ff', 16);
     for (const b of T.bumps)
       if (b.tier === t) tag(b.x, b.y, 'bumper ' + b.group + ' ' + xy(b.x, b.y), '#ff8a6a', -b.r * unitPx() - 10);
     for (const id in T.sets)
@@ -519,7 +543,7 @@ export function drawInspect() {
         q = w.pts[(w.pts.length >> 1) - 1] || p,
         mx = (p[0] + q[0]) / 2,
         my = (p[1] + q[1]) / 2;
-      if (tierOf(my) !== t || / (frame|orbits|floor|room)$|^grave$/.test(w.src)) continue;
+      if (tierOf(my, mx) !== t || / (frame|orbits|floor|room)$|^grave$/.test(w.src)) continue;
       tag(mx, my, w.src.replace(/^.*\.pieces/, 'pieces') + ' wall', '#cfd8e0');
     }
   // where the pointer is, in the layout file's numbers
@@ -529,7 +553,7 @@ export function drawInspect() {
     ' / ' +
     tierId(t) +
     '   centre x ' +
-    Math.round(INS.x) +
+    Math.round(INS.x - ox) +
     '  y ' +
     Math.round(INS.y - TY[t]) +
     '   view ' +
@@ -569,7 +593,7 @@ export function shoot() {
       ' / ' +
       tierId(INS.tier) +
       '   centre x ' +
-      Math.round(INS.x) +
+      Math.round(INS.x - OX[INS.tier]) +
       ' y ' +
       Math.round(INS.y - TY[INS.tier]) +
       '   view ' +
@@ -581,7 +605,14 @@ export function shoot() {
   c.fillStyle = '#9a9aa8';
   c.fillText('grid lines every 100; numbers as in tables/' + DEF.id + '/layout.js', 8 * k, gl.height + 28 * k);
   const name =
-    DEF.id + '-' + tierId(INS.tier) + '-x' + Math.round(INS.x) + '-y' + Math.round(INS.y - TY[INS.tier]) + '.png';
+    DEF.id +
+    '-' +
+    tierId(INS.tier) +
+    '-x' +
+    Math.round(INS.x - OX[INS.tier]) +
+    '-y' +
+    Math.round(INS.y - TY[INS.tier]) +
+    '.png';
   cv.toBlob(async b => {
     if (!b) return;
     const url = URL.createObjectURL(b),

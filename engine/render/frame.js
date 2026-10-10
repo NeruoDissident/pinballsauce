@@ -9,11 +9,12 @@ import {probeFrame} from './quality.js';
 import {frameRunes} from './runes.js';
 import {ballObj, railY} from './scene.js';
 import {frameWing} from './wings.js';
-import {E, ZX, ZZ, elev, zshift} from './world.js';
+import {E, ZX, ZZ, elev, elevIn, zshift} from './world.js';
 import {CLASSES} from '../rules/classes.js';
+import {lampState} from '../rules/lamps.js';
 import {PAL, THEME} from '../table/content.js';
 import {railPos} from '../table/geometry.js';
-import {GT, GY, NM, TY} from '../table/layout.js';
+import {GRID, GT, GY, NM, OX, TY} from '../table/layout.js';
 
 /* ---------- per-frame ---------- */
 export const _v = new THREE.Vector3();
@@ -29,6 +30,12 @@ export function ballPos(b, ex) {
     o.x = _bp.x;
     o.y = _bp.y;
     o.h = railY(b.rail, s) + b.r;
+    if (b.lead) {
+      // just taken onto a drain ramp from somewhere across the foot of the field: slide over to it, do not jump
+      const k = b.lead[2] / 0.3;
+      o.x += b.lead[0] * k;
+      o.y += b.lead[1] * k;
+    }
     return o;
   }
   if (b.st === 'live') {
@@ -38,7 +45,7 @@ export function ballPos(b, ex) {
     o.x = b.x;
     o.y = b.y;
   }
-  o.h = elev(o.y) + b.r - (b.st === 'held' ? 9 : 0);
+  o.h = elev(o.y, o.x) + b.r - (b.st === 'held' ? 9 : 0);
   return o;
 }
 export function ballY(b) {
@@ -96,12 +103,12 @@ export function frame3D(dt) {
             u = clamp(b.rs / tn.len, 0, 1),
             ax = tn.x[0] - 320 + ZX(tn.y[0]),
             az = tn.y[0] + ZZ(tn.y[0]),
-            ay = elev(tn.y[0]),
+            ay = elev(tn.y[0], tn.x[0]),
             bx2 = tn.x[n] - 320 + ZX(tn.y[n]),
             bz2 = tn.y[n] + ZZ(tn.y[n]),
-            by2 = elev(tn.y[n]);
+            by2 = elev(tn.y[n], tn.x[n]);
           sp.position.set(lerp(ax, bx2, u), lerp(ay, by2, u) + 6 - 30 * Math.sin(u * PI), lerp(az, bz2, u));
-        } else sp.position.set(b.x - 320, elev(b.y) + 6, b.y);
+        } else sp.position.set(b.x - 320, elev(b.y, b.x) + 6, b.y);
         const k = 0.8 + 0.2 * Math.sin(t * 30);
         sp.scale.set(70 * k, 70 * k, 1);
       }
@@ -132,7 +139,7 @@ export function frame3D(dt) {
       o.mat.needsUpdate = true;
     }
     o.mat.opacity = ghost ? 0.45 : 1;
-    zshift(o.blob.position.set(bx - 320, elev(bz) + 0.5, bz) && o.blob);
+    zshift(o.blob.position.set(bx - 320, elev(bz, bx) + 0.5, bz) && o.blob);
     o.blob.scale.setScalar(b.r * 1.7);
     zshift(o.halo.position.set(bx - 320, y, bz) && o.halo);
     o.halo.material.color.set(gc);
@@ -162,7 +169,7 @@ export function frame3D(dt) {
     const au = R3.aura;
     au.visible = cls === 'cleric' && fb.st === 'live';
     if (au.visible) {
-      au.position.set(fp.x - 320 + ZX(fp.y), elev(fp.y) + 0.8, fp.y + ZZ(fp.y));
+      au.position.set(fp.x - 320 + ZX(fp.y), elev(fp.y, fp.x) + 0.8, fp.y + ZZ(fp.y));
       au.scale.setScalar(G.mods.lantern ? 140 : 85);
     }
   } else {
@@ -239,6 +246,19 @@ export function frame3D(dt) {
         ? (s.lit || sk ? 1 : last ? 0.5 : 0) + Math.max(0, s.flash) * 0.6
         : Math.max(0, s.flash);
     o.v += (Math.min(1.3, lit) - o.v) * Math.min(1, dt * 14);
+    if (o.v > 0.02) {
+      o.mat.color.copy(o.on).multiplyScalar(o.v);
+      o.mat.opacity = 1;
+    } else {
+      o.mat.color.setRGB(0.012, 0.012, 0.02);
+      o.mat.opacity = 0.7;
+    }
+  }
+  // status lamps
+  for (const o of D.lamps) {
+    const st = lampState(o.l),
+      lit = st === 2 ? (((t * 5) | 0) % 2 ? 1 : 0.15) : st;
+    o.v += (lit - o.v) * Math.min(1, dt * 14);
     if (o.v > 0.02) {
       o.mat.color.copy(o.on).multiplyScalar(o.v);
       o.mat.opacity = 1;
@@ -339,7 +359,7 @@ export function frame3D(dt) {
     L.userData.t = 1;
     L.userData.p = f.power;
     L.color.set(f.color);
-    L.position.set(f.x - 320 + ZX(f.y), elev(f.y) + 34, f.y + ZZ(f.y));
+    L.position.set(f.x - 320 + ZX(f.y), elev(f.y, f.x) + 34, f.y + ZZ(f.y));
   }
   for (const l of R3.flashL) {
     l.userData.t = Math.max(0, l.userData.t - dt * 5.5);
@@ -362,7 +382,7 @@ export function frame3D(dt) {
       }
       const u = p.life / p.max,
         k = Math.max(0, 1 - u);
-      P.setXYZ(i, p.x - 320 + ZX(p.y), elev(p.y) + 6 + (p.size || 3) * 26 * u * (1 - u), p.y + ZZ(p.y));
+      P.setXYZ(i, p.x - 320 + ZX(p.y), elev(p.y, p.x) + 6 + (p.size || 3) * 26 * u * (1 - u), p.y + ZZ(p.y));
       c.set(p.color)
         .convertSRGBToLinear()
         .multiplyScalar(k * 1.8);
@@ -389,7 +409,7 @@ export function frame3D(dt) {
         yy = y0 + h2 * span + Math.cos(ph * 1.3) * 16;
       const hh = ms === 'rise' ? (t * 22 + h3 * 160) % 160 : 20 + h3 * 110 + Math.sin(ph * 1.7) * 12,
         a = ms === 'blink' ? Math.max(0, Math.sin(t * 2.2 + h1 * 30)) : 0.45 + 0.4 * Math.sin(ph * 2);
-      P.setXYZ(i, x, (ti === GT ? E[GT] : elev(yy)) + hh, yy);
+      P.setXYZ(i, x + OX[ti], (ti === GT ? E[GT] : GRID ? elevIn(ti, yy) : elev(yy)) + hh, yy);
       const c = R3.moteCols[ti];
       C.setXYZ(i, c.r * a, c.g * a, c.b * a);
     }
@@ -400,8 +420,9 @@ export function frame3D(dt) {
   {
     const m = R3.moon,
       c = R3.cam.t;
-    m.target.position.set(0, c.y, c.z - 120);
-    m.position.set(-460, c.y + 1200, c.z + 520);
+    const fx = OX[G.focusTier] || 0;
+    m.target.position.set(fx, c.y, c.z - 120);
+    m.position.set(fx - 460, c.y + 1200, c.z + 520);
   }
   {
     const ft = G.focusTier,

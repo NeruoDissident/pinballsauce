@@ -1,15 +1,37 @@
 /* ================= BUILDING A TABLE FROM ITS LAYOUT =================
    Reads the `layout` part of a table definition (see docs/TABLE_FORMAT.md) and fills T: walls, flippers, bumpers,
    sensors, scoops, banks, ramps, tunnels and shot inserts. The order things are built in is the order the ball is
-   tested against them, so it is fixed: frames and orbits, floors, each field's pieces as listed, the Grave, the
-   wings, ramps, tunnels, inserts, torches. */
+   tested against them, so it is fixed: the cabinet's side walls, frames and orbits, floors, each field's pieces as
+   listed, the Grave, the wings, ramps, tunnels, inserts, torches. */
 import {PI, lerp, rand} from '../core/util.js';
 import {T} from '../core/state.js';
-import {TY, FY, CX, XR, NM, BT, GT, WT0, NW, NT, H, GY, HW, WB, WLEN, BR, CELL, GRAV} from './layout.js';
+import {
+  ABOVE,
+  BELOW,
+  BR,
+  BT,
+  CELL,
+  CX,
+  FIELD_INDEX,
+  GRAV,
+  GT,
+  GY,
+  H,
+  HW,
+  NM,
+  NT,
+  NW,
+  OX,
+  TY,
+  WB,
+  WLEN,
+  WT0
+} from './layout.js';
 import {
   seg,
   poly,
   gseg,
+  gpoly,
   block,
   bumper,
   sensor,
@@ -21,7 +43,17 @@ import {
   resample,
   rail
 } from './geometry.js';
-import {buildFrame, buildFloor, buildOrbits, centerScoop, sideScoopBlock} from './parts.js';
+import {
+  DRAIN_Y,
+  buildFrame,
+  buildFloor,
+  buildOrbits,
+  centerScoop,
+  flipper,
+  sideScoopBlock,
+  sling,
+  standardOf
+} from './parts.js';
 import {WINGS} from './content.js';
 
 const RESERVED = new Set([
@@ -70,6 +102,7 @@ function from(label, fn) {
 // one piece of a field or a wing. C carries the room's origin, its tier and the ramp mouths met so far.
 function piece(p, C) {
   const y = C.y,
+    ox = C.ox || 0,
     tier = C.tier,
     m = C.m;
   const ref = s => {
@@ -84,7 +117,7 @@ function piece(p, C) {
       : Array.isArray(q)
         ? typeof q[0] === 'string'
           ? [ref(q[0])[0] + q[1], ref(q[0])[1] + q[2]]
-          : [q[0], q[1] + y]
+          : [q[0] + ox, q[1] + y]
         : [m[q.along].p[0] + m[q.along].d[0] * q.d, m[q.along].p[1] + m[q.along].d[1] * q.d];
   const PTS = l => {
     const o = [];
@@ -100,27 +133,29 @@ function piece(p, C) {
           [c - 20, b + 12],
           [c - 20, b + 38]
         ])
-          o.push([n[0], n[1] + y]);
+          o.push([n[0] + ox, n[1] + y]);
       } else o.push(P(q));
     }
     return o;
   };
   switch (p.t) {
     case 'bumper': {
-      const q = p.at ? P(p.at) : [p.x, y + p.y];
+      const q = p.at ? P(p.at) : [p.x + ox, y + p.y];
       bumper(q[0], q[1], p.r, p.group, tier, extra(p));
       break;
     }
     case 'mouth':
-      m[p.id] = mouthGeo(p.x, y + p.y, p.side);
+      m[p.id] = mouthGeo(p.x + ox, y + p.y, p.side);
       break;
     case 'block':
       block(PTS(p.pts), {name: p.name, tier});
       break;
     case 'hole':
-      hole(p.id, p.x, y + p.y, p.r, tier, p.name);
+      hole(p.id, p.x + ox, y + p.y, p.r, tier, p.name);
       Object.assign(T.holes[p.id], extra(p));
-      if (p.eject) C.aims.push([p.id, tier, p.eject === 'L' ? -1 : 1]);
+      // where it spits the ball: at a flipper tip ('L' or 'R'), or with a velocity of its own ([vx, vy])
+      if (Array.isArray(p.eject)) T.holes[p.id].ev = p.eject.slice();
+      else if (p.eject) C.aims.push([p.id, tier, p.eject === 'L' ? -1 : 1]);
       break;
     case 'bank': {
       const B = bank(p.id, tier, P(p.from), P(p.to), p.n, p.kind, {pad: p.pad, name: p.name});
@@ -133,12 +168,15 @@ function piece(p, C) {
       Object.assign(B, extra(p));
       break;
     }
-    case 'wall':
-      poly(PTS(p.pts), p.w === undefined ? {} : {w: p.w}, p.style);
+    case 'wall': {
+      const o = p.w === undefined ? {} : {w: p.w};
+      if (p.bounce !== undefined) o.e = p.bounce; // how lively it is: 0.45 unless said (0 dead, 0.8 rubber)
+      poly(PTS(p.pts), o, p.style);
       break;
+    }
     case 'spinner': {
       const s = sensor(
-        p.x,
+        p.x + ox,
         y + p.y,
         p.r,
         Object.assign(
@@ -157,14 +195,14 @@ function piece(p, C) {
         p.posts.xs.forEach(x =>
           poly(
             [
-              [x, p.posts.y0 + y],
-              [x, p.posts.y1 + y]
+              [x + ox, p.posts.y0 + y],
+              [x + ox, p.posts.y1 + y]
             ],
             {w: p.posts.w},
             'post'
           )
         );
-      p.xs.forEach(x => ls.push(sensor(x, y + p.y, p.r, {kind: 'lane', set: p.id, tier})));
+      p.xs.forEach(x => ls.push(sensor(x + ox, y + p.y, p.r, {kind: 'lane', set: p.id, tier})));
       T.sets[p.id] = Object.assign({id: p.id, tier, lanes: ls, name: p.name}, extra(p));
       break;
     }
@@ -176,12 +214,12 @@ function piece(p, C) {
       break;
     }
     case 'scoopBlock':
-      sideScoopBlock(m[p.mouth], p.side, y, p.xg, p.topY, p.name, tier);
+      sideScoopBlock(m[p.mouth], p.side, y, p.xg, p.topY, p.name, tier, ox);
       break;
     case 'centerScoop':
-      centerScoop(p.x, y, p.w);
+      centerScoop(p.x + ox, y, p.w);
       break;
-    case 'shooter': // the plunger lane up the right side of the bottom field
+    case 'shooter': // the plunger lane up the right side of the home field (column 0, so no offset)
       poly(
         [
           [586, y + 335],
@@ -201,7 +239,45 @@ function piece(p, C) {
       T.shooter = {x: 603, y: y + 980};
       break;
     case 'kickback':
-      sensor(p.x, y + p.y, p.r, {kind: 'kick', tier});
+      sensor(p.x + ox, y + p.y, p.r, {kind: 'kick', tier});
+      break;
+    case 'flipper': // a flipper of the layout's own: an upper flipper, a third one, a second pair
+      flipper(p.x + ox, y + p.y, p.side, tier, {size: p.size, rest: p.rest, up: p.up, dir: p.dir});
+      break;
+    case 'sling': // a slingshot of the layout's own: a (top), b (back corner), c (tip); it kicks away from b
+      sling(P(p.a), P(p.b), P(p.c), tier);
+      break;
+    case 'lane': // one rollover: kind 'inlane' or 'outlane'. (Top lanes that light as a set are the `lanes` piece.)
+      if (p.kind !== 'inlane' && p.kind !== 'outlane')
+        throw new Error("layout: a lane piece is kind 'inlane' or 'outlane'");
+      sensor(p.x + ox, y + p.y, p.r || 14, {kind: p.kind, side: p.side || (p.x < 320 ? -1 : 1), tier});
+      break;
+    case 'gate': {
+      // a one-way gate: solid for a ball on the `solid` side, open from the other
+      if (!p.solid) throw new Error('layout: a gate needs `solid: [x, y]`, a point on the side it blocks');
+      gpoly(PTS(p.pts), p.solid[0] + ox, p.solid[1] + y);
+      break;
+    }
+    case 'post': // a round post
+      poly(
+        [
+          [p.x + ox, y + p.y - 0.5],
+          [p.x + ox, y + p.y + 0.5]
+        ],
+        {w: p.r || 6},
+        'post'
+      );
+      break;
+    case 'lamp': // a status lamp set into the floor: `show` is one of the states in rules/lamps.js (STATUS)
+      T.lamps.push({
+        x: p.x + ox,
+        y: y + p.y,
+        r: p.r || 8,
+        tier,
+        show: p.show,
+        label: p.label || '',
+        col: p.col || null
+      });
       break;
     default:
       throw new Error('layout: unknown piece type ' + p.t);
@@ -348,55 +424,106 @@ export function buildTable(def) {
     wings: {},
     door: null,
     shooter: null,
-    statues: []
+    statues: [],
+    lamps: [],
+    drains: [],
+    std: [],
+    roads: null
   });
   for (let t = 0; t < NT; t++) T.spawn.push([]);
-  poly(
-    [
-      [20, TY[0] + 300],
-      [20, H + 80]
-    ],
-    {},
-    'none'
-  );
-  poly(
-    [
-      [620, TY[0] + 300],
-      [620, H + 80]
-    ],
-    {},
-    'none'
-  );
+  const S = (T.std = L.fields.map(standardOf));
+  // the cabinet's side walls: one pair for each chain of joined fields, from the head of its top field to the foot of
+  // its last (the home field's run on to the drain; a field that drains into a ramp stops at its throat)
   for (let i = 0; i < NM; i++) {
-    from(L.fields[i].id + ' frame', () => buildFrame(i));
-    from(L.fields[i].id + ' orbits', () => buildOrbits(i));
+    if (ABOVE[i] >= 0) continue;
+    let j = i;
+    while (BELOW[j] >= 0) j = BELOW[j];
+    const y1 = j === BT ? H + 80 : TY[j] + DRAIN_Y;
+    for (const x of [OX[i] + 20, OX[i] + 620])
+      poly(
+        [
+          [x, TY[i] + 300],
+          [x, y1]
+        ],
+        {},
+        'none'
+      );
   }
-  for (let i = 0; i < NM; i++) from(L.fields[i].id + ' floor', () => buildFloor(i, 20, XR[i], CX[i]));
+  for (let i = 0; i < NM; i++) {
+    from(L.fields[i].id + ' frame', () => buildFrame(i, S[i]));
+    if (S[i].orbits) from(L.fields[i].id + ' orbits', () => buildOrbits(i));
+  }
+  for (let i = 0; i < NM; i++) from(L.fields[i].id + ' floor', () => buildFloor(i, S[i]));
   for (let i = 0; i < NM; i++) {
     const f = L.fields[i],
       y = TY[i],
-      o = p => [p[0], p[1] + y];
+      ox = OX[i],
+      o = p => [p[0] + ox, p[1] + y];
     (f.pieces || []).forEach((p, k) =>
-      from(f.id + '.pieces[' + k + ']', () => piece(p, {y, tier: i, m: C.m, aims: C.aims, def}))
+      from(f.id + '.pieces[' + k + ']', () => piece(p, {y, ox, tier: i, m: C.m, aims: C.aims, def}))
     );
     if (f.statue) {
-      T.statueSpot[i] = {x: f.statue.x, y: y + f.statue.y};
-      T.statues.push({x: f.statue.x, y: y + f.statue.y, r: f.statue.r, tier: i, id: f.statue.id});
+      T.statueSpot[i] = {x: f.statue.x + ox, y: y + f.statue.y};
+      T.statues.push({x: f.statue.x + ox, y: y + f.statue.y, r: f.statue.r, tier: i, id: f.statue.id});
     }
-    if (f.boss) T.bossSpot[i] = {x: f.boss.x, y: y + f.boss.y};
+    if (f.boss) T.bossSpot[i] = {x: f.boss.x + ox, y: y + f.boss.y};
     T.spawn[i] = (f.spawn || []).map(o);
   }
   if (!T.shooter) throw new Error('layout: the bottom field needs a {t:"shooter"} piece');
   from('grave', () => buildGrave(L.grave, C));
   (L.wings || []).forEach((wd, k) => from(wd.key + ' room', () => buildWing(wd, k, C)));
+  // a field named by id or by index; a point given on the plane, or inside a field as ['#fieldId', x, y]
+  const fi = v => {
+      if (typeof v !== 'string') return v;
+      if (!(v in FIELD_INDEX)) throw new Error('layout: there is no field "' + v + '"');
+      return FIELD_INDEX[v];
+    },
+    pt = q => (typeof q[0] === 'string' ? [q[1] + OX[fi(q[0].slice(1))], q[2] + TY[fi(q[0].slice(1))]] : q);
   for (const r of L.ramps || []) {
-    const o = {from: r.from, to: r.to};
+    const o = {from: fi(r.from), to: fi(r.to)};
     if (r.up) o.up = true;
     if (r.lift) o.lift = r.lift;
     if (r.col) o.col = r.col;
-    if (r.k !== undefined) o.k = r.k;
-    rail(r.id, r.name, C.m[r.mouth || r.id], r.path, o);
+    if (r.k !== undefined) o.k = r.k; // how hard gravity pulls along it (0.2)
+    if (r.exitV !== undefined) o.exitV = r.exitV; // the fastest it lets a ball leave (520)
+    if (r.drag !== undefined) o.drag = r.drag; // the share of its speed a ball loses each second (0.1)
+    if (r.drain === undefined) {
+      rail(r.id, r.name, C.m[r.mouth || r.id], r.path.map(pt), o);
+      continue;
+    }
+    // a drain ramp: it starts under a field that has nothing joined below it and carries every ball that leaves that
+    // field to where the path ends. No mouth: the ball is taken at the foot of the field (rules/ball.js).
+    const f = fi(r.drain),
+      x = CX[f],
+      y0 = TY[f] + DRAIN_Y;
+    if (f === BT || BELOW[f] >= 0) throw new Error('layout: ' + r.id + ' drains a field that already has a way out');
+    if (T.drains[f]) throw new Error('layout: field ' + L.fields[f].id + ' has two drain ramps');
+    o.from = f;
+    o.drain = true;
+    T.rails[r.id] = T.drains[f] = Object.assign(
+      resample(
+        catmull(
+          [
+            [x, y0],
+            [x, y0 + 30]
+          ].concat(r.path.map(pt)),
+          14
+        ),
+        6
+      ),
+      {id: r.id, name: r.name, k: 0.2, exitV: 520},
+      o
+    );
   }
+  for (let i = 0; i < NM; i++)
+    if (i !== BT && BELOW[i] < 0 && !T.drains[i])
+      throw new Error(
+        'layout: field ' +
+          L.fields[i].id +
+          ' has nothing below it: give it a drain ramp ({drain: "' +
+          L.fields[i].id +
+          '", to, path})'
+      );
   T.mouthGeo = C.m;
   for (const k in WINGS)
     if (WINGS[k].rule === 'targets') {
@@ -409,7 +536,7 @@ export function buildTable(def) {
       const r = resample(catmull([[H_[a].x, H_[a].y]].concat(mid, [[H_[b].x, H_[b].y]]), 14), 6);
       T.tunnels[a] = Object.assign(r, {to: b});
     };
-  for (const t of L.tunnels || []) tun(t.from, t.to, t.via);
+  for (const t of L.tunnels || []) tun(t.from, t.to, t.via.map(pt));
   // short hops between the main table and a wing: a straight run the camera follows, about a second long
   const hop = (a, b, key) => {
     const A_ = typeof a === 'string' ? [H_[a].x, H_[a].y] : a,
@@ -432,7 +559,13 @@ export function buildTable(def) {
     hop([320, w.y + WLEN + 24], d.out, 'out_' + k);
   }
   // where each scoop spits the ball: at the tip of a flipper on its own level
-  const fl = (t, sd) => T.flips.find(f => f.tier === t && f.side === sd);
+  // (the main flipper of that side: the lowest one, when a field has more than one)
+  const fl = (t, sd) => {
+    let best = null;
+    for (const f of T.flips) if (f.tier === t && f.side === sd && (!best || f.y > best.y)) best = f;
+    if (!best) throw new Error('layout: a scoop on tier ' + t + ' ejects to a flipper that is not there');
+    return best;
+  };
   const aim = (id, f) => {
     const h = H_[id],
       tx = f.x + f.dir * 46,
@@ -445,11 +578,11 @@ export function buildTable(def) {
   for (const a of C.aims) aim(a[0], fl(a[1], a[2]));
   for (const s of L.shots || []) {
     if (s.alias) T.shots[s.alias] = T.shots[s.of];
-    else shotDef(s.id, s.name, s.tier, s.x, s.y, s.ang, s.kind);
+    else shotDef(s.id, s.name, fi(s.tier), s.x, s.y, s.ang, s.kind);
   }
   for (let i = 0; i < NM; i++)
     for (const q of L.fields[i].torches || [])
-      T.torches.push({x: q[0], y: q[1] + TY[i], c: q[2], r: q[3], ph: rand(9)});
+      T.torches.push({x: q[0] + OX[i], y: q[1] + TY[i], c: q[2], r: q[3], ph: rand(9)});
   // the grid: which walls can touch a ball in each 80-unit band of y
   const rows = Math.ceil(((NW ? WB[NW - 1] + WLEN : HW) + 200) / CELL);
   for (let r = 0; r < rows; r++) T.grid.push([]);

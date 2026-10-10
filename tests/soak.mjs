@@ -59,7 +59,7 @@ const play = ([cls, comp, seed, mins]) => {
     const s = T.shots[id];
     if (!fields.includes(s.tier)) fields.push(s.tier);
   }
-  const NM = Math.max(...G.statues.map(s => s.tier), ...T.slings.map(s => s.tier)) + 1,
+  const NM = P.fields.length,
     time = new Array(NM + 2).fill(0),
     err = [];
   let bad = 0,
@@ -99,10 +99,11 @@ const play = ([cls, comp, seed, mins]) => {
     score: G.run.score,
     NM,
     shots: Object.values(T.shots).map(s => ({id: s.id, tier: s.tier})),
-    rails: Object.keys(T.rails),
+    rails: Object.keys(T.rails).filter(id => !T.rails[id].drain),
+    chutes: Object.keys(T.rails).filter(id => T.rails[id].drain),
+    fields: P.fields,
     holes: Object.keys(T.holes),
-    banks: Object.keys(T.banks),
-    names: [...Array(NM).keys()].map(i => (window.__pb.api.G, i))
+    banks: Object.keys(T.banks)
   };
 };
 const CL = [
@@ -160,13 +161,28 @@ for (let k = 0; k < nSeeds; k++) {
 await br.close();
 srv.server.close();
 const total = time.reduce((a, b) => a + b, 0),
-  tierOf = y => Math.max(0, Math.min(meta.NM, Math.floor((y - 40) / 1040)));
+  F = meta.fields,
+  // the field a point of the table is in (or the one it is nearest), so a spot can be given in that field's numbers
+  fieldOf = (x, y) => {
+    let best = 0,
+      bd = 1e18;
+    F.forEach((f, i) => {
+      const dx = Math.max(f.x - x, 0, x - (f.x + 640)),
+        dy = Math.max(f.y - y, 0, y - (f.y + 1040)),
+        d = dx * dx + dy * dy;
+      if (d < bd) {
+        bd = d;
+        best = i;
+      }
+    });
+    return best;
+  };
 console.log(
   '\nTIME BY FIELD  ' +
     time
       .map(
         (v, i) =>
-          (i < meta.NM ? 'field ' + i : i === meta.NM ? 'grave' : 'wings') + ' ' + ((100 * v) / total).toFixed(0) + '%'
+          (i < meta.NM ? F[i].id : i === meta.NM ? 'grave' : 'wings') + ' ' + ((100 * v) / total).toFixed(0) + '%'
       )
       .join('   ')
 );
@@ -185,16 +201,18 @@ console.log(
   '\nSTUCK  ' + stuck.length + ' in ' + (total / 120 / 60).toFixed(0) + ' min of play' + (list.length ? '' : '  (none)')
 );
 for (const c of list.slice(0, 14)) {
-  const t = tierOf(c.y);
+  const t = fieldOf(c.x, c.y);
   console.log(
-    '  x ' +
-      String(c.x).padStart(4) +
+    '  ' +
+      F[t].id.padEnd(10) +
+      ' x ' +
+      String(c.x - F[t].x).padStart(4) +
       '  y ' +
-      String(c.y).padStart(5) +
-      '  (field ' +
-      t +
-      ', local y ' +
-      (c.y - 40 - 1040 * t) +
+      String(c.y - F[t].y).padStart(5) +
+      '  (whole table ' +
+      c.x +
+      ', ' +
+      c.y +
       ')  ' +
       c.n +
       'x  ' +
@@ -214,6 +232,8 @@ console.log(
   'RAMPS        ' +
     meta.rails.map(id => id + ' made ' + (tally[id] || 0) + ' / failed ' + (tally['fail:' + id] || 0)).join(', ')
 );
+if (meta.chutes.length)
+  console.log('CHUTES       ' + meta.chutes.map(id => id + ' ridden ' + (tally[id] || 0)).join(', '));
 const pockets = list.filter(c => c.n >= 4);
 if (logs.length) console.log('\n' + logs.slice(0, 10).join('\n'));
 const fail = logs.length || bad || pockets.length;

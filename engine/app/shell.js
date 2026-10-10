@@ -5,7 +5,7 @@ import {INS, closeInspect, drawInspect, openInspect} from './inspect.js';
 import {mountPage} from '../ui/page.js';
 import {G, T, focusBall} from '../core/state.js';
 import {$, PI, TAU, clamp, prefs, rand} from '../core/util.js';
-import {newBall} from '../physics/physics.js';
+import {newBall, physics} from '../physics/physics.js';
 import {project3D, pxPerUnit, snapCam} from '../render/camera.js';
 import {CAMS, QUALITY, R3} from '../render/core.js';
 import {R, starPath} from '../render/draw2d.js';
@@ -27,8 +27,8 @@ import {continueRun, initGame, saveRun, startDemo, startRun} from '../rules/run.
 import {CRADLE_ARM, CRADLE_RALLY} from '../rules/score.js';
 import {gameStep} from '../rules/step.js';
 import {enterWing} from '../rules/wings.js';
-import {TEXT, WINGS, WING_KEYS} from '../table/content.js';
-import {BT, CX, GT, GY, H, NM, TY} from '../table/layout.js';
+import {DEF, RULES, TEXT, WINGS, WING_KEYS} from '../table/content.js';
+import {BT, CX, GT, GY, H, NM, OX, TY} from '../table/layout.js';
 import {UI, bindInput, popup} from '../ui/ui.js';
 
 /* ================= 3D SHELL: settings, overlay, resize, loop, boot ================= */
@@ -120,7 +120,8 @@ export function devKey(k) {
       G.inGrave = false;
       G.graveLive = false;
       if (!G.fallen) G.tilt = 0;
-      G.balls = [newBall(CX[t] + rand(-30, 30), TY[t] + 560, rand(-60, 60), 120)];
+      const at = DEF.layout.fields[t].drop; // where a ball can be dropped into the field: its middle, unless it says
+      G.balls = [newBall((at ? OX[t] + at[0] : CX[t]) + rand(-30, 30), TY[t] + (at ? at[1] : 560), rand(-60, 60), 120)];
     }
   } else if (k === 'dg') {
     const g = r.grave;
@@ -492,6 +493,15 @@ window.__gb = {
   G,
   T,
   UI,
+  physics,
+  newBall,
+  get rules() {
+    return RULES;
+  },
+  // the fields as the layout lists them: id, and the corner each one's own numbers are measured from
+  get fields() {
+    return DEF.layout.fields.map((f, i) => ({id: f.id, x: OX[i], y: TY[i]}));
+  },
   INS,
   openInspect,
   closeInspect,

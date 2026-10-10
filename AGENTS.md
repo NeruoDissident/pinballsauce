@@ -10,6 +10,8 @@ Short version of the house rules:
 - Never change an engine number (physics, class stats, scores, timers) for one table.
 - After any change: `npm run check`, then `npm test`. A replay failure means you changed how the game plays:
   re-record only if you meant to, and say so.
-- New layout geometry comes from the parts bin in `docs/NEW_TABLE_CHECKLIST.md` and must pass `tests/soak.mjs`.
+- A new layout follows the priorities in `docs/NEW_TABLE_CHECKLIST.md` (the ball never sticks, it always comes back
+  to a flipper, every shot can be made, the table can be read) and must pass `tests/soak.mjs` and `tests/reach.mjs`.
+- Build the shape the owner asked for. If you think another would play better, ask; do not substitute.
 - Art never calls `Math.random` (use `hash`).
 - The owner wants to hear what you will change and why before a large change, and verified over guessed.

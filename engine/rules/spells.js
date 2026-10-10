@@ -11,7 +11,7 @@ import {relight} from './lamps.js';
 import {heal} from './score.js';
 import {callFoes, campFoes, foesOn} from './waves.js';
 import {TEXT} from '../table/content.js';
-import {BT, NM, TY} from '../table/layout.js';
+import {BT, NM, OX, TY} from '../table/layout.js';
 import {A} from '../ui/audio.js';
 import {popup} from '../ui/ui.js';
 
@@ -478,7 +478,7 @@ export const SPELL_FX = {
         k = spellVal('meteor', 'dmg'),
         a = rand(TAU),
         d = rand(20, 90),
-        x = clamp(b.x + Math.cos(a) * d, 30, 610),
+        x = clamp(b.x + Math.cos(a) * d, OX[b.tier] + 30, OX[b.tier] + 610),
         y = clamp(b.y + Math.sin(a) * d, TY[b.tier] + 40, TY[b.tier] + 880);
       G.booms.push({x, y, r: rr, t: 0, c: '#ff8a3a'});
       burst(x, y, 14, '#ffb050', 300, 0.7);

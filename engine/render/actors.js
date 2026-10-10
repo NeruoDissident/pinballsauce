@@ -189,7 +189,7 @@ export function frameActors(dt, ex) {
       continue;
     }
     const k = e.spawn > 0 ? Math.max(0.05, 1 - e.spawn / 0.7) : 1,
-      gy = elev(e.y),
+      gy = elev(e.y, e.x),
       y = gy + e.r + 13;
     const warn = e.wind > 0 && e.tier === G.focusTier,
       qc = e.quest ? (e.quest.main ? 'main' : 'side') : null;
@@ -227,7 +227,7 @@ export function frameActors(dt, ex) {
     } else {
       const d = bo.def,
         k = bo.alive ? clamp(1 - bo.rise / 1.5, 0, 1) : clamp(bo.dying / 2.2, 0, 1),
-        gy = elev(bo.y),
+        gy = elev(bo.y, bo.x),
         y = gy + 58 + Math.sin(bo.t * 2) * 3,
         f = Math.max(0, bo.flash),
         m = B.sp.material;
@@ -273,7 +273,7 @@ export function frameActors(dt, ex) {
       continue;
     }
     const kind = p.kind === 'heart' ? 'heart' : p.kind === 'gold' ? 'gold' : 'relic',
-      y = elev(p.y) + 16 + Math.sin(p.t * 4) * 3;
+      y = elev(p.y, p.x) + 16 + Math.sin(p.t * 4) * 3;
     if (o.kind !== kind) {
       o.kind = kind;
       o.sp.material.map = X.tex[kind];
@@ -299,7 +299,7 @@ export function frameActors(dt, ex) {
       continue;
     }
     const a = Math.min(1, z.t / 1.5),
-      gy = elev(z.y) + 0.8;
+      gy = elev(z.y, z.x) + 0.8;
     o.disc.visible = o.ring.visible = true;
     tc.set(z.fire ? '#ff6a2a' : '#ffe0a0')
       .convertSRGBToLinear()
@@ -326,7 +326,7 @@ export function frameActors(dt, ex) {
       flash3D(b.x, b.y, b.c, 1.7);
     }
     m.visible = true;
-    m.position.set(b.x - 320, elev(b.y) + 1, b.y);
+    m.position.set(b.x - 320, elev(b.y, b.x) + 1, b.y);
     m.scale.setScalar(b.r * (0.25 + 0.75 * k));
     m.material.color.copy(tc.set(b.c).convertSRGBToLinear().multiplyScalar(1.8));
     m.material.opacity = Math.max(0, 1 - k);

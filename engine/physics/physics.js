@@ -10,7 +10,7 @@ import {collideActors} from '../rules/foes.js';
 import {guardHit, liveGuards} from '../rules/party.js';
 import {TEXT} from '../table/content.js';
 import {railPos} from '../table/geometry.js';
-import {BR, CELL, GRAV, NM, TY, VMAX, tierOf} from '../table/layout.js';
+import {BR, CELL, GRAV, NM, OX, VMAX, YTOP, tierOf} from '../table/layout.js';
 import {A} from '../ui/audio.js';
 
 /* ================= PHYSICS ================= */
@@ -40,7 +40,7 @@ export function newBall(x, y, vx, vy) {
     noHole: 0,
     onFlip: 0,
     age: 0,
-    tier: tierOf(y),
+    tier: tierOf(y, x),
     sx: x,
     sy: y,
     held: null
@@ -183,7 +183,8 @@ export function stepBall(b, h) {
     const r = b.rail,
       p = railPos(r, b.rs, b);
     b.rv += GRAV * r.k * p.ty * h;
-    b.rv -= b.rv * 0.1 * h;
+    b.rv -= b.rv * (r.drag === undefined ? 0.1 : r.drag) * h;
+    if (r.drain && b.rv < 140) b.rv = 140; // a drain ramp never lets a ball roll back
     b.rs += b.rv * h;
     b.hgt = Math.min(1, b.rs / 80, (r.len - b.rs) / 80);
     if (b.rs >= r.len) {
@@ -194,7 +195,7 @@ export function stepBall(b, h) {
       b.st = 'live';
       b.hgt = 0;
       b.noMouth = 0.3;
-      ev('ramp', r, b);
+      ev(r.drain ? 'chute' : 'ramp', r, b);
     } else if (b.rs <= 0) {
       railPos(r, 0, b);
       const v = Math.min(b.rv, -140);
@@ -218,7 +219,7 @@ export function stepBall(b, h) {
   b.x += b.vx * h;
   b.y += b.vy * h;
   for (const f of T.flips) {
-    if (b.y > f.y - 110 && b.y < f.y + 90 && Math.abs(b.x - f.x) < 110) hitFlipper(b, f);
+    if (b.y > f.y - 110 && b.y < f.y + 90 && Math.abs(b.x - f.x) < (f.L > 82 ? f.L + 28 : 110)) hitFlipper(b, f);
   }
   const row = T.grid[(b.y / CELL) | 0];
   if (row)
@@ -253,16 +254,19 @@ export function stepBall(b, h) {
       }
     }
   collideActors(b);
-  if (b.x < 20 + b.r) {
-    b.x = 20 + b.r;
+  // the cabinet's own sides and the top of the table, as a last resort behind the wall segments
+  const xl = OX[b.tier] + 20,
+    xr = OX[b.tier] + 620;
+  if (b.x < xl + b.r) {
+    b.x = xl + b.r;
     if (b.vx < 0) b.vx *= -0.4;
   }
-  if (b.x > 620 - b.r) {
-    b.x = 620 - b.r;
+  if (b.x > xr - b.r) {
+    b.x = xr - b.r;
     if (b.vx > 0) b.vx *= -0.4;
   }
-  if (b.y < TY[0] + b.r) {
-    b.y = TY[0] + b.r;
+  if (b.y < YTOP + b.r) {
+    b.y = YTOP + b.r;
     if (b.vy < 0) b.vy *= -0.4;
   }
 }

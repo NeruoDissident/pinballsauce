@@ -65,7 +65,7 @@ export function bumperBase(b) {
     o.wardS = ws;
     o.wardT = tr;
   }
-  g.position.set(b.x - 320, elev(b.y), b.y);
+  g.position.set(b.x - 320, elev(b.y, b.x), b.y);
   R3.scene.add(g);
   return {o, lit, mesh, r, p, col};
 }
@@ -102,7 +102,7 @@ export function statueBase(s) {
     g.add(m);
     return m;
   };
-  g.position.set(s.x - 320, elev(s.y), s.y);
+  g.position.set(s.x - 320, elev(s.y, s.x), s.y);
   R3.scene.add(g);
   return {o, lit, mesh, p, col};
 }

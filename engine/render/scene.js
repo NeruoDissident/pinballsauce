@@ -19,6 +19,8 @@ import {
   UP,
   WALL_H,
   elev,
+  elevIn,
+  elevOf,
   groundY,
   inSlope,
   inWing,
@@ -29,7 +31,29 @@ import {
 } from './world.js';
 import {DEF, PAL, THEME, WINGS, WING_KEYS} from '../table/content.js';
 import {arcPts} from '../table/geometry.js';
-import {BT, CX, GT, GY, H, HW, NM, TIER_NAME, TY, XR, tierOf} from '../table/layout.js';
+import {
+  ABOVE,
+  BELOW,
+  BT,
+  CHAINS,
+  CX,
+  FIELD_H,
+  GRID,
+  GT,
+  GY,
+  H,
+  HW,
+  NM,
+  OX,
+  TIER_NAME,
+  TY,
+  W,
+  XR,
+  fieldAt,
+  fieldNear,
+  roofed,
+  tierOf
+} from '../table/layout.js';
 
 export function init3D(canvas) {
   let rn;
@@ -143,7 +167,7 @@ export function buildLights() {
     zs = cols.map((c, i) => (i < NM ? TY[i] + 470 : GY + 320));
   R3.tierL = cols.map((c, i) => {
     const l = new THREE.PointLight(new THREE.Color(c), i === GT ? 1 : 1.15, 1250, 1.4);
-    l.position.set(0, E[i] + 330, zs[i]);
+    l.position.set(OX[i] || 0, E[i] + 330, zs[i]);
     sc.add(l);
     return l;
   });
@@ -175,15 +199,17 @@ export function buildFloor3D() {
     });
     const mb = new MB();
     mb.hint = [0, 1, 0];
-    const yEnd = ch.grave ? ch.y1 : Math.min(ch.y1, H + 36);
+    const yEnd = ch.grave ? ch.y1 : Math.min(ch.y1, ch.end);
     let y = ch.y0;
     while (y < yEnd - 0.01) {
       const y2 = Math.min(yEnd, y + (ch.grave ? 200 : inSlope(y, y + 7) ? 7 : Math.min(40, nextSlope(y) - y || 40))),
         v0 = 1 - (y - ch.y0) / (ch.y1 - ch.y0),
         v1 = 1 - (y2 - ch.y0) / (ch.y1 - ch.y0),
-        e0 = ch.grave ? E[GT] : elev(y),
-        e1 = ch.grave ? E[GT] : elev(y2);
-      mb.quad([-320, e0, y], [320, e0, y], [320, e1, y2], [-320, e1, y2], [0, v0], [1, v0], [1, v1], [0, v1]);
+        e0 = ch.grave ? E[GT] : GRID ? elevIn(ch.top, y) : elev(y),
+        e1 = ch.grave ? E[GT] : GRID ? elevIn(ch.top, y2) : elev(y2),
+        xa = ch.ox - 320,
+        xb = ch.ox + 320;
+      mb.quad([xa, e0, y], [xb, e0, y], [xb, e1, y2], [xa, e1, y2], [0, v0], [1, v0], [1, v1], [0, v1]);
       y = y2;
     }
     const m = mb.mesh(mat, {cast: false});
@@ -217,51 +243,87 @@ export function buildStatic() {
     wood = new MB(),
     dark = new MB();
   const WMS = (R3.wingMB = WING_KEYS.map(() => ({steel: new MB(), bronze: new MB(), post: new MB()})));
-  // outer walls and the Keep's back wall
-  prism(
-    frame,
-    [
-      [-70, 340],
-      [20, 340],
-      [20, H + 34],
-      [-70, H + 34]
-    ],
-    34
-  );
-  prism(
-    frame,
-    [
-      [620, 340],
-      [710, 340],
-      [710, H + 34],
-      [620, H + 34]
-    ],
-    34
-  );
-  prism(
-    stone[0],
-    [
-      [-70, -70],
-      [710, -70],
-      [710, 340],
-      [620, 340]
-    ].concat(arcPts(320, TY[0] + 300, 300, TAU, PI, 60).slice(1, -1), [
-      [20, 340],
-      [-70, 340]
-    ]),
-    34
-  );
+  /* the cabinet. Each run of joined fields has a wall down both sides and a block over the arch at its head (a flat
+     lid where the head field has no arch). The cap behind the arch is left off where another field stands there. */
+  for (const ch of CHAINS) {
+    const t = ch[0],
+      b = ch[ch.length - 1],
+      ox = OX[t],
+      y = TY[t],
+      yA = y + 300,
+      yEnd = b === BT ? H + 34 : TY[b] + FIELD_H,
+      cap = roofed(t) ? 10 : 110;
+    elevOf(t);
+    prism(
+      frame,
+      [
+        [ox - 70, yA],
+        [ox + 20, yA],
+        [ox + 20, yEnd],
+        [ox - 70, yEnd]
+      ],
+      34
+    );
+    prism(
+      frame,
+      [
+        [ox + 620, yA],
+        [ox + 710, yA],
+        [ox + 710, yEnd],
+        [ox + 620, yEnd]
+      ],
+      34
+    );
+    prism(
+      stone[t],
+      [
+        [ox - 70, y - cap],
+        [ox + 710, y - cap],
+        [ox + 710, yA],
+        [ox + 620, yA]
+      ].concat(
+        T.std[t].arch
+          ? arcPts(320 + ox, yA, 300, TAU, PI, 60).slice(1, -1)
+          : [
+              [ox + 620, y + 20],
+              [ox + 20, y + 20]
+            ],
+        [
+          [ox + 20, yA],
+          [ox - 70, yA]
+        ]
+      ),
+      34
+    );
+    if (b !== BT) {
+      // a field that drains into a ramp: a hood over the last of it, where the ball is taken onto the ramp
+      const e = E[b] + WALL_H;
+      prism(
+        stone[b],
+        [
+          [ox + 20, TY[b] + FIELD_H - 38],
+          [ox + 620, TY[b] + FIELD_H - 38],
+          [ox + 620, TY[b] + FIELD_H],
+          [ox + 20, TY[b] + FIELD_H]
+        ],
+        0,
+        {flat: e + 8, base: e}
+      );
+    }
+    elevOf(-1);
+  }
   // islands between levels, aprons and the named landmarks
   const aF = Math.acos(258 / 300),
     aG = Math.asin(36 / 300);
   for (const b of T.blocks) {
     if (b.dead && !b.apron) {
-      const sd = b.pts[0][0] < 320 ? -1 : 1,
-        nA = TY[b.tier + 1] + 300,
+      const cx = 320 + OX[b.tier],
+        sd = b.pts[0][0] < cx ? -1 : 1,
+        nA = TY[BELOW[b.tier]] + 300,
         arc =
-          sd < 0 ? arcPts(320, nA, 300, 1.5 * PI - aG, PI + aF, 22) : arcPts(320, nA, 300, 1.5 * PI + aG, TAU - aF, 22);
+          sd < 0 ? arcPts(cx, nA, 300, 1.5 * PI - aG, PI + aF, 22) : arcPts(cx, nA, 300, 1.5 * PI + aG, TAU - aF, 22);
       prism(stone[b.tier], b.pts.slice(0, 4).concat(arc.slice(1, -1), [b.pts[4]]), WALL_H, {depth: 110});
-    } else if (b.dead) prism(stone[BT], b.pts, WALL_H, {depth: 40});
+    } else if (b.dead) prism(stone[b.tier], b.pts, WALL_H, {depth: 40});
     else prism(stone[b.tier], b.pts, BLOCK_H);
   }
   // guide walls, scoops, posts, flaps and the one-way wards
@@ -277,7 +339,7 @@ export function buildStatic() {
     else strip(wg ? WM.steel : steel, w.pts, k, 21);
   }
   // shooter lane back stop, hole rims
-  box(iron, 603, T.shooter.y + 18, 0, 16, 30, 8);
+  box(iron, T.shooter.x, T.shooter.y + 18, 0, 16, 30, 8);
   for (const id in T.holes) {
     const h = T.holes[id];
     (inWing(h.y) ? WMS[wingIdx(h.y)].bronze : bronze).add(
@@ -362,17 +424,26 @@ export function buildStatic() {
   add(dark, M.earth);
   add(ward, M.ward, {cast: false, receive: false});
   // level names carved into the stone above each level
-  const names = [[320, -36, TIER_NAME[0], 230]];
-  for (let i = 1; i < NM; i++) names.push([140, TY[i] - 74, TIER_NAME[i], 128], [500, TY[i] - 74, TIER_NAME[i], 128]);
+  // (on the cap over the arch of a field at the head of a run; on the two islands above a field joined under another)
+  const names = [];
+  for (let i = 0; i < NM; i++) {
+    const ox = OX[i],
+      y = TY[i],
+      nm = TIER_NAME[i];
+    if (ABOVE[i] >= 0) names.push([ox + 140, y - 74, nm, 128, WALL_H, -1], [ox + 500, y - 74, nm, 128, WALL_H, -1]);
+    else if (!roofed(i)) names.push([ox + 320, y - 76, nm, 230, 34, i]);
+    else if (T.std[i].arch) names.push([ox + 44, y + 50, nm, 128, 34, i], [ox + 596, y + 50, nm, 128, 34, i]);
+  }
   R3.nameDecals = names.map(q => {
     const cv = mkCanvas(512, 128),
       tex = ctex(cv),
       mb = new MB(),
       hw = q[3] / 2,
       hh = q[3] / 8,
-      h = (q[1] < 0 ? 34 : WALL_H) + 0.7,
-      P = (x, y) => [x - 320, elev(y) + h, y];
+      h = q[4] + 0.7,
+      P = (x, y) => [x - 320, elev(y, x) + h, y];
     mb.hint = [0, 1, 0];
+    elevOf(q[5]);
     mb.quad(
       P(q[0] - hw, q[1] - hh),
       P(q[0] + hw, q[1] - hh),
@@ -383,6 +454,7 @@ export function buildStatic() {
       [1, 0],
       [0, 0]
     );
+    elevOf(-1);
     const m = mb.mesh(
       new THREE.MeshBasicMaterial({map: tex, transparent: true, depthWrite: false, color: hdr('#e6c890', 0.8)}),
       {cast: false, receive: false}
@@ -417,8 +489,8 @@ export function paintNames() {
 // a ramp: the ball's path lifted off the table, drawn as a wire-form with a plated bed
 export function buildRail(r, steel, iron) {
   const n = r.n,
-    ef = elev(r.y[0]),
-    et = elev(r.y[n - 1]),
+    ef = elev(r.y[0], r.x[0]),
+    et = elev(r.y[n - 1], r.x[n - 1]),
     X = [],
     Yh = [],
     Z = [];
@@ -426,7 +498,7 @@ export function buildRail(r, steel, iron) {
   for (let i = 0; i < n; i++) {
     const s = i * r.ds,
       prof = sstep(0, 1, Math.min(1, s / 80, (r.len - s) / 80)),
-      base = Math.max(lerp(ef, et, sstep(40, r.len * 0.55, s)), elev(r.y[i]));
+      base = Math.max(lerp(ef, et, sstep(40, r.len * 0.55, s)), elev(r.y[i], r.x[i]));
     r.h3[i] = base + (RAMP_H + (r.lift || 0)) * prof + (prof > 0 ? 1 : 0);
     X.push(r.x[i] - 320);
     Yh.push(r.h3[i]);
@@ -520,7 +592,7 @@ export function buildRail(r, steel, iron) {
   }
   for (let i = 22; i < n - 18; i += 26) {
     const x = r.x[i],
-      g = x < -70 || x > 710 ? groundY(x, r.y[i]) : elev(r.y[i]) + (x < 20 || x > 620 ? 34 : 0),
+      g = standOn(x, r.y[i]),
       hgt = Yh[i] - g;
     if (hgt < RAMP_H * 0.8) continue;
     const t = tan(i),
@@ -535,6 +607,16 @@ export function buildRail(r, steel, iron) {
     );
   }
 }
+// what a ramp's leg stands on: a field's floor, the top of the cabinet wall beside it, or the land outside
+function standOn(x, y) {
+  if (!GRID) return x < -70 || x > 710 ? groundY(x, y) : elev(y) + (x < 20 || x > 620 ? 34 : 0);
+  const i = fieldAt(x, y);
+  if (i >= 0) return elevIn(i, y) + (x < OX[i] + 20 || x > OX[i] + 620 ? 34 : 0);
+  const j = fieldNear(x, y);
+  return Math.max(OX[j] - x, x - (OX[j] + W)) > 70 || y < TY[j] - 110 || y > TY[j] + FIELD_H
+    ? groundY(x, y)
+    : elevIn(j, y) + 34;
+}
 export function railY(r, s) {
   const f = clamp(s / r.ds, 0, r.n - 1.001),
     i = f | 0;
@@ -548,7 +630,7 @@ export function buildDynamic() {
   R3.gates = {};
   for (const m of T.mouths) {
     const g = new THREE.Group();
-    g.position.set(m.x - 320, elev(m.y), m.y);
+    g.position.set(m.x - 320, elev(m.y, m.x), m.y);
     g.rotation.y = -Math.atan2(m.dy, m.dx);
     for (let k = -2; k <= 2; k++) {
       const b = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.4, 34, 6), M.iron);
@@ -571,23 +653,31 @@ export function buildDynamic() {
     s.closePath();
     return s;
   };
-  const fg = new THREE.ExtrudeGeometry(fshape(7.6, 4.2, 82), {
-    depth: 11,
-    bevelEnabled: true,
-    bevelSize: 0.9,
-    bevelThickness: 1.2,
-    bevelSegments: 2,
-    curveSegments: 12
-  })
-    .rotateX(-PI / 2)
-    .translate(0, 2, 0);
-  const rg = new THREE.ExtrudeGeometry(fshape(9, 5.4, 82), {depth: 5, bevelEnabled: false, curveSegments: 12})
-    .rotateX(-PI / 2)
-    .translate(0, 5, 0);
+  // one bat and one rubber per flipper length in use
+  const FG = {},
+    fgeo = L =>
+      FG[L] ||
+      (FG[L] = [
+        new THREE.ExtrudeGeometry(fshape(7.6, 4.2, L), {
+          depth: 11,
+          bevelEnabled: true,
+          bevelSize: 0.9,
+          bevelThickness: 1.2,
+          bevelSegments: 2,
+          curveSegments: 12
+        })
+          .rotateX(-PI / 2)
+          .translate(0, 2, 0),
+        new THREE.ExtrudeGeometry(fshape(9, 5.4, L), {depth: 5, bevelEnabled: false, curveSegments: 12})
+          .rotateX(-PI / 2)
+          .translate(0, 5, 0)
+      ]);
   const pg = new THREE.CylinderGeometry(3.6, 3.6, 17, 12).translate(0, 8.5, 0);
   for (const f of T.flips) {
     const g = new THREE.Group(),
-      col = PAL[f.tier].glow;
+      col = PAL[f.tier].glow,
+      fg = fgeo(f.L)[0],
+      rg = fgeo(f.L)[1];
     const rub = new THREE.MeshStandardMaterial({
       color: hdr(col, 0.5),
       emissive: hdr(col),
@@ -601,7 +691,7 @@ export function buildDynamic() {
     a.castShadow = b.castShadow = true;
     a.receiveShadow = true;
     g.add(a, b, p);
-    g.position.set(f.x - 320, elev(f.y) + 0.5, f.y);
+    g.position.set(f.x - 320, elev(f.y, f.x) + 0.5, f.y);
     sc.add(g);
     D.flips.push({f, g, rub});
   }
@@ -633,7 +723,7 @@ export function buildDynamic() {
       m.rotation.y = -Math.atan2(s.dy, s.dx);
       const cx = (s.x1 + s.x2) / 2,
         cy = (s.y1 + s.y2) / 2,
-        y0 = elev(cy) + h / 2;
+        y0 = elev(cy, cx) + h / 2;
       m.position.set(cx - 320, y0, cy);
       m.castShadow = true;
       sc.add(m);
@@ -654,7 +744,7 @@ export function buildDynamic() {
       m.rotation.y = -Math.atan2(s.dy, s.dx);
       const cx = (s.x1 + s.x2) / 2,
         cy = (s.y1 + s.y2) / 2,
-        y0 = elev(cy) + h / 2;
+        y0 = elev(cy, cx) + h / 2;
       m.position.set(cx - 320, y0, cy);
       m.castShadow = true;
       sc.add(m);
@@ -707,11 +797,28 @@ export function buildDynamic() {
       polygonOffsetUnits: -2
     });
     const m = new THREE.Mesh(kick ? tri : lane ? disc : dia, mat);
-    m.position.set(s.x - 320, elev(s.y) + 0.35, kick ? s.y - 49 : s.y);
+    m.position.set(s.x - 320, elev(s.y, s.x) + 0.35, kick ? s.y - 49 : s.y);
     if (kick) m.rotation.y = PI / 2;
     m.renderOrder = 2;
     sc.add(m);
     D.sens.push({s, mat, kick, lane, on: hdr(col, 1.25), v: 0});
+  }
+  // status lamps: a round insert each, lit from the run (rules/lamps.js)
+  for (const l of T.lamps) {
+    const mat = new THREE.MeshBasicMaterial({
+      color: 0x08080c,
+      transparent: true,
+      opacity: 0.7,
+      depthWrite: false,
+      polygonOffset: true,
+      polygonOffsetFactor: -2,
+      polygonOffsetUnits: -2
+    });
+    const m = new THREE.Mesh(new THREE.CircleGeometry(l.r, 20).rotateX(-PI / 2), mat);
+    m.position.set(l.x - 320, elev(l.y, l.x) + 0.35, l.y);
+    m.renderOrder = 2;
+    sc.add(m);
+    D.lamps.push({l, mat, on: hdr(l.col || PAL[l.tier].glow, 1.25), v: 0});
   }
   // shot inserts: the painted arrows light from underneath
   const dot = new THREE.CircleGeometry(9, 18).rotateX(-PI / 2);
@@ -730,7 +837,7 @@ export function buildDynamic() {
       polygonOffsetUnits: -3
     });
     const m = new THREE.Mesh(s.kind === 'dot' ? dot : arrow, mat);
-    m.position.set(s.x - 320, elev(s.y) + 0.4, s.y);
+    m.position.set(s.x - 320, elev(s.y, s.x) + 0.4, s.y);
     if (s.kind !== 'dot') m.rotation.y = -s.ang;
     m.renderOrder = 2;
     sc.add(m);
@@ -759,7 +866,7 @@ export function buildDynamic() {
           depthWrite: false
         })
       );
-    sp.position.set(h.x - 320, elev(h.y) + 8, h.y);
+    sp.position.set(h.x - 320, elev(h.y, h.x) + 8, h.y);
     sp.scale.set(74, 74, 1);
     sc.add(sp);
     const d = new THREE.Mesh(
@@ -771,7 +878,7 @@ export function buildDynamic() {
         polygonOffsetUnits: -1
       })
     );
-    d.position.set(h.x - 320, elev(h.y) + 0.2, h.y);
+    d.position.set(h.x - 320, elev(h.y, h.x) + 0.2, h.y);
     sc.add(d);
     D.holes.push({h, sp, base: sp.material.color.clone()});
   }
@@ -784,7 +891,7 @@ export function buildDynamic() {
       tip = new THREE.Mesh(new THREE.CylinderGeometry(8, 8, 6, 14).rotateX(PI / 2), M.bone),
       knob = new THREE.Mesh(new THREE.SphereGeometry(7, 12, 10).translate(0, 0, 76), M.bronze);
     g.add(rod, tip, knob);
-    g.position.set(T.shooter.x - 320, elev(T.shooter.y + 20) + 11, T.shooter.y + 16);
+    g.position.set(T.shooter.x - 320, elev(T.shooter.y + 20, T.shooter.x) + 11, T.shooter.y + 16);
     sc.add(g);
     R3.plunger = g;
   }
@@ -889,7 +996,7 @@ export function mkSpinner(s) {
   const bar = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.8, 40, 6).rotateZ(PI / 2), M.steel);
   bar.position.y = 15;
   g.add(bar);
-  g.position.set(s.x - 320, elev(s.y), s.y);
+  g.position.set(s.x - 320, elev(s.y, s.x), s.y);
   if (s.rot) g.rotation.y = -s.rot;
   R3.scene.add(g);
   return {s, pv, mat};
@@ -916,7 +1023,7 @@ export function mkTorch(tr) {
     g = new THREE.Group(),
     col = tr.c,
     big = tr.r > 120;
-  g.position.set(sp.x - 320, elev(sp.y) + sp.h, sp.y);
+  g.position.set(sp.x - 320, elev(sp.y, sp.x) + sp.h, sp.y);
   if (sp.hang) {
     const ch = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.7, 16, 5), M.iron);
     ch.position.y = -8;

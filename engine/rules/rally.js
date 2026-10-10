@@ -10,7 +10,7 @@ import {COMPANIONS, ROLES} from './party.js';
 import {heal} from './score.js';
 import {SPELL_FX, heroBall, heroBalls, nearFoes} from './spells.js';
 import {RECRUIT_RETURNS, armRecruit} from './tavern.js';
-import {BT, CX, TY} from '../table/layout.js';
+import {BT, CX, OX, TY} from '../table/layout.js';
 import {A} from '../ui/audio.js';
 import {popup} from '../ui/ui.js';
 
@@ -76,7 +76,7 @@ export function rally() {
       const ht = (heroBall() || heroBalls()[0] || h).tier,
         up = ht < BT,
         b = up
-          ? newBall(320 + rand(-70, 70), TY[ht] + 90, rand(-260, 260), rand(120, 320))
+          ? newBall(OX[ht] + 320 + rand(-70, 70), TY[ht] + 90, rand(-260, 260), rand(120, 320))
           : newBall(T.shooter.x, T.shooter.y - 6, 0, -rand(2200, 2380));
       b.tier = up ? ht : BT;
       b.life = T0 - i * RALLY_GAP;

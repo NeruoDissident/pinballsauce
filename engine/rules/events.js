@@ -17,7 +17,7 @@ import {charge, gold, heal, jackpot, major, score, shot, xp} from './score.js';
 import {holyFire, spellOn, spellProg, spellVal} from './spells.js';
 import {callFoes, campFoes, startWave, waveJoin} from './waves.js';
 import {breakSeal, wingDone} from './wings.js';
-import {DEF, PAL, RULES, TEXT, WINGS} from '../table/content.js';
+import {DEF, PAL, RULES, TEXT, WINGS, hook} from '../table/content.js';
 import {GT} from '../table/layout.js';
 import {A} from '../ui/audio.js';
 import {popup} from '../ui/ui.js';
@@ -303,7 +303,12 @@ export function ev(type, o, b, imp) {
     case 'hole':
       handleHole(o, b);
       break;
+    case 'chute': // a drain ramp has set the ball down on another field
+      (G.tally || (G.tally = {}))[o.id] = (G.tally[o.id] || 0) + 1;
+      A.s('eject');
+      break;
   }
+  hook(type, o, b, r, imp); // then the table's own say (rules.on)
 }
 export function done(id, x, y) {
   const r = G.run;

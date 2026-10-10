@@ -13,9 +13,10 @@ import {gameOver, saveRun, startDemo} from './run.js';
 import {gold} from './score.js';
 import {spellCast, spellVal} from './spells.js';
 import {leaveWing} from './wings.js';
-import {TEXT, WING_KEYS} from '../table/content.js';
+import {TEXT, WING_KEYS, hook} from '../table/content.js';
 import {railPos} from '../table/geometry.js';
-import {CX, GT, H, HW, TY, WLEN, WT0, tierOf} from '../table/layout.js';
+import {CX, GRID, GT, H, HW, TY, WLEN, WT0, tierOf} from '../table/layout.js';
+import {DRAIN_Y} from '../table/parts.js';
 import {A} from '../ui/audio.js';
 import {UI, popup} from '../ui/ui.js';
 
@@ -77,6 +78,7 @@ export function startBall() {
         ? ''
         : ''
   );
+  hook('ball', null, null, r);
   relight();
 }
 export function updatePlunger(dt) {
@@ -85,7 +87,9 @@ export function updatePlunger(dt) {
     p.auto -= dt;
     if (p.auto <= 0) addBall('shooter');
   }
-  const b = G.balls.find(b => b.st === 'live' && b.x > 586 && b.y > T.shooter.y - 60 && Math.abs(b.vy) < 60);
+  const b = G.balls.find(
+    b => b.st === 'live' && b.x > T.shooter.x - 17 && b.y > T.shooter.y - 60 && Math.abs(b.vy) < 60
+  );
   p.ready = !!b;
   if (!b) {
     p.charge = 0;
@@ -151,11 +155,25 @@ export function updateBalls(dt) {
   for (const b of G.balls) {
     b.age += dt;
     if (b.onFlip > 0) b.onFlip -= dt;
-    b.tier = tierOf(b.y);
+    if (b.lead && (b.lead[2] -= dt) <= 0) b.lead = null;
+    // which tier the ball is in. Where fields stand on a grid, a ball riding a ramp between two of them belongs to the
+    // one it left until half way and to the one it is going to after, so a field it only passes never counts.
+    b.tier = GRID && b.st === 'rail' && b.rail ? (b.rs < b.rail.len / 2 ? b.rail.from : b.rail.to) : tierOf(b.y, b.x);
+    const dr = b.st === 'live' ? T.drains[b.tier] : null;
+    if (dr && b.y > TY[b.tier] + DRAIN_Y) {
+      // off the foot of a field that drains into a ramp: the ramp takes it, wherever across the field it fell
+      b.lead = [b.x - dr.x[0], b.y - dr.y[0], 0.3];
+      b.st = 'rail';
+      b.rail = dr;
+      b.rs = 0;
+      b.rv = Math.max(260, Math.hypot(b.vx, b.vy) * 0.6);
+      b.hgt = 0;
+      A.s('chute');
+    }
     if (b.st === 'live') {
       b.rot += (b.vx * dt) / b.r;
       const sp = Math.hypot(b.vx, b.vy),
-        inLane = b.x > 586 && b.y > T.shooter.y - 100 && b.y < T.shooter.y + 100;
+        inLane = b.x > T.shooter.x - 17 && b.y > T.shooter.y - 100 && b.y < T.shooter.y + 100;
       if (sp < 28 && b.onFlip <= 0 && !inLane) b.slow = (b.slow || 0) + dt;
       else b.slow = 0;
       if (Math.hypot(b.x - b.sx, b.y - b.sy) > 46 || b.onFlip > 0 || inLane) {
@@ -321,6 +339,7 @@ export function saveBall(t, s) {
 }
 export function endBall() {
   const r = G.run;
+  hook('ballEnd', null, null, r);
   G.sub = 'bonus';
   G.mb = null;
   for (const q of r.side.slice()) {

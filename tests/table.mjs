@@ -92,6 +92,10 @@ export const dump = () => {
   out.graveIn = T_.graveIn;
   out.shooter = T_.shooter;
   out.statues = G_.statues.map(s => plain(s));
+  // what only newer layouts have is recorded only where it is used, so older recordings stay as they are
+  if (T_.lamps.length) out.lamps = T_.lamps.map(l => plain(l));
+  if (T_.drains.some(Boolean)) out.drains = P.fields.map((f, i) => (T_.drains[i] ? T_.drains[i].id : null));
+  if (P.fields.some(f => f.x !== 0)) out.place = P.fields;
   return JSON.stringify(out);
 };
 export const digest = json => {

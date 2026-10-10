@@ -5,7 +5,7 @@ import {PI, clamp, rand} from '../core/util.js';
 import {CAMS, R3} from './core.js';
 import {_v} from './frame.js';
 import {E, ZX, ZZ, elev} from './world.js';
-import {BT, FY, GT, GY, TY} from '../table/layout.js';
+import {BT, FY, GT, GY, OX, TY} from '../table/layout.js';
 
 // Player view: place the camera so the flippers sit near the bottom of the screen and the top of the level near the top
 export function frameLevel(tier, pitch, fov, asp) {
@@ -51,7 +51,8 @@ export function updateCam3D(dt) {
   const tier = G.focusTier,
     f = FY[tier],
     e = E[tier],
-    bx = b ? b.x - 320 : 0,
+    fx = OX[tier] || 0, // the middle of the field in view, across the table
+    bx = b ? b.x - 320 - fx : 0, // the ball, measured from it
     by = b ? b.y : f - 300;
   if (R3.dbg) {
     fov = R3.dbg.fov || 40;
@@ -84,7 +85,7 @@ export function updateCam3D(dt) {
     fov = m.fov;
     if (R3.camMode === 1) {
       tx = bx * 0.62;
-      ty = b ? elev(by) + 8 : e;
+      ty = b ? elev(by, b.x) + 8 : e;
       tz = by - 150;
       const D = Math.max(560, 300 / (tv * asp));
       px = tx * 0.92;
@@ -115,7 +116,7 @@ export function updateCam3D(dt) {
     }
   }
   if (!R3.dbg && !(G.demo && G.mode === 'title')) {
-    const ox = ZX(by),
+    const ox = ZX(by) + fx,
       oz = ZZ(by);
     px += ox;
     tx += ox;
@@ -142,7 +143,7 @@ export function snapCam() {
   updateCam3D(100);
 }
 export function project3D(x, y, h, out) {
-  _v.set(x - 320 + ZX(y), elev(y) + (h || 0), y + ZZ(y)).project(R3.camera);
+  _v.set(x - 320 + ZX(y), elev(y, x) + (h || 0), y + ZZ(y)).project(R3.camera);
   out.x = (_v.x * 0.5 + 0.5) * R3.w;
   out.y = (-_v.y * 0.5 + 0.5) * R3.h;
   out.ok = _v.z < 1 && _v.z > -1;
@@ -152,8 +153,8 @@ export function project3D(x, y, h, out) {
 export function pxPerUnit(x, y, h) {
   const ox = ZX(y),
     oz = ZZ(y);
-  _v.set(x - 320 + ox, elev(y) + (h || 0), y + oz).project(R3.camera);
+  _v.set(x - 320 + ox, elev(y, x) + (h || 0), y + oz).project(R3.camera);
   const ax = _v.x;
-  _v.set(x - 320 + 10 + ox, elev(y) + (h || 0), y + oz).project(R3.camera);
+  _v.set(x - 320 + 10 + ox, elev(y, x) + (h || 0), y + oz).project(R3.camera);
   return (Math.abs(_v.x - ax) * 0.5 * R3.w) / 10;
 }

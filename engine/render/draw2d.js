@@ -1,7 +1,8 @@
 /* ================= 2D DRAWING HELPERS =================
    Used to paint the playfield texture: paths, glows, the flagstones, the boss circle. */
+import {T} from '../core/state.js';
 import {PI, TAU, hash, mkCanvas} from '../core/util.js';
-import {H, NM, TY} from '../table/layout.js';
+import {BELOW, BT, FIELD_H, H, OX, TY} from '../table/layout.js';
 
 /* ================= RENDER ================= */
 export const R = {
@@ -52,14 +53,21 @@ export function path(c, pts, close) {
   for (let i = 1; i < pts.length; i++) c.lineTo(pts[i][0], pts[i][1]);
   if (close) c.closePath();
 }
+// the outline of a field's floor: down to the chute, the apron or the drain throat, and up round the arch (or the lid)
 export function fieldPath(c, i) {
-  const yA = TY[i] + 300,
-    yB = i < NM - 1 ? TY[i] + 913 : H + 60;
+  const ox = OX[i],
+    yA = TY[i] + 300,
+    yB = BELOW[i] >= 0 ? TY[i] + 913 : i === BT ? H + 60 : TY[i] + FIELD_H;
   c.beginPath();
-  c.moveTo(20, yB);
-  c.lineTo(20, yA);
-  c.arc(320, yA, 300, PI, TAU);
-  c.lineTo(620, yB);
+  c.moveTo(ox + 20, yB);
+  c.lineTo(ox + 20, yA);
+  if (T.std[i].arch) c.arc(ox + 320, yA, 300, PI, TAU);
+  else {
+    c.lineTo(ox + 20, TY[i] + 20);
+    c.lineTo(ox + 620, TY[i] + 20);
+    c.lineTo(ox + 620, yA);
+  }
+  c.lineTo(ox + 620, yB);
   c.closePath();
 }
 export function starPath(c, x, y, r1, r2, n, rot) {

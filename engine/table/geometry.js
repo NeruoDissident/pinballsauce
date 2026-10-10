@@ -3,7 +3,7 @@
    inserts, target banks, ramp mouths and rails. Each adds itself to T. Used by table/parts.js and table/build.js. */
 import {T} from '../core/state.js';
 import {PI, clamp} from '../core/util.js';
-import {TY} from './layout.js';
+import {OX, TY} from './layout.js';
 
 export function seg(x1, y1, x2, y2, o) {
   const dx = x2 - x1,
@@ -63,7 +63,15 @@ export function hole(id, x, y, r, tier, name) {
   T.holes[id] = {id, x, y, r, tier, name, glow: 0, busy: 0};
 }
 export function shotDef(id, name, tier, x, y, ang, kind) {
-  T.shots[id] = {id, name, tier, x, y: y + TY[tier], ang: ang === undefined ? -PI / 2 : ang, kind: kind || 'arrow'};
+  T.shots[id] = {
+    id,
+    name,
+    tier,
+    x: x + OX[tier],
+    y: y + TY[tier],
+    ang: ang === undefined ? -PI / 2 : ang,
+    kind: kind || 'arrow'
+  };
 }
 export function bank(id, tier, p0, p1, n, kind, o) {
   o = o || {};

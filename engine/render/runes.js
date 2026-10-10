@@ -104,7 +104,7 @@ export function buildRunes() {
       });
       const m = new THREE.Mesh(new THREE.CircleGeometry(10, 24).rotateX(-PI / 2), mat);
       m.geometry.attributes.uv.array.forEach((v, i, arr) => {});
-      m.position.set(x - 320, elev(y) + 0.42, y);
+      m.position.set(x - 320, elev(y, x) + 0.42, y);
       m.rotation.y = -a - PI / 2;
       m.renderOrder = 2;
       sc.add(m);
@@ -122,7 +122,7 @@ export function buildRunes() {
         polygonOffsetUnits: -2
       })
     );
-    glow.position.set(cx - 320, elev(cy) + 0.38, cy);
+    glow.position.set(cx - 320, elev(cy, cx) + 0.38, cy);
     glow.renderOrder = 2;
     sc.add(glow);
     D.runes.push({tier: t, ring, glow: glow.material});

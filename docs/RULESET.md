@@ -24,8 +24,10 @@ Units: table units (the table is 640 wide), seconds. Words in `code` are engine 
 - Three balls a run. Multiplier, kickback, ball-reset lane sets, curses and buffs reset each ball. Health is topped
   up to 60% at the start of a ball.
 - **Ball save** runs from the plunger launch: 10 seconds, plus the class's bonus. A saved ball is re-served.
-- **Kickback** on the left outlane of the bottom field fires once, then must be relit.
-- **Drain**: on the bottom field, with no save, ward or open Grave, the ball is lost.
+- **Kickback** (where the layout puts it: the left outlane of the home field on the shipped tables) fires once, then
+  must be relit.
+- **Drain**: on the home field, with no save, ward or open Grave, the ball is lost. A field joined above another
+  drops the ball into it; any other field hands it to a chute that carries it to a field the layout names.
 - **Health**: foes and boss casts wound the hero (at 30% of their listed damage). At zero the hero is *fallen*:
   flippers dead until the ball drains.
 - **End-of-ball bonus**: foes slain x 400 + side quests x 8000 + ramps x 300 + level x 2500, times the multiplier.
@@ -168,7 +170,11 @@ Killing a boss pays 150,000, its `xp`, `gold` and `relic`, and a boon. Health sc
 - **Lamps**: every insert has a state. Flashing: do this now. Steady: available. Dim: collected. Colours: gold
   `main` quest, blue `side` quest, green `lock`, pink-violet `spell` goal, white `soft` (a feature that is open),
   red `danger` (a boss cast to break), amber `gold` (a payout waiting). When a quest step is on another field, the
-  table's `ways` are lit.
+  way there is lit: the ramps and tunnel scoops that begin the shortest road (or the table's own `ways`, if it
+  lists them).
+- **Status lamps** are separate from inserts: lights a layout sets into the floor to show the multiplier, the ball
+  save, the kickback, the lock, a full meter, an open Grave, or a state of the table's own (TABLE_FORMAT, "Status
+  lamps"). They change nothing; they show.
 
 ## 11. The Grave (`grave.js`)
 

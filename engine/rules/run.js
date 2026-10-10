@@ -5,6 +5,7 @@ import {G, T, later} from '../core/state.js';
 import {pick, rand, setStoreNs, shuffle, store} from '../core/util.js';
 import {startBall} from './ball.js';
 import {CLASSES} from './classes.js';
+import {checkLamps} from './lamps.js';
 import {applyNames} from './names.js';
 import {COMPANIONS, TAVERN_RECRUITS, drawRecruits, recruit} from './party.js';
 import {PERKS, RELICS} from './perks.js';
@@ -23,6 +24,7 @@ export function initGame(def) {
   setContent(def);
   applyNames(def.content.names);
   buildTable(def);
+  checkLamps();
   G.statues = T.statues.map(s => ({x: s.x, y: s.y, r: s.r, tier: s.tier, id: s.id, on: true, flash: 0, cool: 0}));
   G.cam.y = G.cam.ty = TY[BT] - 20;
   G.focusTier = BT;

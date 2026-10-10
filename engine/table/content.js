@@ -2,6 +2,8 @@
    What a table brings besides its layout: foes, bosses, campaigns, side quests, wings, palettes, text and its own
    rules. The engine reads all of it through these bindings, which setContent() fills when a table loads.
    DEF is the whole table definition; RULES are its hook functions (see docs/TABLE_FORMAT.md). */
+import {FIELD_INDEX} from './layout.js';
+
 export let DEF = null,
   RULES = {},
   THEME = {},
@@ -55,7 +57,9 @@ const PAL0 = [
   {a: '#1d1124', b: '#110a17', acc: '#c0283c', acc2: '#d9a441', glow: '#ff4a5a', stone: '#3a2c44'},
   {a: '#10201b', b: '#0a1411', acc: '#58b89a', acc2: '#cfeef2', glow: '#8fe8d0', stone: '#2c4038'},
   {a: '#16203a', b: '#0c121f', acc: '#e0a040', acc2: '#9cc0ea', glow: '#ffc060', stone: '#2f3a52'},
-  {a: '#1c1430', b: '#0d0a18', acc: '#9a7cff', acc2: '#e0d4ff', glow: '#b9a0ff', stone: '#352c4e'}
+  {a: '#1c1430', b: '#0d0a18', acc: '#9a7cff', acc2: '#e0d4ff', glow: '#b9a0ff', stone: '#352c4e'},
+  {a: '#0f2230', b: '#08121a', acc: '#3fb6d8', acc2: '#d0f2ff', glow: '#62d8ff', stone: '#28404e'},
+  {a: '#2a1c10', b: '#150d07', acc: '#e07a3a', acc2: '#ffe0b8', glow: '#ffa050', stone: '#4a3626'}
 ];
 function themeDefaults(def, th) {
   const nm = def.layout.fields.length,
@@ -79,9 +83,29 @@ function themeDefaults(def, th) {
   if (!t.motes) t.motes = P.slice(0, nm + 1).map(p => ({col: p.glow, style: 'drift'}));
   return t;
 }
+/* A table's own say on what happens. Its rules may give `on: {name(what, ball, run, impact) {...}}` for any of:
+     sling bump target drop lane inlane outlane orbit spin kick rampIn ramp rampFail hole flipHit wall chute
+       what is the part that was hit or made: the bumper, the target segment, the sensor, the ramp, the scoop
+     kill (what is the foe)   boss (what is the boss; its .phase has just begun)   bossDown (what is the boss)
+     ball (a ball has just been served)   ballEnd (a ball has just been lost for good)
+   The engine does its own part first, then calls the hook. ball is null where there is none. */
+export function hook(name, what, ball, run, imp) {
+  const f = RULES.on && RULES.on[name];
+  if (f) f(what, ball || null, run, imp);
+}
+// content may name a field by its id wherever it gives a `tier`; the engine works in indices
+function tiersById(o) {
+  if (!o || typeof o !== 'object') return;
+  if (typeof o.tier === 'string') {
+    if (!(o.tier in FIELD_INDEX)) throw new Error('content: there is no field "' + o.tier + '"');
+    o.tier = FIELD_INDEX[o.tier];
+  }
+  for (const k in o) tiersById(o[k]);
+}
 export function setContent(def) {
   DEF = def;
   const c = def.content;
+  tiersById(c);
   RULES = def.rules || {};
   THEME = themeDefaults(def, def.theme || {});
   TEXT = Object.assign({}, TEXT0, c.text || {});

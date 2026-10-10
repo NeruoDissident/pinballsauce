@@ -90,7 +90,7 @@ export function classNudge() {
     let best = null,
       bd = 280;
     for (const e of G.enemies) {
-      if (e.dead || e.spawn > 0 || e.tier !== tierOf(b.y)) continue;
+      if (e.dead || e.spawn > 0 || e.tier !== tierOf(b.y, b.x)) continue;
       const d = Math.hypot(e.x - b.x, e.y - b.y);
       if (d < bd) {
         bd = d;
@@ -249,7 +249,9 @@ export function updatePowers(dt) {
         hitBoss(bo, m.pow * 0.4, false);
       if (z.fire) {
         if (
-          G.balls.some(b => b.st === 'live' && b.tier === tierOf(z.y) && Math.hypot(b.x - z.x, b.y - z.y) < z.r + b.r)
+          G.balls.some(
+            b => b.st === 'live' && b.tier === tierOf(z.y, z.x) && Math.hypot(b.x - z.x, b.y - z.y) < z.r + b.r
+          )
         ) {
           hurt(2);
           G.curse.burn = Math.max(G.curse.burn || 0, 2);

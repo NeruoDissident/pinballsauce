@@ -181,7 +181,7 @@ export function buildWing(key, i) {
   const Wg = {key, tier, g, k: 0, tw},
     WM = R3.wingMB[i],
     yE = E[tier],
-    yG = elev(WOZS[i] + y + 300) - 38,
+    yG = elev(WOZS[i] + y + 300, 320) - 38,
     pit = PITS[i];
   const mb = {stone: new MB(), dark: new MB(), roof: new MB()},
     add = (m, mat, o) => {

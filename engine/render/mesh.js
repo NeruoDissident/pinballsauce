@@ -96,7 +96,7 @@ export function at(x, y, h, ry, s) {
   if (ry) q.setFromAxisAngle(UP, ry);
   const sc = s === undefined ? [1, 1, 1] : typeof s === 'number' ? [s, s, s] : s;
   return new THREE.Matrix4().compose(
-    new THREE.Vector3(x - 320, elev(y) + (h || 0), y),
+    new THREE.Vector3(x - 320, elev(y, x) + (h || 0), y),
     q,
     new THREE.Vector3(sc[0], sc[1], sc[2])
   );
@@ -179,8 +179,8 @@ export function strip(mb, pts, hw, h, o) {
   const LR = offsets(pts, hw, false),
     L = LR[0],
     Rr = LR[1];
-  const top = q => [q[0] - 320, elev(q[1]) + h, q[1]],
-    bot = q => [q[0] - 320, elev(q[1]) + (base === undefined ? -depth : base), q[1]],
+  const top = q => [q[0] - 320, elev(q[1], q[0]) + h, q[1]],
+    bot = q => [q[0] - 320, elev(q[1], q[0]) + (base === undefined ? -depth : base), q[1]],
     vh = (h + depth) / us;
   let u = 0;
   for (let i = 0; i < n - 1; i++) {
@@ -249,8 +249,8 @@ export function prism(mb, pts, h, o) {
       b = pts[(i + 1) % n];
     area += a[0] * b[1] - b[0] * a[1];
   }
-  const top = q => [q[0] - 320, o.flat !== undefined ? o.flat : elev(q[1]) + h, q[1]],
-    bot = q => [q[0] - 320, o.base !== undefined ? o.base : elev(q[1]) - depth, q[1]];
+  const top = q => [q[0] - 320, o.flat !== undefined ? o.flat : elev(q[1], q[0]) + h, q[1]],
+    bot = q => [q[0] - 320, o.base !== undefined ? o.base : elev(q[1], q[0]) - depth, q[1]];
   let lo = 1e9,
     hi = -1e9;
   for (const q of pts) {
