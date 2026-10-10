@@ -6,7 +6,9 @@
    to "far too late" and at three rolling speeds, with nothing else on the table. What the ball reaches is written
    down: the first thing it strikes or enters, and any spinner, rollover or orbit it passes through on the way.
    That is the fan of shots the flipper has. Physics only: no foes, no bot, no luck. It is a floor, not a ceiling:
-   the ball always starts by rolling down the bat, so shots off a bounce or a held ball are not found.
+   the ball always starts by rolling down the bat and the button is always held, so shots off a bounce, a held ball,
+   a tap or a pass are not found. With the real flipper stroke those are half the game: a shot this test does not
+   find is a question for a person at the table, not a verdict.
 
    Read the report like this:
      under each flipper   the shots it reaches, with how many of the trials reached each one. A shot with a

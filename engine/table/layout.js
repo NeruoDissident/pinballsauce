@@ -41,34 +41,29 @@ export const FEELS = {
     maxSpeed: 2300, // nothing moves faster
     bounce: 0.45, // what a plain wall gives back
     flipper: 1, // flipper strength
-    // The flipper's stroke. The coil punches the bat most of the way up to speed at once and the rest builds over
-    // the next few hundredths of a second; at the very top of the stroke the power is cut to a holding current. So
-    // when and where the bat meets the ball decides how hard it is hit: full power is a ball met by the middle of
-    // the bat in mid-swing; a tap, a ball at the very tip, or a ball caught at the top of the swing gets less.
-    //   punch the share of top speed the bat has at the first instant
-    //   rise  seconds for the bat to close most (63%) of the rest of the way to top speed
+    // The flipper's stroke, modelled on a real coil. The bat starts from a standstill and the coil drives it up to
+    // speed, pushing hardest at the first instant and less as it gets going; over the last of the swing the power is
+    // cut to a holding current and the bat slows. A ball on the bat is carried by it and let go where the bat
+    // slows, so how hard and in what direction the ball leaves depends on where along the bat it is, when in the
+    // swing it is met and how long the button is held: a tap is a soft shot, a ball rolling up the bat is not the
+    // same shot as one met by a bat at full speed.
+    //   punch the share of top speed the bat has at the first instant (0 = from a standstill)
+    //   rise  seconds for the bat to close most (63%) of the way to top speed
     //   cut   the share of the stroke made under full power
     //   hold  what is left of the push after the cut, as a share of top speed
-    //   peak  top speed, as a share of the old flat flipper's 21 radians a second: set so that the hardest strike is
-    //         as hard as the flat flipper's was
-    // These numbers were chosen so that a ball rolling down the bat still finds the shots it found with the flat
-    // flipper (tests/reach.mjs on the four tables): a later `cut` or a slower start moves or loses them.
-    // `stroke: 'flat'` is the old flipper: 21 radians a second from the first instant to the stop.
-    stroke: {punch: 0.7, rise: 0.01, cut: 0.95, hold: 0.45, peak: 1.03},
+    //   peak  top speed, as a share of 21 radians a second
+    // The owner chose these by playing. Do not judge a change to them by tests/reach.mjs alone: it only rolls a ball
+    // down the bat with the button held, and a player has taps, held balls and passes as well.
+    stroke: {punch: 0, rise: 0.006, cut: 0.85, hold: 0.45, peak: 1.05},
     sling: 1, // slingshot kick (1 = 420 to 580)
     bumper: 470, // pop-bumper kick
     plunge: [1330, 1950], // launch speed, from a tap to a full pull
     ramp: {k: 0.2, drag: 0.1, exitV: 520} // what a ramp has unless its layout says otherwise
   },
-  flat: {stroke: 'flat'}, // standard, with the old flipper: for telling the two apart by hand
-  // standard, with a bat that starts from a standstill: softer taps and tips, and timing matters more. Closer to a
-  // real coil, but a ball rolling down the bat no longer finds some wide shots on the tables built before it
-  heavy: {stroke: {punch: 0, rise: 0.006, peak: 1.05}},
-  // standard, with the stroke nearest a real coil: a bat that starts from a standstill and loses its power over the
-  // last 15% of the swing. A ball carried up the bat is let go earlier and leaves about 5 degrees further across the
-  // table, so on the tables built before it a rolling ball misses the centre scoops and centre ramps: a table that
-  // uses this has to be laid out for it
-  real: {stroke: {punch: 0, rise: 0.006, cut: 0.85, hold: 0.45, peak: 1.05}},
+  // standard, with the flipper the first tables were made with: one speed from the first instant to the stop. Not
+  // a choice for a table: it is here so the recording made from the original Gravebound can still be replayed
+  // (tests/replay.mjs --feel flat)
+  flat: {stroke: 'flat'},
   fast: {speed: 1.15},
   slow: {speed: 0.88},
   lively: {bounce: 0.52, sling: 1.12, bumper: 520}

@@ -1,6 +1,6 @@
 /* ================= HUD, MENUS, INPUT ================= */
 import {inspectKey, openInspect} from '../app/inspect.js';
-import {TRY_FLIP, gfxKey, resize} from '../app/shell.js';
+import {gfxKey, resize} from '../app/shell.js';
 import {G, T, xpNeed} from '../core/state.js';
 import {$, clamp, esc, fmt, prefs, store} from '../core/util.js';
 import {CAMS, R3} from '../render/core.js';
@@ -606,7 +606,6 @@ export const UI = {
         '</label><nav>' +
         btn('gfxCam', 'View: ' + CAMS[R3.camMode].name) +
         btn('gfxQual', 'Detail: ' + (R3.q ? R3.q.label : '')) +
-        btn('tryFlip', 'Flippers: ' + (TRY_FLIP.names[TRY_FLIP.on] || TRY_FLIP.on)) +
         btn('erase', 'Erase saved run and scores') +
         btn(UI.back || 'title', 'Back') +
         '</nav></div>';
@@ -834,9 +833,6 @@ export const UI = {
         break;
       case 'choose':
         choose(+el.dataset.i);
-        break;
-      case 'tryFlip':
-        TRY_FLIP.next(); // saves the choice and reloads the page: a feel is read once, when a table loads
         break;
       case 'gfxCam':
       case 'gfxQual': {

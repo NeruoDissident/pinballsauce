@@ -153,13 +153,13 @@ may pick another preset or change single numbers (`feel` in `table.js`; see `TAB
 | Top speed | 2300 units/s |
 | A good flipper shot | about 1950 units/s: top of the playfield in half a second |
 | Flippers | 82 long, pivots 200 apart, so the gap between the tips is about 56: two and a half balls |
-| A flipper's stroke | not one speed: a hard first punch, the rest of the speed building, and the power cut at the very top. The middle of the bat in mid-swing hits hardest; a tap, the tip and the top of the swing hit softer |
+| A flipper's stroke | like a real coil: the bat starts from a standstill, gets up to speed, and loses its power over the last of the swing. A ball rolling up the bat is a different shot from one met at full speed; a tap is a soft shot |
 | A wall | gives back 0.45 of the speed across it |
 | A slingshot / a bumper | kicks at about 500 / 470 |
 | A ramp | climbs one playfield from a normal shot; lets the ball out at up to 520 |
 | The plunger | launches at 1330 to 1950 depending on how long it is held |
 
-Other presets (`fast`, `slow`, `lively`, and `flat` and `heavy` for the flipper) are listed in `TABLE_FORMAT.md`. They are starting points; judge them by
+Other presets (`fast`, `slow`, `lively`) are listed in `TABLE_FORMAT.md`. They are starting points; judge them by
 playing: add `?feel=fast` to a table's address to try one.
 
 ## 9. Optional systems

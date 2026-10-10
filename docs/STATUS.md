@@ -6,48 +6,39 @@ anything that is a guess is in a "not verified" list.
 
 ## Stage 4: the flipper's stroke, point values, the Cathedral Freeway
 
-Three changes the owner asked for, and nothing else.
+Three changes the owner asked for.
 
-**1. The flipper has a power stroke.** Before, a bat moved at one speed from the instant the button went down to
+**1. The flipper has a real stroke.** Before, a bat moved at one speed from the instant the button went down to
 the stop: a hit in the last degree of travel was as hard as one in the first, and a tap was nearly a full shot.
-Now the coil punches the bat to 70% of its top speed at once, the rest builds over the next hundredths of a second,
-and the power is cut for the last twentieth of the swing (`stroke` in a table's `feel`; TABLE_FORMAT). It is the
-default on all four tables. No table was retuned for it, as agreed.
+Now it is modelled on a real coil: the bat starts from a standstill, is driven up to speed within a few
+thousandths of a second, and loses its power over the last 15% of the swing (`stroke` in a feel; TABLE_FORMAT). It
+is the flipper on all four tables, and the only one. No table was changed for it.
 
-What it does, measured on Starfall's left flipper with a ball rolling down the bat (the right is its mirror):
+Measured on Starfall's left flipper with a ball rolling down the bat (the right is its mirror):
 
-| | Old (flat) | New |
+| | Old (one speed) | Now |
 |---|---|---|
-| Hardest strike | about 1975 | about 1980: the same, by design |
-| Middling strike | 1850 | 1700 |
-| A 12 ms tap / 20 ms / 30 ms | 1470 / 1720 / 1820 | 1350 / 1430 / 1620 |
-| Wide shots, 32 to 42 degrees across the table | 1690 to 1890 | 1450 to 1780 |
-| The whole stroke | 44 ms | 46 ms |
+| Hardest strike | about 1975 | about 2010 |
+| Middling strike | 1850 | 1610 |
+| A 12 ms tap / a 30 ms tap | 1470 / 1820 | 1135 / 1570 |
+| The whole stroke | 44 ms | 50 ms |
 
-So: the sweet spot (the middle of the bat, mid-swing) hits as hard as ever; everything else is softer, taps and
-the tip most of all.
-
-**This is a milder stroke than first built, and that is a finding.** A ball on the bat is not struck once: it is
-carried up by the bat and let go where the bat slows. So anything that weakens the end of the swing, or slows its
-start, moves every shot that begins near the pivot. The first version (a bat starting from a standstill, power cut
-for the last 15% of the swing) took the centre scoop and the centre ramp off every table: found on 15 to 20 of
-156 timings before, on none after. The numbers that shipped are the ones that keep those shots where they were.
-Three other strokes are kept as presets to try by hand: `flat` (the old flipper, exactly), `heavy` (a bat that
-starts from a standstill; softer taps and tips, and it loses a few wide shots) and `real` (that first version: the
-nearest to a real coil, and the one that misses the centre shots on today's layouts). **Options > Flippers** in
-the game steps through all four on any table.
-
-**Where this is going.** The owner wants the real feel: a ball rolling up the bat has to feel different from one
-met by a bat at full speed, and he is content to change the tables for it. So the mild default is a holding
-position. He picks a stroke by playing the four; then the tables are fitted to that stroke (centre scoops and
-ramp mouths moved to where its shots land, the wide shots opened up), and it becomes the default.
+**How it was chosen, and what went wrong on the way.** This stroke was the first one built. `tests/reach.mjs` then
+said it had taken the centre scoop and the centre ramp off every table (found on 15 to 20 of 156 timings before, on
+none or two after), so it was set aside and a much milder stroke was tuned to keep `reach` happy; an hour and a
+half went on that. The owner then played four strokes side by side and chose this one at once: he can make every
+shot with intent, the low side scoops are easier, and the centre scoops, which had been too easy to fall into, are
+now right. **The test was wrong, not the flipper.** `reach` rolls a ball down the bat with the button held, which
+was most of what the old flipper could do. With a real stroke the length of the press and the way the ball arrives
+matter as much, and `reach` tries neither. The bot soak had already disagreed with `reach` (it still made every
+shot) and should have been believed. Two lessons kept in the docs: do not read a shot `reach` does not find as a
+shot that cannot be made; and for feel, put the thing in front of the owner early instead of testing round him.
 
 **2. Point values are per-table defaults.** All 40 values the shared code pays have names (`POINTS0`); a table
 changes any with `points: {ramp: 6000}`. No table does yet.
 
 **3. Neon Descent's Cathedral Freeway** (the ramp up the right of the bottom district) is graded more gently:
-`k` 0.05 to 0.03 and `drag` 0.1 to 0.04, so it needs about 420 at its mouth where it needed about 610. In bot play
-it was made 27 times and failed 16; it is now made 41 and fails 6.
+`k` 0.05 to 0.03 and `drag` 0.1 to 0.04, so it needs about 420 at its mouth where it needed about 610.
 
 ### Verified in stage 4
 
@@ -55,46 +46,24 @@ it was made 27 times and failed 16; it is now made 41 and fails 6.
 |---|---|---|
 | Naming the point values changed nothing | the replay alarm on all four tables before the flipper was touched | all 80 scenarios identical to the recordings |
 | A table's own points load, and a misspelt one is refused | Starfall loaded with `points:{ramp:9000, jackpot:60000}`, then with `points:{ramps:1}` | the two values changed and the rest kept their defaults; the second stopped the table with a message naming the valid names |
-| The `flat` preset is the old flipper exactly | all four tables replayed on `--feel flat` against the recordings made before this stage (before the Cathedral Freeway was changed) | all 80 scenarios identical. Gravebound's is the recording made from the original game; it is kept as `gravebound.flat.replay.json` and the suite still runs it |
-| No shot went from makeable to not | `reach` on all four tables before and after (156 timed flips for each of 29 flippers), and an 80-minute bot soak of each table before and after | see "What the new flipper changed", below. One shot did: Gravebound's home right orbit |
-| No new ball traps | the same four soaks | 0 balls stuck on all four |
-| Launches are as fair | `standards` on all four | 96%, 100%, 98%, 100% of launches reach a flipper: the same as before |
-| The Cathedral Freeway | the speed it needs worked out from its path and the ramp rule, then the Neon Descent soak | needs 417 at the mouth (was 608); made 41, failed 6 (was 27 and 16) |
-| The `heavy` preset does not break a table | Starfall and Gravebound on `--feel heavy`: `reach` and an 80-minute soak each | 0 stuck, the bot made every shot on both; `reach` no longer finds the Crypt Stair or the home right orbit on Gravebound from a rolling ball |
-| The Flippers switch | stepped through its settings on Starfall, reading back the stroke the table loaded each time; and once inside the one-page build | table's own, flat, heavy, real, and back; the choice survives the reload, the same table comes back, and the corner of the screen names the flipper in use |
-| The checks, on the commit this file ships in | recordings renewed on purpose, then the static check, all four layouts, and every replay: Gravebound 25 minutes, the original game's recording on `--feel flat` 25 minutes, the other three 10 minutes each | all passed: 100 scenarios identical. The soaks, `reach` and `standards` were run on the same stroke just before (above) and not again after the recordings were renewed |
-
-### What the new flipper changed (nothing was retuned; these are for the owner to judge)
-
-- **Gravebound's home right orbit is gone from the left flipper.** `reach` found it on 2 timings of 156 and the bot
-  made it 4 times in 80 minutes; now 0 and 0. It was already the narrowest shot on the table (the plunger lane
-  takes its room), and the same shot on Neon Descent and the Test Bench was already never made. Opening it up is a
-  layout change.
-- **Wide shots from a rolling ball are harder.** The low right scoop of each home playfield (Gravebound's Crypt
-  Stair, Neon Descent's Sewer Grate, the Test Bench's Hatch) is found on 2 timings of 156 where it was 4;
-  Starfall's Airlock on 2 where it was 6. In bot play the Crypt Stair fell from 20 to 9 in 80 minutes and the Sewer
-  Grate from 15 to 5; Starfall's Airlock rose from 16 to 41.
-- **Side ramps are easier to find**: the ones that were found on 1 timing in 156 are found on 4, on every table;
-  the centre ramps on 18 where it was 15.
-- **Ramps are still made far more often than they fail**, with a few failing a little more because the middling
-  strike is softer. Made / failed in 80 minutes, before and after: Gravebound's Forest Road 20/6 and 31/11, Chapel
-  Loop 89/20 and 59/14, Ruined Road 18/11 and 23/10, Wolf Run 26/0 and 32/7, Tower 48/8 and 34/6. Starfall's
-  Slingshot 109/8 and 144/19. Neon Descent's Helix Spiral 48/5 and 49/11; its other ramps within a few either way.
-- Ten flipper-and-shot pairs that `reach` found on 1 or 2 timings before are not found now: the home right orbit
-  and the Town Gate from Gravebound's left home flipper; their twins on Neon Descent; and on the Test Bench the
-  Bridge and the Rails from the East Works' flippers and the Guard from the home left flipper. The bot still made
-  every one of those in play except the two home right orbits (Neon Descent's it never made before either). (As many pairs that were not found before are found now.)
+| The engine can still play the original Gravebound | all four tables replayed on `--feel flat` (the old flipper) against the recordings made before this stage | all 80 scenarios identical. Gravebound's is the recording made from the original game; it is kept as `gravebound.flat.replay.json` and `test:full` still runs it |
+| Every shot can be made with the new flipper | the owner, playing | every shot made with intent, on the playable build |
+| The new flipper traps no balls | 80-minute bot soaks of Starfall and Neon Descent on this stroke | 0 stuck, and the bot made every shot on both |
+| The Cathedral Freeway | the speed it needs worked out from its path and the ramp rule; an 80-minute Neon Descent soak (on the milder stroke) | needs 417 at the mouth (was 608); made 41 and failed 6 (was 27 and 16) |
+| The recordings | renewed on purpose for the new flipper (all four) and the ramp (Neon Descent's layout); `npm run check` | renewed; the check passes |
 
 ### Not verified in stage 4
 
-- **How it feels.** Every number above is a bot or a timed flip. Whether the new stroke feels right, too mild, or
-  wrong is for thumbs. The Flippers switch in Options is there for exactly that comparison.
-- **Whether "mild" is what was wanted.** The owner asked for force that varies through the swing, more at the first
-  punch than at the end. What shipped has that, but only as much of it as the existing tables' shots allow. A
-  stronger version (`heavy`, or a longer weak end to the swing) needs tables laid out for it, or these retuned.
-- **The stroke on mini and long flippers** was measured only through `reach` and the Test Bench soak, not on its own.
-- **`points` in a real table.** No table sets any; the override was checked by loading one, not by playing.
-- **The `fast`, `slow` and `lively` presets with the new stroke.** Not re-run.
+- **Bot soaks of Gravebound and the Test Bench on this stroke.** Not run. The owner has played them; a bot has not
+  been through them looking for stuck balls.
+- **The Cathedral Freeway on this stroke.** Its made-and-failed count above was taken on the milder stroke.
+- **The full suite after the recordings were renewed.** The recordings were made and the static check run; the
+  long suite was not run again. A recording replays itself unless something is not repeatable, and nothing in this
+  change is.
+- **The stroke on mini and long flippers**, on its own.
+- **`points` in a real table.** No table sets any.
+- **The `fast`, `slow` and `lively` presets with the new stroke.**
+- **`tests/reach.mjs` is now a weak test** (above). It was not widened in this stage.
 
 ---
 

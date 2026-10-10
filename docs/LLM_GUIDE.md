@@ -142,8 +142,10 @@ npm run bundle -- all  dist/pinballsauce.html (one file); check it with  node te
   and the second it first differs.
 - One recording is kept for good: `gravebound.flat.replay.json` was made from the original Gravebound, which had
   the flat flipper. `node tests/replay.mjs 25 --feel flat` still has to match it; `test:full` runs it.
-- Changing how flippers swing (`stroke`) moves shots. Run `npm run reach` on every table that uses the feel you
-  changed, before and after, and say which shots moved.
+- The flipper's stroke was chosen by the owner, by playing. `reach` rolls a ball down the bat with the button
+  held; a player also taps, holds and passes, so `reach` understates what the flipper can do. A shot `reach` does
+  not find is a question for a person, not a verdict. For anything about feel, give the owner something to play
+  early; do not spend an hour testing round him.
 - `standards` prints notes, and notes never fail: they are guidelines the table does not follow, for someone to
   decide whether that is on purpose.
 - Passing every check means the table is not broken. Whether it is good is judged by a person playing it.
