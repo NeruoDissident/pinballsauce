@@ -11,7 +11,7 @@ import {qCur, qEvent} from './quests.js';
 import {metaAdd, recalc} from './run.js';
 import {charge, gold, hurt, score, xp} from './score.js';
 import {spellOn, spellVal} from './spells.js';
-import {BOSSES, ENEMY, USE, hook} from '../table/content.js';
+import {BOSSES, ENEMY, PTS, USE, hook} from '../table/content.js';
 import {OX, TY} from '../table/layout.js';
 import {A} from '../ui/audio.js';
 import {popup} from '../ui/ui.js';
@@ -251,7 +251,7 @@ export function interruptBoss(bo) {
   bossPhaseEnd(bo);
   popup('Spell Interrupted', bo.def.short + ' staggers. Double damage', 'good');
   A.s('interrupt');
-  score(30000);
+  score(PTS.bossInterrupt);
   xp(15);
   if (G.run.cls === 'mage') hitBoss(bo, G.mods.pow * 4, true);
   relight();
@@ -300,7 +300,7 @@ export function strikeBoss(bo, b, imp) {
   if (bo.def.undead && r.cls === 'cleric') dmg *= 1.5;
   if (bo.phase === 'summon') dmg *= 0.5;
   if (bo.stun > 0) dmg *= 2;
-  score(1500);
+  score(PTS.bossHit);
   charge(1, 'hit');
   A.s('bossHit');
   hitBoss(bo, dmg, crit);
@@ -333,7 +333,7 @@ export function killBoss(bo) {
   G.enemies.forEach(e => {
     if (e.minion) e.dead = true;
   });
-  score(150000, bo.x, bo.y);
+  score(PTS.boss, bo.x, bo.y);
   xp(d.xp);
   gold(d.gold, bo.x, bo.y);
   G.cam.shake = 24;

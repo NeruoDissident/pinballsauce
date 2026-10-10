@@ -11,7 +11,7 @@ import {qEvent} from './quests.js';
 import {charge, gold, heal, hurt, score, shot, xp} from './score.js';
 import {endCast, spellCast, spellOn, spellVal} from './spells.js';
 import {wingProg} from './wings.js';
-import {DEF, ENEMY, TEXT, USE, WINGS, hook} from '../table/content.js';
+import {DEF, ENEMY, PTS, TEXT, USE, WINGS, hook} from '../table/content.js';
 import {CX, NM, OX, TY, tierOf} from '../table/layout.js';
 import {A} from '../ui/audio.js';
 
@@ -253,7 +253,7 @@ export function ritualBroken(e) {
   e.stun = Math.max(e.stun, 3);
   float(e.x, e.y - 40, 'RITUAL BROKEN', '#9fe8ff', 14);
   A.s('interrupt');
-  score(3000, e.x, e.y);
+  score(PTS.ritual, e.x, e.y);
   charge(2, 'hit');
   damageEnemy(e, G.mods.pow * 1.5, false);
 }
@@ -575,7 +575,7 @@ export function strikeEnemy(e, b, imp, sure) {
     e.wind = 0;
     e.stun = Math.max(e.stun, 1.2);
     float(e.x, e.y - 40, 'STAGGERED', '#9fe8ff', 13);
-    score(500);
+    score(PTS.foeStagger);
     charge(1, 'hit');
   } else if (e.job === 'gate' && imp > 700 && e.stun <= 0) {
     e.stun = 4;
@@ -675,13 +675,13 @@ export function strikeEnemy(e, b, imp, sure) {
     float(e.x, e.y - 40, 'SPELL INTERRUPTED', '#9fe8ff', 13);
     A.s('interrupt');
     if (r.cls === 'mage') dmg *= 3;
-    score(2000);
+    score(PTS.foeInterrupt);
   }
   if (crit) dmg *= 2;
   if (e.stun > 0) dmg *= 1.5;
   A.s('hit');
   charge(1, 'hit');
-  score(300);
+  score(PTS.foeHit);
   if (e.atk < 3.5) e.atk = 3.5;
   if (crit) {
     if (m.critCharge) r.charge = Math.min(100, r.charge + m.critCharge);
@@ -704,7 +704,7 @@ export function killEnemy(e) {
     } else G.pickups.push({x: e.x, y: e.y, tier: e.tier, kind: e.loot.kind, t: 0, quest: null});
   }
   if (e.post && e.post.b && e.post.b.poss === e) e.post.b.poss = null;
-  score(1000 * r.level, e.x, e.y);
+  score(PTS.foeKill * r.level, e.x, e.y);
   xp(e.def.xp);
   gold(e.def.gold * (1 + G.mods.killGold), e.x, e.y);
   if (G.mods.healKill) heal(G.mods.healKill);
@@ -768,7 +768,7 @@ export function collideActors(b) {
     if (imp > 60 && s.cool <= 0) {
       s.cool = 0.2;
       s.flash = 1;
-      score(600);
+      score(PTS.statue);
       A.s('target');
       charge(1, 'hit');
       shot(s.id, s.x, s.y);

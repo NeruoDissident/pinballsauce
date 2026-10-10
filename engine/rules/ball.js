@@ -13,7 +13,7 @@ import {gameOver, saveRun, startDemo} from './run.js';
 import {gold} from './score.js';
 import {spellCast, spellVal} from './spells.js';
 import {leaveWing} from './wings.js';
-import {RULES, TEXT, USE, WING_KEYS, hook} from '../table/content.js';
+import {PTS, RULES, TEXT, USE, WING_KEYS, hook} from '../table/content.js';
 import {railPos} from '../table/geometry.js';
 import {CX, FEEL, GRID, GT, H, HW, TY, WLEN, WT0, tierOf} from '../table/layout.js';
 import {DRAIN_Y} from '../table/parts.js';
@@ -352,10 +352,10 @@ export function endBall() {
     // returns [[label, count, points], ...]. `counts` is the run's tally for this ball (run.bb); rules may keep
     // their own numbers in it.
     lines = [
-      USE.foes && ['Foes slain', bb.kills, bb.kills * 400],
-      USE.side && ['Side quests done', bb.quests, bb.quests * 8000],
-      ['Ramps', bb.ramps, bb.ramps * 300],
-      USE.levels && ['Level', r.level, r.level * 2500]
+      USE.foes && ['Foes slain', bb.kills, bb.kills * PTS.bonusKill],
+      USE.side && ['Side quests done', bb.quests, bb.quests * PTS.bonusSide],
+      ['Ramps', bb.ramps, bb.ramps * PTS.bonusRamp],
+      USE.levels && ['Level', r.level, r.level * PTS.bonusLevel]
     ]
       .filter(Boolean)
       .concat((RULES.bonus && RULES.bonus(r, bb)) || []);

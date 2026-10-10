@@ -47,7 +47,9 @@ The numbers in this section are the `standard` feel. A table on another feel has
 - **End-of-ball bonus**: ramps x 300, plus one line for each system the table has (foes slain x 400, side quests
   x 8000, level x 2500), plus any lines the table's `rules.bonus` adds; times the multiplier. Nothing on a tilt.
 
-## 3. Scoring (`engine/rules/events.js`, `score.js`)
+## 3. Scoring (`engine/rules/events.js`, `score.js`; the values are `POINTS0` in `engine/table/content.js`)
+
+These are the defaults. A table changes any of them with `points` in its `table.js` (TABLE_FORMAT, "`points`").
 
 | Hit | Points |
 |---|---|

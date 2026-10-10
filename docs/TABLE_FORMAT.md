@@ -28,13 +28,14 @@ tables/<id>/
 Optional on `table.js`: `blurb` (one line) and `accent` (a colour) for the picker of a combined build, and the three
 keys below. A table imports only from `engine/api.js`.
 
-### What the table uses (`uses`), how many balls (`balls`), how it feels (`feel`)
+### What the table uses (`uses`), how many balls (`balls`), how it feels (`feel`), what things are worth (`points`)
 
 ```js
 export default {id:'starfall', name:'Starfall', store:'starfall', layout, content, rules, theme,
   uses:{classes:false, party:false, cards:false, gold:false},   // the game systems this table leaves out
   balls:3,                                                       // balls in a run (3)
-  feel:'standard'};                                              // or 'fast', or {preset:'fast', bounce:.5}
+  feel:'standard',                                               // or 'fast', or {preset:'fast', bounce:.5}
+  points:{ramp:6000}};                                           // what things are worth, where not the default
 ```
 
 **`uses`: nothing is core.** Every game system is a switch. Some are on unless `uses` says `false`; the rest are on
@@ -88,6 +89,25 @@ A feel is one table's. It never changes another table. After changing one, run `
 To try a preset before committing to it: open the table with `?feel=fast` on the address
 (`tables/starfall/?feel=fast`) and play it, or give a check `--feel` (`node tests/soak.mjs 15 --table starfall
 --feel fast`; `standards.mjs` and `reach.mjs` take it too). Neither changes the table's files.
+
+**`points`: what things are worth.** Every value the shared code pays has a name and a default (`POINTS0` in
+`engine/table/content.js`; the table in RULESET section 3). A table lists only the ones it changes:
+
+```js
+points:{ramp:6000, spin:100, jackpot:60000, jackpotStep:10000}
+```
+
+| Names | |
+|---|---|
+| `sling` `bumper` `bell` `target` `drop` `lane` `floorLane` `skill` `spin` `scoop` `orbit` `fullOrbit` `ramp` `bank` `statue` | the playfield (scoop, orbit, ramp and bank are also multiplied by the combo) |
+| `jackpot` `jackpotStep` `jackpotMax` | the first jackpot, how much each one grows, the most one can be |
+| `bonusRamp` `bonusKill` `bonusSide` `bonusLevel` | the end-of-ball bonus, each |
+| `questStep` `quest` `side` | goals written as data |
+| `foeHit` `foeKill` `foeStagger` `foeInterrupt` `ritual` `wave` `bossHit` `bossInterrupt` `boss` | enemies and bosses |
+| `coin` `hoard` `pickup` `guard` `grave` `wing` | pickups, the party's guard, the rooms |
+
+A name that is not on the list stops the table loading and says so. A table's rules can read the live values
+(`PTS.ramp`, from the api). What a table's own feature pays (Starfall's cargo) is in its rules, not here.
 
 ---
 

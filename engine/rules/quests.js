@@ -8,7 +8,7 @@ import {relight} from './lamps.js';
 import {gameOver, giveRelic, makeCampaign, metaAdd, saveRun} from './run.js';
 import {gold, heal, score, xp} from './score.js';
 import {spawnPickup} from './waves.js';
-import {CAMPAIGNS, SIDE, STAGES, TEXT, WINGS} from '../table/content.js';
+import {CAMPAIGNS, PTS, SIDE, STAGES, TEXT, WINGS} from '../table/content.js';
 import {A} from '../ui/audio.js';
 import {popup} from '../ui/ui.js';
 
@@ -65,7 +65,7 @@ export function qAdd(q, n) {
       );
       A.s('quest');
       if (q.main) {
-        score(20000);
+        score(PTS.questStep);
         xp(25);
         saveRun();
       }
@@ -89,7 +89,7 @@ export function qFinish(q) {
   if (q.main) {
     const c = CAMPAIGNS[q.key];
     r.main = null;
-    score(250000);
+    score(PTS.quest);
     xp(150);
     gold(100);
     popup(TEXT.mainDone, c.win, 'main');
@@ -115,7 +115,7 @@ export function qFinish(q) {
     r.questsDone++;
     if (r.bb) r.bb.quests++;
     const w = q.rw;
-    score(25000);
+    score(PTS.side);
     xp(w.xp || 0);
     gold(w.gold || 0);
     if (w.heal) heal(w.heal);

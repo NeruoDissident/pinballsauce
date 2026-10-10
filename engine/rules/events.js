@@ -17,7 +17,7 @@ import {charge, gold, heal, jackpot, major, score, shot, xp} from './score.js';
 import {holyFire, spellOn, spellProg, spellVal} from './spells.js';
 import {callFoes, campFoes, startWave, waveJoin} from './waves.js';
 import {breakSeal, wingDone} from './wings.js';
-import {DEF, PAL, RULES, TEXT, USE, WINGS, hook} from '../table/content.js';
+import {DEF, PAL, PTS, RULES, TEXT, USE, WINGS, hook} from '../table/content.js';
 import {FEEL, GT} from '../table/layout.js';
 import {A} from '../ui/audio.js';
 import {popup} from '../ui/ui.js';
@@ -56,7 +56,7 @@ export function ev(type, o, b, imp) {
       }
       break;
     case 'sling':
-      score(110);
+      score(PTS.sling);
       A.s('sling');
       charge(1, 'hit');
       if (spellOn('judgement')) holyFire(b.x, b.y, b.tier);
@@ -70,7 +70,7 @@ export function ev(type, o, b, imp) {
         powerImpact(b, type);
         break;
       }
-      score(o.bell ? 800 : 250);
+      score(o.bell ? PTS.bell : PTS.bumper);
       A.s(o.bell ? 'bell' : 'bump', o.tier);
       charge(1, 'hit');
       shot(o.group, o.x, o.y);
@@ -137,7 +137,7 @@ export function ev(type, o, b, imp) {
         }
       }
       o.lit = true;
-      score(500, b.x, b.y);
+      score(PTS.target, b.x, b.y);
       A.s('target');
       charge(1, 'hit');
       shot(o.bank, b.x, b.y);
@@ -151,7 +151,7 @@ export function ev(type, o, b, imp) {
       break;
     }
     case 'drop': {
-      score(750, b.x, b.y);
+      score(PTS.drop, b.x, b.y);
       A.s('drop');
       charge(1, 'hit');
       shot(o.bank, b.x, b.y);
@@ -165,7 +165,7 @@ export function ev(type, o, b, imp) {
           if (s.on) {
             s.on = false;
             s.flash = 1;
-            score(750);
+            score(PTS.drop);
           }
         });
       if (b.pow && r.cls === 'knight' && (G.mods.jugger || spellVal('charge', 'all')) && !G.inGrave)
@@ -176,7 +176,7 @@ export function ev(type, o, b, imp) {
             if (s.on) {
               s.on = false;
               s.flash = 1;
-              score(750);
+              score(PTS.drop);
             }
           });
           O.reset = 1.4;
@@ -192,7 +192,7 @@ export function ev(type, o, b, imp) {
     case 'lane':
     case 'inlane':
     case 'outlane': {
-      score(type === 'lane' ? 400 : 300);
+      score(type === 'lane' ? PTS.lane : PTS.floorLane);
       A.s('lane');
       charge(1, 'lane');
       if (type !== 'outlane' && !b.party) spellProg('guard', 1, o.x, o.y);
@@ -201,7 +201,7 @@ export function ev(type, o, b, imp) {
         const S = T.sets[o.set];
         if (S.skill && G.skill >= 0) {
           if (S.lanes[G.skill] === o) {
-            score(15000, o.x, o.y, 'SKILL SHOT');
+            score(PTS.skill, o.x, o.y, 'SKILL SHOT');
             xp(15);
             A.s('bank');
           }
@@ -235,7 +235,7 @@ export function ev(type, o, b, imp) {
         m = G.orbitMem;
       if (b.vy < -150) {
         major(o.x, o.y);
-        score(3000 * comboF(), o.x, o.y);
+        score(PTS.orbit * comboF(), o.x, o.y);
         A.s('orbit');
         shot(id, o.x, o.y);
         r.stat.orbits++;
@@ -244,7 +244,7 @@ export function ev(type, o, b, imp) {
       } else if (b.vy > 80) {
         const p = m[o.tier];
         if (p && p.side === -o.side && G.t - p.t < 4) {
-          score(6000, o.x, o.y, 'FULL ORBIT');
+          score(PTS.fullOrbit, o.x, o.y, 'FULL ORBIT');
           xp(4);
           m[o.tier] = null;
           jackpot(o.x, o.y);
@@ -253,7 +253,7 @@ export function ev(type, o, b, imp) {
       break;
     }
     case 'spin':
-      score(150);
+      score(PTS.spin);
       A.s('spin');
       charge(1, 'spin');
       shot(o.id, o.x, o.y);
@@ -285,7 +285,7 @@ export function ev(type, o, b, imp) {
       if (r.bb) r.bb.ramps++;
       if (!b.party) spellProg('striker', 1, b.x, b.y);
       major(b.x, b.y);
-      score(4000 * comboF(), b.x, b.y);
+      score(PTS.ramp * comboF(), b.x, b.y);
       A.s('ramp');
       shot(o.id, b.x, b.y);
       if (G.mods.rampHeal) heal(G.mods.rampHeal);
@@ -313,7 +313,7 @@ export function ev(type, o, b, imp) {
 export function done(id, x, y) {
   const r = G.run;
   major(x, y);
-  score(8000 * comboF(), x, y);
+  score(PTS.bank * comboF(), x, y);
   A.s('bank');
   qEvent('done', id);
   xp(5);
@@ -345,7 +345,7 @@ export function handleHole(h, b) {
   A.s('hole');
   major(h.x, h.y);
   spellProg('guard', 4, h.x, h.y);
-  score(2500 * comboF(), h.x, h.y);
+  score(PTS.scoop * comboF(), h.x, h.y);
   shot(h.id, h.x, h.y);
   if (h.id === 'rise') {
     hd.plan = 'tunnel';
@@ -354,7 +354,7 @@ export function handleHole(h, b) {
     G.graveLive = false;
     G.tilt = 0;
     G.save = Math.max(G.save, 6);
-    score(50000, h.x, h.y, TEXT.risen[0].toUpperCase());
+    score(PTS.grave, h.x, h.y, TEXT.risen[0].toUpperCase());
     xp(20);
     popup(TEXT.risen[0], TEXT.risen[1], 'main');
     A.s('victory');
@@ -391,7 +391,7 @@ export function lockBall(b) {
   }
 }
 export function startMultiball(name, add, from) {
-  if (!G.mb) G.mb = {name, jackpot: 40000};
+  if (!G.mb) G.mb = {name, jackpot: PTS.jackpot};
   popup(name + ' Multiball', 'Ramps and orbits score jackpots', 'mb');
   A.s('multiball');
   G.save = Math.max(G.save, 8);

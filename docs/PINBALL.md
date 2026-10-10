@@ -118,8 +118,9 @@ In code: the ladder can be written as data (`content.campaigns`: a list of steps
 
 ## 6. Scoring
 
-- **Points mean the same thing on every table.** A ramp is worth what a ramp is worth. The base values are shared
-  code (`RULESET.md`, section 3), so scores on two of my tables can be compared.
+- **Every kind of thing has a default worth** (`RULESET.md`, section 3): a ramp, a target, a spinner turn, a
+  jackpot. A table keeps the defaults unless it has a reason not to: its hardest shot can pay more, a table of
+  quick laps can pay less for each (`points` in `table.js`). Scores are kept per table, so they need not compare.
 - **A multiplier**, 1x to 6x, raised by doing something on the table and lost with the ball. It multiplies
   everything. It is shown on the playfield.
 - **Combos.** Shots made quickly one after another pay more each time.

@@ -8,7 +8,8 @@ export let DEF = null,
   RULES = {},
   THEME = {},
   TEXT = {},
-  USE = {}; // which game systems this table uses (see uses() below)
+  USE = {}, // which game systems this table uses (see uses() below)
+  PTS = {}; // what things are worth on this table (POINTS0 below, with the table's own `points` laid over it)
 export let ENEMY = {},
   BOSSES = {},
   CAMPAIGNS = {},
@@ -18,6 +19,58 @@ export let ENEMY = {},
   WING_KEYS = [],
   HELP = [],
   PAL = [];
+/* What things are worth, unless a table says otherwise: `points: {ramp: 6000}` in its table.js changes one and
+   leaves the rest. Everything paid through score() is multiplied by the multiplier; the lines marked "x combo" are
+   also multiplied by the combo factor. These are defaults, not law: a table whose ramp is its hardest shot can pay
+   more for it. */
+export const POINTS0 = {
+  // the playfield
+  sling: 110,
+  bumper: 250,
+  bell: 800, // a bumper flagged bell:true
+  target: 500, // a standup
+  drop: 750, // a drop target
+  lane: 400, // a top lane
+  floorLane: 300, // an inlane or an outlane
+  skill: 15000, // the flashing lane off the plunger
+  spin: 150, // one turn of a spinner
+  scoop: 2500, // x combo
+  orbit: 3000, // x combo
+  fullOrbit: 6000, // up one side and down the other inside 4 seconds
+  ramp: 4000, // x combo
+  bank: 8000, // a bank knocked down or a lane set lit; x combo
+  statue: 600,
+  // multiball
+  jackpot: 40000, // the first one
+  jackpotStep: 8000, // each one grows by this
+  jackpotMax: 200000,
+  // the end-of-ball bonus, each
+  bonusRamp: 300,
+  bonusKill: 400,
+  bonusSide: 8000,
+  bonusLevel: 2500,
+  // goals written as data
+  questStep: 20000, // a step of the main quest
+  quest: 250000, // the main quest
+  side: 25000, // a side quest
+  // enemies and bosses
+  foeHit: 300,
+  foeKill: 1000, // x level
+  foeStagger: 500,
+  foeInterrupt: 2000, // a foe's spell broken
+  ritual: 3000, // a ritual broken
+  wave: 4000, // a wave cleared: x foes x level
+  bossHit: 1500,
+  bossInterrupt: 30000,
+  boss: 150000,
+  // pickups, the party, the rooms
+  coin: 1000,
+  hoard: 3000,
+  pickup: 5000, // a quest pickup
+  guard: 500, // the party's guard turns a ball back
+  grave: 50000, // out of the Grave
+  wing: 100000 // a wing won
+};
 const TEXT0 = {
   // engine defaults; a table's content.text overrides any of them
   title: 'Pinball',
@@ -156,6 +209,10 @@ export function setContent(def) {
   const c = def.content || (def.content = {});
   tiersById(c);
   USE = uses(def);
+  for (const k in def.points || {})
+    if (!(k in POINTS0))
+      throw new Error('table: there is no point value "' + k + '" (' + Object.keys(POINTS0).join(', ') + ')');
+  PTS = Object.assign({}, POINTS0, def.points || {});
   RULES = def.rules || {};
   THEME = themeDefaults(def, def.theme || {});
   TEXT = Object.assign({}, TEXT0, c.text || {});

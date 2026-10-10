@@ -44,7 +44,8 @@ export function serve(root, port) {
 }
 /* The tests' page routing. Nothing leaves the machine. And `patch`, if given, is laid over the table's definition
    before it boots, without touching its files: that is how a test tries a table with another feel, another number
-   of balls, or with game systems switched off. {feel: 'fast'}   {balls: 5}   {uses: {party: false}} */
+   of balls, with other point values, or with game systems switched off.
+   {feel: 'fast'}   {balls: 5}   {points: {ramp: 6000}}   {uses: {party: false}} */
 export function local(pg, table, patch) {
   return pg.route('**/*', r => {
     const u = r.request().url();
@@ -56,7 +57,8 @@ export function local(pg, table, patch) {
           "import {boot} from '../../engine/app/shell.js';import table from './table.js';const p=" +
           JSON.stringify(patch) +
           ';if(p.uses)table.uses=Object.assign({},table.uses,p.uses);' +
-          "if('feel' in p)table.feel=p.feel;if(p.balls)table.balls=p.balls;boot(table);"
+          "if('feel' in p)table.feel=p.feel;if(p.balls)table.balls=p.balls;" +
+          'if(p.points)table.points=Object.assign({},table.points,p.points);boot(table);'
       });
     return r.continue();
   });

@@ -368,7 +368,8 @@ between two posts; its own slingshots (`a:[100,650], b:[100,770], c:[175,800]` a
 ## Appendix B: what fits a table, what needs the engine
 
 Fits a table today (no engine change): which game systems it has (`uses`); how many balls; how the ball feels
-(`feel`: speed, gravity, bounce, kicks, flipper strength, plunger, ramp defaults); the shape of the table on the
+(`feel`: speed, gravity, bounce, kicks, flipper strength and stroke, plunger, ramp defaults); what anything is
+worth (`points`); the shape of the table on the
 grid; the shape of any field; any number, size and place of flippers; walls, gates, posts, slingshots, rollovers,
 lamps; ramp speeds; what any bank, lane set, scoop or plain event does; goals as data or as rules; timers; flags on
 the run; extra multiballs; end-of-ball bonus lines; which foes appear where and when; boss sequences; wing rules
@@ -376,5 +377,4 @@ of the three kinds; all words and art; re-skinning classes.
 
 Needs a general feature in the shared code first (propose it; do not special-case a table): a new piece type (a
 magnet, a captive ball, a moving target, a second plunger); a new foe job; a new wing rule; a new curse or buff; a
-field that is not 640 by 1040; more than one door; reshaping the Grave; a new class or ability; a different value
-for a shot on one table (base scores are shared so that scores compare; a table pays extra through its rules).
+field that is not 640 by 1040; more than one door; reshaping the Grave; a new class or ability.

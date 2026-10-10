@@ -5,7 +5,7 @@ import {spawnEnemy} from './foes.js';
 import {qCur, qEvent, quests} from './quests.js';
 import {charge, gold, heal, score} from './score.js';
 import {wingOfTier, wingProg} from './wings.js';
-import {CAMPAIGNS, ENEMY, TEXT, USE, WINGS} from '../table/content.js';
+import {CAMPAIGNS, ENEMY, PTS, TEXT, USE, WINGS} from '../table/content.js';
 import {NM} from '../table/layout.js';
 import {A} from '../ui/audio.js';
 import {popup} from '../ui/ui.js';
@@ -109,7 +109,7 @@ export function waveTick() {
       const g = 8 + 3 * wv.total;
       popup('Wave Cleared', '+' + g + ' ' + TEXT.coin, 'good');
       gold(g);
-      score(4000 * wv.total * r.level);
+      score(PTS.wave * wv.total * r.level);
       charge(3, 'kill');
       A.s('questDone');
       G.dirty = true;
@@ -184,14 +184,14 @@ export function updatePickups(dt) {
         burst(p.x, p.y, 10, '#ffd24a', 180, 0.6);
         if (p.hoard) {
           gold(12, p.x, p.y);
-          score(3000, p.x, p.y);
+          score(PTS.hoard, p.x, p.y);
           wingProg(5, p.x, p.y);
         } else if (p.quest) {
-          score(5000, p.x, p.y);
+          score(PTS.pickup, p.x, p.y);
           qEvent('collect', p.quest);
         } else if (p.kind === 'gold') {
           gold(8, p.x, p.y);
-          score(1000);
+          score(PTS.coin);
         } else {
           heal(8);
           float(p.x, p.y - 16, '+8 health', '#ff8aa0', 12);

@@ -201,8 +201,6 @@ move during play; performance work for very large tables.
   cannot do (two fields overlapping, a field with no way out, a field joined under another without its arch). None
   is a rule about what a table should contain.
 - One door per table. The Grave's shape is fixed. Three wing rules. Four classes.
-- Base scores are shared by every table (so that scores compare). A table pays more through its own rules, not by
-  changing what a ramp is worth.
 - One table per page load (changing tables reloads the page).
 - The bot only flips; it does not aim. A soak finds traps and dead ramps, not whether a shot is satisfying. The
   reach test finds shots a flipper can make from a rolling ball, not whether a player can make them twice. The

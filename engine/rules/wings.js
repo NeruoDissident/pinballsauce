@@ -7,7 +7,7 @@ import {qEvent} from './quests.js';
 import {giveRelic, saveRun} from './run.js';
 import {gold, heal, score, xp} from './score.js';
 import {heroBalls} from './spells.js';
-import {WINGS, WING_KEYS} from '../table/content.js';
+import {PTS, WINGS, WING_KEYS} from '../table/content.js';
 import {GT, WT0} from '../table/layout.js';
 import {A} from '../ui/audio.js';
 import {popup} from '../ui/ui.js';
@@ -106,7 +106,7 @@ export function wingDone(h) {
     w = r.wing,
     d = WINGS[w.key];
   w.done = true;
-  score(100000, h.x, h.y, d.label);
+  score(PTS.wing, h.x, h.y, d.label);
   xp(40);
   gold(60, h.x, h.y);
   heal(25);

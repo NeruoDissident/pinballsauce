@@ -5,7 +5,7 @@ import {interruptBoss} from './bosses.js';
 import {CLASSES} from './classes.js';
 import {qEvent} from './quests.js';
 import {recalc} from './run.js';
-import {TEXT, USE} from '../table/content.js';
+import {PTS, TEXT, USE} from '../table/content.js';
 import {heroBalls} from './spells.js';
 import {A} from '../ui/audio.js';
 import {popup} from '../ui/ui.js';
@@ -137,7 +137,7 @@ export function jackpot(x, y) {
   const m = G.mb;
   if (!m) return;
   score(m.jackpot * G.mods.jackpot, x, y, 'JACKPOT');
-  m.jackpot = Math.min(200000, m.jackpot + 8000);
+  m.jackpot = Math.min(PTS.jackpotMax, m.jackpot + PTS.jackpotStep);
   G.run.stat.jackpots++;
   A.s('jackpot');
   G.flash = 0.35;

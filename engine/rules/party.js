@@ -9,6 +9,7 @@ import {charge, heal, score} from './score.js';
 import {BT, CX, NM, TY} from '../table/layout.js';
 import {A} from '../ui/audio.js';
 import {popup} from '../ui/ui.js';
+import {PTS} from '../table/content.js';
 
 /* ---------- the party: companions stand guard at the drains ----------
    A recruited companion stands on a post at one of the three drains (the centre gap and the two outlanes). A ball
@@ -122,7 +123,7 @@ export function guardHit(c, p, b, imp) {
     return best;
   };
   float(p.x, p.y - 44, d.name.toUpperCase() + ' HOLDS', '#ffe9b0', 12);
-  score(500);
+  score(PTS.guard);
   charge(1, 'hit');
   switch (d.perk) {
     case 'crack': {
