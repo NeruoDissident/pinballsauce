@@ -2,7 +2,7 @@
    The markup every table shares: the stage with its two canvases, the HUD, the banner, the touch zones, the menu and
    the two side panels. A table's index.html only has to load the 3D library, the stylesheet and its main.js;
    mountPage() puts this into the body unless the page already has it. */
-const PAGE=`<div id="app">
+const PAGE = `<div id="app">
   <aside class="side" id="journal" aria-label="Quest journal">
     <h3>Main quest</h3><div id="jMain"></div>
     <h3>Side quests</h3><div id="jSide"></div>
@@ -35,4 +35,7 @@ const PAGE=`<div id="app">
     <h3>Hero</h3><div id="sheetBody"></div>
   </aside>
 </div>`;
-export function mountPage(){if(document.getElementById('app'))return;document.body.insertAdjacentHTML('afterbegin',PAGE);}
+export function mountPage() {
+  if (document.getElementById('app')) return;
+  document.body.insertAdjacentHTML('afterbegin', PAGE);
+}

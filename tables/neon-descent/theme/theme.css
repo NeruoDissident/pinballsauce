@@ -1,10 +1,21 @@
 /* Neon Descent: the page's skin. Loaded after engine/ui/page.css; it only re-colours and re-letters, by setting the
    variables page.css is written with. */
-:root{
-  --void:#060b16; --stone:#0c1728; --stone-2:#13233a; --line:#33465d; --bone:#e7f2ff; --ash:#95a9be;
-  --gold:#f6c85f; --blood:#ff4c9a; --frost:#43e7ed; --moss:#7affbc; --violet:#b9a0ff;
-  --display:"Arial Black","Segoe UI",system-ui,sans-serif;
-  --label:Consolas,"Courier New",monospace;
-  --body:Inter,"Segoe UI",Arial,sans-serif;
+:root {
+  --void: #060b16;
+  --stone: #0c1728;
+  --stone-2: #13233a;
+  --line: #33465d;
+  --bone: #e7f2ff;
+  --ash: #95a9be;
+  --gold: #f6c85f;
+  --blood: #ff4c9a;
+  --frost: #43e7ed;
+  --moss: #7affbc;
+  --violet: #b9a0ff;
+  --display: 'Arial Black', 'Segoe UI', system-ui, sans-serif;
+  --label: Consolas, 'Courier New', monospace;
+  --body: Inter, 'Segoe UI', Arial, sans-serif;
 }
-#app{background:radial-gradient(120% 80% at 50% 0%,#0f1d33 0%,var(--void) 70%)}
+#app {
+  background: radial-gradient(120% 80% at 50% 0%, #0f1d33 0%, var(--void) 70%);
+}

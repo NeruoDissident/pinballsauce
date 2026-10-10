@@ -1,0 +1,11 @@
+# data files are laid out by hand, one piece or one quest to a line, so they can be scanned; the formatter would undo that
+tables/*/layout.js
+tables/*/content.js
+vendor/
+dist/
+tests/golden/
+tests/out/
+node_modules/
+*.md
+*.html
+*.json

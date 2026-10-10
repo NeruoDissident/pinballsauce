@@ -10,12 +10,14 @@
     "test": "node tests/check.mjs && node tests/table.mjs && node tests/table.mjs --table neon-descent && node tests/replay.mjs 5 && node tests/replay.mjs 5 --table neon-descent",
     "test:full": "node tests/check.mjs && node tests/table.mjs && node tests/table.mjs --table neon-descent && node tests/replay.mjs 25 && node tests/replay.mjs 10 --table neon-descent && node tests/soak.mjs 20 --table gravebound && node tests/soak.mjs 20 --table neon-descent",
     "soak": "node tests/soak.mjs 20 --table",
-    "bundle": "node tools/bundle.mjs"
+    "bundle": "node tools/bundle.mjs",
+    "format": "prettier --write \"engine/**/*.js\" \"tables/*/rules.js\" \"tables/*/table.js\" \"tables/*/main.js\" \"tables/*/theme/*.js\" \"tests/*.mjs\" \"tools/*.mjs\" \"engine/ui/page.css\" \"tables/*/theme/*.css\""
   },
   "license": "UNLICENSED",
   "devDependencies": {
     "acorn": "^8.12.0",
     "eslint-scope": "^7.2.2",
-    "playwright": "^1.56.0"
+    "playwright": "^1.56.0",
+    "prettier": "^3.0.0"
   }
 }

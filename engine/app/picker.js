@@ -5,7 +5,7 @@
    A single-table page never loads this file. */
 import {boot} from './shell.js';
 
-const STYLE=`
+const STYLE = `
 /* layout: one column of marquee panels, each lit in its own table's colour and lettered in its own face */
 :root{--pk-bg:#07080d;--pk-panel:#0f111a;--pk-line:#272b3d;--pk-ink:#ebe7da;--pk-dim:#9c9cb0;--pk-key:#11131d;color-scheme:dark;
   --pk-display:"Arial Black","Segoe UI",system-ui,sans-serif;--pk-body:Spectral,Georgia,"Times New Roman",serif;--pk-mono:ui-monospace,Menlo,Consolas,monospace}
@@ -33,25 +33,92 @@ body{margin:0;background:var(--pk-bg);color:var(--pk-ink);font:16px/1.5 var(--pk
 #pk kbd{font:12px var(--pk-mono);border:1px solid var(--pk-line);padding:1px 5px}
 @media (max-width:560px){#pk li{grid-template-columns:minmax(0,1fr)}#pk nav button{flex:1}}
 `;
-const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'})[c]);
 
 // tables: the table definitions. css: {tableId: text of its theme.css}, applied when that table boots.
-export function pickTable(tables,css){css=css||{};
-  window.__pbTables=()=>{try{history.replaceState(null,'',location.pathname+location.search);}catch(e){}location.reload();};
-  const go=(def,inspect)=>{for(const id of ['pk','pkStyle']){const el=document.getElementById(id);if(el)el.remove();}
-    if(css[def.id]){const s=document.createElement('style');s.textContent=css[def.id];document.body.appendChild(s);} // last in the page, so it wins over page.css wherever a host put that
-    try{history.replaceState(null,'','#'+def.id);}catch(e){}
-    boot(def,{inspect});};
-  const h=(location.hash||'').slice(1),want=tables.find(t=>h===t.id||h===t.id+'.inspect');
-  if(want){go(want,h!==want.id);return;}
-  const st=document.createElement('style');st.id='pkStyle';st.textContent=STYLE;document.body.appendChild(st);
-  const n=(k,one,many)=>k+' '+(k===1?one:many||one+'s');
-  const cards=tables.map((t,i)=>{const L=t.layout,th=t.theme||{},pal=th.pal,c=t.accent||(pal?pal[L.fields.length-1].acc:'#d9a441'),face=(th.fonts&&th.fonts.fontD)||'"Grenze Gotisch","Old English Text MT",Georgia,serif',x=t.content.text||{};
-    const facts=[n(L.fields.length,'field'),n(Object.keys(t.content.bosses).length,'boss','bosses'),n(Object.keys(t.content.campaigns).length,'campaign')];if((L.wings||[]).length)facts.push(n(L.wings.length,'wing'));if(L.ramps)facts.push(n(L.ramps.length,'ramp'));
-    return '<li style="--c:'+esc(c)+'"><div><h2 style="font-family:'+esc(face).replace(/&quot;/g,"'")+'">'+esc(t.name)+'</h2><p class="blurb">'+esc(t.blurb||x.eyebrow||'')+'</p><p class="facts">'+esc(facts.join(' · '))+'</p></div>'+
-      '<nav aria-label="'+esc(t.name)+'"><button type="button" class="go" data-i="'+i+'">Play</button><button type="button" data-i="'+i+'" data-ins="1">Inspect</button></nav></li>';}).join('');
-  const el=document.createElement('main');el.id='pk';
-  el.innerHTML='<div><header><h1>Pinballsauce</h1><p>One pinball engine, '+n(tables.length,'table')+'. Every table shares the same ball, flippers, classes and rules; each has its own layout and its own world.</p></header><ol>'+cards+'</ol>'+
+export function pickTable(tables, css) {
+  css = css || {};
+  window.__pbTables = () => {
+    try {
+      history.replaceState(null, '', location.pathname + location.search);
+    } catch (e) {}
+    location.reload();
+  };
+  const go = (def, inspect) => {
+    for (const id of ['pk', 'pkStyle']) {
+      const el = document.getElementById(id);
+      if (el) el.remove();
+    }
+    if (css[def.id]) {
+      const s = document.createElement('style');
+      s.textContent = css[def.id];
+      document.body.appendChild(s);
+    } // last in the page, so it wins over page.css wherever a host put that
+    try {
+      history.replaceState(null, '', '#' + def.id);
+    } catch (e) {}
+    boot(def, {inspect});
+  };
+  const h = (location.hash || '').slice(1),
+    want = tables.find(t => h === t.id || h === t.id + '.inspect');
+  if (want) {
+    go(want, h !== want.id);
+    return;
+  }
+  const st = document.createElement('style');
+  st.id = 'pkStyle';
+  st.textContent = STYLE;
+  document.body.appendChild(st);
+  const n = (k, one, many) => k + ' ' + (k === 1 ? one : many || one + 's');
+  const cards = tables
+    .map((t, i) => {
+      const L = t.layout,
+        th = t.theme || {},
+        pal = th.pal,
+        c = t.accent || (pal ? pal[L.fields.length - 1].acc : '#d9a441'),
+        face = (th.fonts && th.fonts.fontD) || '"Grenze Gotisch","Old English Text MT",Georgia,serif',
+        x = t.content.text || {};
+      const facts = [
+        n(L.fields.length, 'field'),
+        n(Object.keys(t.content.bosses).length, 'boss', 'bosses'),
+        n(Object.keys(t.content.campaigns).length, 'campaign')
+      ];
+      if ((L.wings || []).length) facts.push(n(L.wings.length, 'wing'));
+      if (L.ramps) facts.push(n(L.ramps.length, 'ramp'));
+      return (
+        '<li style="--c:' +
+        esc(c) +
+        '"><div><h2 style="font-family:' +
+        esc(face).replace(/&quot;/g, "'") +
+        '">' +
+        esc(t.name) +
+        '</h2><p class="blurb">' +
+        esc(t.blurb || x.eyebrow || '') +
+        '</p><p class="facts">' +
+        esc(facts.join(' · ')) +
+        '</p></div>' +
+        '<nav aria-label="' +
+        esc(t.name) +
+        '"><button type="button" class="go" data-i="' +
+        i +
+        '">Play</button><button type="button" data-i="' +
+        i +
+        '" data-ins="1">Inspect</button></nav></li>'
+      );
+    })
+    .join('');
+  const el = document.createElement('main');
+  el.id = 'pk';
+  el.innerHTML =
+    '<div><header><h1>Pinballsauce</h1><p>One pinball engine, ' +
+    n(tables.length, 'table') +
+    '. Every table shares the same ball, flippers, classes and rules; each has its own layout and its own world.</p></header><ol>' +
+    cards +
+    '</ol>' +
     '<footer><p>Play is the game. Inspect opens the table top-down with every piece labelled, a coordinate grid, pan, zoom and a screenshot button.</p><p>In a table: <kbd>Z</kbd> and <kbd>/</kbd> flip, <kbd>Space</kbd> launches and nudges, <kbd>I</kbd> toggles inspect. On a phone, tap the left and right halves. Saves stay in this browser.</p></footer></div>';
-  el.addEventListener('click',e=>{const b=e.target.closest('button[data-i]');if(b)go(tables[+b.dataset.i],!!b.dataset.ins);});
-  document.body.insertAdjacentElement('afterbegin',el);}
+  el.addEventListener('click', e => {
+    const b = e.target.closest('button[data-i]');
+    if (b) go(tables[+b.dataset.i], !!b.dataset.ins);
+  });
+  document.body.insertAdjacentElement('afterbegin', el);
+}
