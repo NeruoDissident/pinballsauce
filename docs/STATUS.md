@@ -22,13 +22,14 @@ Updated 11 October 2026 with Judgment. The earlier stages below retain their ori
 
 | What | How | Result |
 |---|---|---|
+| Existing behavior and new baseline | `npm run check`, `npm test` | All 100 modules pass the static check; all six layout snapshots and 120 five-minute scenarios match; the 25 Judgment behavior checks pass. Only Judgment received new recordings; existing recordings are unchanged |
 | Ball traps and circulation | `node tests/soak.mjs 20 --table judgment --seeds 8` | 160 simulated minutes, zero stuck balls; every tracked shot made. Ascension: 134 made, six failed climbs. Early layout pockets were corrected before this run |
 | Flipper coverage | `npm run reach -- judgment` | All six flippers reach multiple shots. The fixed roll-down probe did not hit Heaven's Virtues/right orbit or Earth's Candles/right orbit; all four were reached by the longer soak. This does not prove every shot is equally easy to aim |
 | Launch and shot lamps | `npm run standards -- judgment` | 48/48 fair launches; 21/21 feature shots with inserts; required state lamps; 56-unit flipper gaps; all fields connected. Goals are custom rules, so the data-goal count is zero; goal lighting is tested separately below |
 | Complete rules and custom goal lights | `node tests/judgment.mjs` | 25 checks: physical falls, Earth serve, lower field cannot activate its plunger, Redemption return, distinct souls, every goal phase lit, three-ball Armageddon, Chains protection, Beast defeat, Salvation, Grace, endless reset, save/continue and both Choir locks |
 | Disabled systems | `npm run switches -- judgment` | Loads, plays and ends with every optional system off, as shipped |
 | Phone browser and offline play | `npm run mobile -- judgment` | Final run: 20/20. Includes offline reload, touch controls, rotation and fog. The check now expects side panels only for enabled systems. One earlier run missed the timed double-tap check under concurrent test load; rerun passed without changing input code |
-| Standalone build | `npm run bundle -- judgment`, then ten-minute replay with `--url dist/judgment.html` | All 20 scenarios match the new source recording. The final title-size-only CSS adjustment was applied after that replay |
+| Standalone build | `npm run bundle -- judgment`, then ten-minute replay with `--url dist/judgment.html`; final file opened directly with network requests blocked | All 20 scenarios match the new source recording. After the final title CSS adjustment, the delivered HTML opens without any network request and New run, Space launch, and both arrow flippers work |
 | Visual inspection | `tools/judgment-preview.mjs` | All three fields examined in play, top-down and tilted with flippers/outlanes visible; title, phone title/play and staged Salvation screen checked. Title overflow and a Redemption insert obscured by a block were corrected |
 
 ### Not verified for Judgment
