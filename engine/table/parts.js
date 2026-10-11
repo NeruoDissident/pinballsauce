@@ -8,7 +8,7 @@
 import {T} from '../core/state.js';
 import {PI, TAU} from '../core/util.js';
 import {arcPts, block, gpoly, gseg, poly, seg, sensor} from './geometry.js';
-import {ABOVE, BELOW, BT, CX, FLIPPER, OX, TY, XR} from './layout.js';
+import {ABOVE, BELOW, BT, ST, CX, FLIPPER, OX, TY, XR} from './layout.js';
 
 // which standard parts a field keeps. Everything is on unless the layout turns it off; no arch means no orbits.
 export function standardOf(f) {
@@ -128,7 +128,10 @@ export function buildFloor(i, S) {
       sensor(X(61), yF - 118, 14, {kind: 'inlane', side: sd, tier: i});
     }
     if (nb >= 0) {
-      poly([G1, [X(42), nextA - 153]], {w: 2});
+      // An interior launch field is narrower on the right. Flare its falling-ball
+      // channel into the next field's orbit instead of ending against its arch.
+      const exitX = X(42) + (i === ST && i !== BT && sd > 0 ? XR[nb] - XR[i] : 0);
+      poly([G1, [exitX, nextA - 153]], {w: 2});
       poly(
         [
           [cx + sd * 100, yF + 13],
@@ -138,7 +141,7 @@ export function buildFloor(i, S) {
         'none'
       );
       T.blocks.push({
-        pts: [G1, G2, [cx + sd * 100, yF + 13], [320 + ox + sd * 36, yF + 141], [X(42), nextA - 153]],
+        pts: [G1, G2, [cx + sd * 100, yF + 13], [320 + ox + sd * 36, yF + 141], [exitX, nextA - 153]],
         dead: true,
         tier: i
       });
@@ -177,7 +180,7 @@ export function buildFloor(i, S) {
     ]);
     T.chans.push([
       [ox + 620, yF - 70],
-      [ox + 578, yF - 70],
+      [i === ST && i !== BT ? XR[i] - 42 : ox + 578, yF - 70],
       [ox + 578, nextA - 153],
       [ox + 620, nextA]
     ]);

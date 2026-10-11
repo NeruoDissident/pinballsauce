@@ -1,5 +1,112 @@
 # Status
 
+Updated 11 October 2026 with Judgment. The earlier stages below retain their original verification notes.
+
+## Stage 8.2: player flipper power
+
+At the owner's explicit request, the shared standard flipper strength is now 1.15, matching Judgment's approved
+trial. Every shipped table uses it. Pause and Options expose a marked +0% to +100% slider in 10% steps; +100%
+doubles that baseline to 2.3. The preference persists across tables and reloads. Only the powered stroke's speed
+targets scale: stroke acceleration/cutoff/holding settings, return speed, gravity, bounce, ramps and the ball-speed
+cap are unchanged. No objects were moved. Pilgrimage's entrance remains a separate playtest issue.
+
+Verification:
+
+- Static checks, all six layout snapshots, all 120 five-minute replay scenarios, 25 Judgment progression checks
+  and 23 mechanism checks pass. `npm test` completed the five other tables before a browser-startup timeout on
+  Judgment; its complete replay and the two remaining suites passed when rerun in a fresh browser.
+- `npm run test:power`: all eleven settings, pause safety, keyboard control, persistence across all six tables,
+  bounded input, touch input, and desktop/phone render inspection.
+- Two five-minute soak seeds at baseline and maximum on each of six tables: 120 simulated minutes, zero stuck
+  balls, zero errors or recurring pockets. This is evidence of stability, not a claim about aiming or balance.
+- Reach finds shots for every flipper except Test Bench's lower-right mini on West. A comparison at its original
+  strength reproduces the same warning. The owner requested preserving layouts; no geometry was changed.
+- Standards retain existing lamp notes on Gravebound/Neon Descent and Test Bench's wide West drain gap. Every
+  table passes the launch criterion (46–48 of 48 launches). Judgment still has 29/29 shot inserts.
+- The full six-table bundle preserves the preference while switching tables and measures exactly double the
+  powered stroke velocity at +100% in an early-stroke comparison on each table.
+- Five standard replay baselines are intentionally updated for the newly approved shared strength, keeping their
+  previous durations. Judgment's already-matching baseline and the historical flat baseline are untouched. Two
+  archival flat replays still match. All layout snapshots remain unchanged.
+
+The earlier statements that other tables' feel is unchanged describe Stage 8.1. The owner explicitly authorized
+this shared strength change and requested pushing and merging the experimental branch to main after validation.
+
+## Stage 8.1: Judgment mechanical redesign
+
+The same experimental branch now includes seven flippers and eight visible track sections. Earth has a right-orbit
+feed to its upper-right flipper, a cross-field Ascension combo, a separate Pilgrimage return to the left inlane, and
+a restrained cathedral bell ball. Heaven has physical opening Gates, a raised halo, a timed magnetic catch, and a
+diverter that selects a long visible descent during Armageddon. Hell has a moving Beast jaw, 25-second attack
+windows, visible wounds, and a rising Redemption return. Redemption remains available before the finale so a
+player can recover from Hell; the final return awards Salvation when the ball actually arrives on Earth.
+
+The engine additions are optional layout data, with named defaults. Tables without mechanisms create no moving
+collision objects and retain their existing paths and defaults. See [MECHANISMS.md](MECHANISMS.md). The Grave
+exit and all five existing tables' files/recordings are unchanged. New mechanisms do not alter the user's flipper feel.
+
+Verified on 11 October 2026:
+
+- Static check: 103 modules. Full npm test: six layout snapshots, 120 five-minute replay matches, 25 progression
+  checks and 23 physical mechanism checks. Only Judgment's layout and ten-minute replay baselines were re-recorded.
+- Physical mechanism checks include closed-barrier rebound, open-barrier capture, safe late ejection when the jaw
+  timer expires, captive-ball movement/return, magnetic hold/release, both diverter routes, upper-flipper feed and reset.
+- Final soak: eight seeds, 160 simulated minutes, no errors or recurring pockets. One auto-cleared rest at Earth
+  (526,301). Ascension 17 successes / 4 failed climbs; Pilgrimage 158 / 5; the feed, halo and return tracks had no
+  failed climbs. The captive bell was hit 46 times. The bot did not qualify the Armageddon/Beast phase; focused
+  physical and progression tests cover those phases explicitly.
+- Reach: all seven flippers reach shots. Upper flipper reaches Ascension and the captive bell; both Heaven
+  flippers reach qualified Gates; Hell's left flipper reaches the open Beast. The fixed probe missed some lanes,
+  orbits and the Abyss scoop that the soak reached. Continuation tracks have no independent mouth to aim at.
+- Standards: 47/48 fair launches, 29/29 feature inserts, required status lamps and connected fields.
+- Combined build: all six menu → game → Other tables round trips pass without page errors. Two Judgment
+  five-minute scenarios in the bundled build match source. Standalone file opens with network requests blocked;
+  New run, Space launch and both arrow flippers work.
+- Visuals: all three fields, closed/open Gates and jaw, tilted/top views and phone-sized layout inspected.
+  Lower flippers remain clear. A track that crossed the upper flipper's aiming view was rerouted.
+
+Still for the owner to judge: human aim, the combo timing window, difficulty and whether the play is satisfying.
+No claim of realistic free-space magnetic simulation: the current magnet is a timed catch mounted on a rail.
+No video comparisons were made. Main remains untouched; the full six-table HTML is the primary playtest build.
+
+## Stage 8: Judgment, initial version (historical verification)
+
+
+### What exists
+
+- A new three-field table: Heaven above Earth above Hell. Earth launches; only Hell loses a ball. One Ascension
+  ramp, physical falls between fields, an Abyss transfer down and a Redemption return to Earth.
+- A complete custom goal sequence: three distinct souls, Pearly Gates / Armageddon multiball, Chains, three Beast
+  strikes, final Redemption / Salvation. Supporting Choir locks, Grace, kickback, multiplier and double scoring.
+  Three balls, standard feel, no RPG systems. Progress lamps repeat beside every pair of flippers.
+- Procedural floor art and scenery, custom bell and demon bumpers, sounds, realm palettes, help and menus.
+  Picker registration, layout/replay recordings, a dedicated behavior check, and a screenshot utility.
+- A generic engine addition: `ST` is the field with the shooter; `BT` remains the final drain. Start/continue and
+  the title camera use the launch field. An interior shooter gets its own bounded lane and a flared transfer
+  into the next field's right orbit. No existing table changes its chosen launch field or geometry.
+- Work is isolated on `codex/judgment`. The shared-engine change is a separate commit for review.
+
+### Verified for Judgment
+
+| What | How | Result |
+|---|---|---|
+| Existing behavior and new baseline | `npm run check`, `npm test` | All 100 modules pass the static check; all six layout snapshots and 120 five-minute scenarios match; the 25 Judgment behavior checks pass. Only Judgment received new recordings; existing recordings are unchanged |
+| Ball traps and circulation | `node tests/soak.mjs 20 --table judgment --seeds 8` | 160 simulated minutes, zero stuck balls; every tracked shot made. Ascension: 134 made, six failed climbs. Early layout pockets were corrected before this run |
+| Flipper coverage | `npm run reach -- judgment` | All six flippers reach multiple shots. The fixed roll-down probe did not hit Heaven's Virtues/right orbit or Earth's Candles/right orbit; all four were reached by the longer soak. This does not prove every shot is equally easy to aim |
+| Launch and shot lamps | `npm run standards -- judgment` | 48/48 fair launches; 21/21 feature shots with inserts; required state lamps; 56-unit flipper gaps; all fields connected. Goals are custom rules, so the data-goal count is zero; goal lighting is tested separately below |
+| Complete rules and custom goal lights | `node tests/judgment.mjs` | 25 checks: physical falls, Earth serve, lower field cannot activate its plunger, Redemption return, distinct souls, every goal phase lit, three-ball Armageddon, Chains protection, Beast defeat, Salvation, Grace, endless reset, save/continue and both Choir locks |
+| Disabled systems | `npm run switches -- judgment` | Loads, plays and ends with every optional system off, as shipped |
+| Phone browser and offline play | `npm run mobile -- judgment` | Final run: 20/20. Includes offline reload, touch controls, rotation and fog. The check now expects side panels only for enabled systems. One earlier run missed the timed double-tap check under concurrent test load; rerun passed without changing input code |
+| Standalone build | `npm run bundle -- judgment`, then ten-minute replay with `--url dist/judgment.html`; final file opened directly with network requests blocked | All 20 scenarios match the new source recording. After the final title CSS adjustment, the delivered HTML opens without any network request and New run, Space launch, and both arrow flippers work |
+| Visual inspection | `tools/judgment-preview.mjs` | All three fields examined in play, top-down and tilted with flippers/outlanes visible; title, phone title/play and staged Salvation screen checked. Title overflow and a Redemption insert obscured by a block were corrected |
+
+### Not verified for Judgment
+
+- Human aim, difficulty, scoring balance and whether the table is fun. A bot reaches the shots; it does not
+  establish that a player can reliably make the intended combinations.
+- Real phone hardware, iOS Safari, installation prompts, and audible balance through speakers/headphones.
+- Long-term saves across future schema changes. Current save/continue is covered by the behavior test.
+
 Written 10 October 2026, at the end of the seventh stage (the third to the seventh were the same day). Three lists
 for each: what exists, what was checked and how, and what was not checked. Nothing in a "verified" list is a guess;
 anything that is a guess is in a "not verified" list.

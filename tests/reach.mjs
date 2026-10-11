@@ -1,6 +1,6 @@
 /* The reach test for a table's LAYOUT: which shots can each flipper actually make?
 
-     node tests/reach.mjs [--table test-bench] [--field west] [--feel fast]
+     node tests/reach.mjs [--table test-bench] [--field west] [--feel fast] [--flipper 1.15]
 
    For every flipper on every field a ball is rolled down the bat and flipped, at every timing from "far too early"
    to "far too late" and at three rolling speeds, with nothing else on the table. What the ball reaches is written
@@ -31,7 +31,7 @@ const opt = n => {
 };
 const table = opt('table') || 'gravebound',
   only = opt('field'),
-  feel = opt('feel'); // try the table on another feel preset without editing it
+  feel = opt('flipper') === null ? opt('feel') : {preset: opt('feel') || 'standard', flipper: +opt('flipper')};
 
 const run = only => {
   const P = window.__pb.api,
@@ -50,6 +50,7 @@ const run = only => {
   let log = null;
   const idOf = {
     bump: o => o.group,
+    captive: o => o.id,
     target: o => o.bank,
     drop: o => o.bank,
     lane: o => o.set,
@@ -92,6 +93,18 @@ const run = only => {
           for (const id in T.holes) T.holes[id].busy = 0;
           for (const q of T.sens) if (q.kind === 'spin') q.rate = 0; // a spinner still turning from the last flip is not a hit
           for (const id in T.rails) T.rails[id].closed = false;
+          // Qualifiable shots are probed with their physical barriers open.
+          for (const m of Object.values(T.mechanisms || {})) {
+            if (m.leaves) {
+              m.open = true;
+              m.position = 1;
+              m.leaves.forEach(l => {
+                l.a = l.open;
+                l.w = 0;
+              });
+            }
+          }
+          for (const h of Object.values(T.holes)) if ('closed' in h) h.closed = false;
           G.enemies = [];
           G.tilt = 0;
           // the ball starts a little down the bat from the pivot, resting on it, rolling toward the tip

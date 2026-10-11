@@ -7,7 +7,7 @@ to do the work in, with `TABLE_FORMAT.md` open beside it for the exact keys.
 Everything is the table's to decide: how many fields, where they stand, what is in each one, how many flippers and
 how long, where the roads go, how fast the ball is (`feel`), and which game systems it has at all (`uses`). The
 only fixed things are the ones the physics is built on: a field is 640 by 1040 with its flipper shelf at y 900, and
-the plunger runs up the right side of the home field.
+the plunger runs up the right side of the one field marked `shooter:true`.
 
 ## The priorities
 
@@ -52,7 +52,7 @@ a grid"). Some shapes:
 
 The rules of the grid:
 
-- **The home field is the last one listed.** Column 0, the lowest row. It has the plunger and the only real drain.
+- **The home field is the last one listed.** Column 0, the lowest row. It has the only real drain. The plunger is normally there, but another field may be the single `shooter:true` launch field (`ST`).
 - **Same column, next row = joined.** The upper field's drain falls into the lower field's arch. Nothing to write.
 - **Any other field needs a drain ramp** to a field you name. Losing the ball there costs position, not the ball.
 - **Every field needs a way in and a way on.** Draw the roads before the fields: for each field, which ramp or

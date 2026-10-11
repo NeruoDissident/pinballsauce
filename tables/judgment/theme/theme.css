@@ -1,0 +1,36 @@
+:root {
+  --void: #090910;
+  --stone: #15151f;
+  --stone-2: #20202c;
+  --line: #57505d;
+  --bone: #f5ebd8;
+  --ash: #b9b4c3;
+  --gold: #e6c88b;
+  --blood: #e26453;
+  --frost: #b2d8f2;
+  --moss: #a2d4bc;
+  --violet: #b9a0dc;
+  --display: Georgia, 'Times New Roman', serif;
+  --label: 'Segoe UI', sans-serif;
+  --body: 'Segoe UI', sans-serif;
+}
+.pane {
+  border-color: #9c805544;
+  background: linear-gradient(145deg, rgba(28, 28, 42, 0.97), rgba(13, 11, 20, 0.97));
+  box-shadow:
+    0 20px 90px #000a,
+    inset 0 1px #fff1;
+}
+h1 {
+  font-size: clamp(36px, 10vw, 72px);
+  letter-spacing: 0.08em;
+  text-shadow: 0 2px 30px #ddb66533;
+}
+h1 span {
+  font-size: clamp(11px, 2.8vw, 16px);
+  letter-spacing: 0.34em;
+  text-indent: 0.34em;
+}
+button {
+  border-radius: 3px;
+}

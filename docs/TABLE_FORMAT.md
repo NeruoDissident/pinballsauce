@@ -84,7 +84,7 @@ Give an object to start from a preset and change single numbers: `feel:{preset:'
 | `gravity` | 1150 | pull down the table. Changing it alone changes how far a flipper shot climbs: check `npm run reach` |
 | `maxSpeed` | 2300 | nothing moves faster |
 | `bounce` | 0.45 | what a plain wall gives back (a wall's own `bounce` still wins) |
-| `flipper` | 1 | flipper strength |
+| `flipper` | 1.15 | baseline flipper strength, before the player's power boost |
 | `stroke` | `{punch:0, rise:.006, cut:.85, hold:.45, peak:1.05}` | how the bat swings (below) |
 | `sling`, `bumper` | 1, 470 | slingshot kick (a factor); pop-bumper kick (a bumper's own `kick` still wins) |
 | `plunge` | `[1330, 1950]` | launch speed, from a tap to a full pull |
@@ -107,6 +107,13 @@ shot that cannot be made.
 
 A feel is one table's. It never changes another table. After changing one, run `npm run soak`, `reach` and
 `standards` for that table: a faster ball finds different pockets.
+
+Players can add **0–100%** flipper power in **10% steps**, in Pause or Options. This preference is shared across
+tables and saved under `pinballsauce.prefs.flipperBoost`. It multiplies the table's baseline flipper strength
+without changing the stroke settings, return speed, gravity, bounce, ramps, or ball-speed cap. Baseline on every
+shipped table is now 1.15 (the owner's approved Judgment trial); +100% gives 2.3. `setFlipperBoost` clamps and
+rounds input without compounding prior adjustments. The archival `flat` preset retains its original baseline 1.
+Use `node tests/soak.mjs 5 --table judgment --boost 100` to check the upper setting.
 
 To try a preset before committing to it: open the table with `?feel=fast` on the address
 (`tables/starfall/?feel=fast`) and play it, or give a check `--feel` (`node tests/soak.mjs 15 --table starfall
@@ -254,7 +261,7 @@ still work and are the tidier way for the words they cover.)
 ## 1. Layout (`layout.js`)
 
 ```js
-export const layout={fields:[...], grave:{...}, wings:[...], ramps:[...], tunnels:[...], shots:[...]};
+export const layout={fields:[...], grave:{...}, wings:[...], ramps:[...], tunnels:[...], shots:[...], mechanisms:[...]};
 ```
 
 ### What is fixed, and what is yours
@@ -297,6 +304,13 @@ Grave under it if the table has one. It stands in column 0 on the lowest row.
 **A field with nothing joined below it** (and which is not the home field) cannot lose the ball. It drains into a
 **drain ramp** that carries the ball to a field you name (see Ramps). The engine refuses to load a layout that
 leaves such a field without one.
+
+
+### Launching above the bottom field
+
+Exactly one field has `shooter:true` and a `{t:"shooter"}` piece. That field may be an interior field: balls start and saved balls return there. `ST` is its index; `BT` still means the last / bottom field and final drain. The bottom field still stands at column 0 on the lowest row. Existing tables keep their bottom launch unchanged. A launch field joined to a full-width field below has a flared right outlane transfer. Its plunger wall stops at its own backstop.
+
+This supports Earth-between-Heaven-and-Hell layouts without table-specific engine logic. The camera, initial side quests, plunger detection and lane painting all follow `ST`. A launch field uses the narrower right wall and centre line whether or not it is the bottom field.
 
 ### Coordinates
 
@@ -748,3 +762,7 @@ variables `page.css` is written with: `--void --stone --stone-2 --line --bone --
 
 Art rules: no `Math.random` (use `hash(n)`), keep floor art faint enough that inserts read over it, and remember
 only what a real table would print belongs on the floor: walls, blocks, ramps and targets are real geometry.
+
+## Optional mechanical features
+
+See [MECHANISMS.md](MECHANISMS.md) for rotating gates, lifting shutters, captive balls, rail-mounted magnetic catches, visible scoop feeds and track diverters. These are opt-in layout features. Existing tables retain their physics and geometry without configuration changes.

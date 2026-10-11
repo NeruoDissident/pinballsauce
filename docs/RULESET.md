@@ -22,6 +22,8 @@ The numbers in this section are the `standard` feel. A table on another feel has
 
 - Physics runs at 480 steps a second, 1920 while a flipper is swinging. The game logic steps at 120.
 - Gravity 1150 down the table. Top ball speed 2300. Planar: height is drawn only.
+- Default flipper strength is 1.15 on all tables. Pause and Options offer a saved, global 0–100% boost in 10% steps.
+  It scales only the powered stroke's speed targets; the acceleration and final-15% slowdown settings remain unchanged.
 - Flippers are 82 long. **Every left flipper on the table moves together, and every right one.** A flipper has a
   power stroke, like a real coil: the bat starts from a standstill, is driven up to speed within a few thousandths
   of a second, and loses its power over the last 15% of the swing. The stroke takes about 50 ms. How hard the ball

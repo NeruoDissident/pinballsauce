@@ -106,6 +106,7 @@ const run = async () => {
   for (const id in T.sets) if (T.sets[id].tier < F.length) shotIds.add(id);
   for (const s of T.sens) if (s.kind === 'spin' && s.tier < F.length) shotIds.add(s.id);
   for (const b of T.bumps) if (b.tier < F.length && b.group) shotIds.add(b.group);
+  for (const m of Object.values(T.mechanisms || {})) if (m.kind === 'captive') shotIds.add(m.id);
   out.shots = shotIds.size;
   out.shotsNoLight = [...shotIds].filter(id => !T.shots[id]);
 

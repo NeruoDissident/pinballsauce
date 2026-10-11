@@ -6,9 +6,10 @@
    table, 1040 apart; columns are 690 apart and may be halves or negative (a diamond is [0,0], [-0.5,1], [0.5,1],
    [0,2]). A layout that gives no `at` at all is a plain stack: column 0, one row per field, top first. Two fields
    in the same column on consecutive rows are joined: the upper one's drain falls into the lower one's arch. A
-   field with nothing joined below it is either the HOME field (the last one listed: it has the plunger, the real
+   field with nothing joined below it is either the HOME field (the last one listed: it has the real
    drain, and the Grave under it; it stands in column 0 on the lowest row) or it drains into a guided ramp to a
    field the layout names (a ramp with `drain`).
+   Exactly one field has shooter:true. ST is that launch field; it may be above the bottom field.
 
    Tiers. A "tier" is an index:
      0 .. NM-1   the fields, in the order the layout lists them   (BT = NM-1 is the home field)
@@ -40,7 +41,7 @@ export const FEELS = {
     gravity: 1150, // units/s2 down the table
     maxSpeed: 2300, // nothing moves faster
     bounce: 0.45, // what a plain wall gives back
-    flipper: 1, // flipper strength
+    flipper: 1.15, // flipper strength; the owner's new shared baseline
     // The flipper's stroke, modelled on a real coil. The bat starts from a standstill and the coil drives it up to
     // speed, pushing hardest at the first instant and less as it gets going; over the last of the swing the power is
     // cut to a holding current and the bat slows. A ball on the bat is carried by it and let go where the bat
@@ -63,7 +64,7 @@ export const FEELS = {
   // standard, with the flipper the first tables were made with: one speed from the first instant to the stop. Not
   // a choice for a table: it is here so the recording made from the original Gravebound can still be replayed
   // (tests/replay.mjs --feel flat)
-  flat: {stroke: 'flat'},
+  flat: {stroke: 'flat', flipper: 1},
   fast: {speed: 1.15},
   slow: {speed: 0.88},
   lively: {bounce: 0.52, sling: 1.12, bumper: 520}
@@ -71,6 +72,18 @@ export const FEELS = {
 export let FEEL = FEELS.standard,
   GRAV = 1150,
   VMAX = 2300;
+export const FLIPPER_POWER = {min: 0, max: 100, step: 10};
+export let flipperBoost = 0;
+let baseFlipper = FEELS.standard.flipper;
+// Player preference scales only the powered stroke. Keep its base separately so repeated changes never compound.
+export function setFlipperBoost(value) {
+  const n = Number(value);
+  flipperBoost = Number.isFinite(n)
+    ? Math.round(Math.max(FLIPPER_POWER.min, Math.min(FLIPPER_POWER.max, n)) / FLIPPER_POWER.step) * FLIPPER_POWER.step
+    : 0;
+  FEEL = {...FEEL, flipper: baseFlipper * (1 + flipperBoost / 100)};
+  return flipperBoost;
+}
 export function setFeel(f) {
   const o = typeof f === 'string' ? {preset: f} : f || {},
     pre = FEELS[o.preset || 'standard'];
@@ -103,11 +116,14 @@ export function setFeel(f) {
   };
   GRAV = FEEL.gravity;
   VMAX = FEEL.maxSpeed;
+  baseFlipper = FEEL.flipper;
+  setFlipperBoost(flipperBoost);
 }
 // the flipper lengths the manufacturer makes. Standard is what every field gets unless its layout says otherwise.
 export const FLIPPER = {mini: 58, standard: 82, long: 92};
 export let NM = 0,
   BT = 0,
+  ST = 0, // launch field; BT remains the bottom field and real drain
   GT = 0,
   WT0 = 0,
   NW = 0,
@@ -133,6 +149,9 @@ export let TY = [], // each tier's top
 export function setLayout(L) {
   NM = L.fields.length;
   BT = NM - 1;
+  const shooters = L.fields.map((f, i) => (f.shooter ? i : -1)).filter(i => i >= 0);
+  if (shooters.length !== 1) throw new Error('layout: exactly one field must have shooter:true');
+  ST = shooters[0];
   GT = NM;
   WT0 = NM + 1;
   NW = (L.wings || []).length;
@@ -170,7 +189,6 @@ export function setLayout(L) {
     TIER_NAME.push(f.name);
     LEVEL_NAMES[i] = f.short || f.name;
     FIELD_INDEX[f.id] = i;
-    if (f.shooter && i !== BT) throw new Error('layout: only the last field listed (the home field) has the shooter');
   }
   for (let i = 0; i < NM; i++) {
     ABOVE.push(col.findIndex((c, j) => c === col[i] && row[j] === row[i] - 1));

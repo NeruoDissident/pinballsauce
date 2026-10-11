@@ -1,0 +1,105 @@
+{
+ "table": "judgment",
+ "sections": {
+  "banks": {
+   "n": 6,
+   "hash": "ec407e87410e5783"
+  },
+  "blocks": {
+   "n": 11,
+   "hash": "12162e34dcb7a1ad"
+  },
+  "bossSpot": {
+   "n": 0,
+   "hash": "741638a53edf8317"
+  },
+  "bumps": {
+   "n": 6,
+   "hash": "83f29d8dc029d649"
+  },
+  "chans": {
+   "n": 6,
+   "hash": "83c3d53454b27b4b"
+  },
+  "flips": {
+   "n": 7,
+   "hash": "8a9bf36c27cf26db"
+  },
+  "grid": {
+   "n": 53,
+   "hash": "a3ce1b851cd8e357"
+  },
+  "holes": {
+   "n": 5,
+   "hash": "ceaa989f58a99633"
+  },
+  "lamps": {
+   "n": 45,
+   "hash": "49035f08753b9215"
+  },
+  "mechanisms": {
+   "n": 3,
+   "hash": "7ee17c836277172f"
+  },
+  "mouths": {
+   "n": 3,
+   "hash": "ab44aa06f33f3535"
+  },
+  "rails": {
+   "n": 8,
+   "hash": "f3aa0b76f4e28847"
+  },
+  "segs": {
+   "n": 398,
+   "hash": "72b92efd832ab133"
+  },
+  "sens": {
+   "n": 31,
+   "hash": "bc0f7f3dc515abfd"
+  },
+  "sets": {
+   "n": 3,
+   "hash": "8785749aec90bc81"
+  },
+  "shooter": {
+   "n": 1,
+   "hash": "260da8bb482cb08b"
+  },
+  "shots": {
+   "n": 35,
+   "hash": "949077e6ff3471ad"
+  },
+  "slings": {
+   "n": 6,
+   "hash": "5d61b49414c3dbfd"
+  },
+  "spawn": {
+   "n": 4,
+   "hash": "227731d3586b41"
+  },
+  "statueSpot": {
+   "n": 0,
+   "hash": "741638a53edf8317"
+  },
+  "statues": {
+   "n": 0,
+   "hash": "741638a53edf8317"
+  },
+  "torches": {
+   "n": 9,
+   "hash": "15ae15bbde584255"
+  },
+  "tunnels": {
+   "n": 0,
+   "hash": "741638a53edf8317"
+  },
+  "wallPaths": {
+   "n": 58,
+   "hash": "832b88d3e53a2833"
+  },
+  "wings": {
+   "n": 0,
+   "hash": "741638a53edf8317"
+  }
+ }
+}

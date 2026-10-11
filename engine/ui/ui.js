@@ -17,7 +17,7 @@ import {SLOTS_ORDER, SLOT_GOAL, goalText, spellDef, spellOf, spellOn, spellRank}
 import {portrait} from '../rules/tavern.js';
 import {wingText} from '../rules/wings.js';
 import {BOSSES, CAMPAIGNS, HELP, RULES, STAGES, TEXT, USE, WINGS, WING_KEYS, tr} from '../table/content.js';
-import {GT, LEVEL_NAMES, NM, WT0} from '../table/layout.js';
+import {FLIPPER_POWER, GT, LEVEL_NAMES, NM, WT0, flipperBoost, setFlipperBoost} from '../table/layout.js';
 import {A} from './audio.js';
 import {explainStep, glossary} from './help.js';
 
@@ -31,6 +31,30 @@ export const VERSION = 'engine 0.1';
 // a table opened from its own folder (tables/<id>/) has the list of tables two levels up. An installed app has no
 // browser Back button, so the title menu offers the way there.
 const IN_REPO = /\/tables\/[^/]+\/(index\.html)?$/.test(location.pathname);
+const powerText = () => '+' + flipperBoost + '%';
+function powerControl() {
+  const ticks = [];
+  for (let n = FLIPPER_POWER.min; n <= FLIPPER_POWER.max; n += FLIPPER_POWER.step)
+    ticks.push('<option value="' + n + '"></option>');
+  return (
+    '<div class="flipper-power"><label for="optFlipper">Flipper power <output id="flipperValue" for="optFlipper">' +
+    powerText() +
+    '</output></label><input id="optFlipper" type="range" min="' +
+    FLIPPER_POWER.min +
+    '" max="' +
+    FLIPPER_POWER.max +
+    '" step="' +
+    FLIPPER_POWER.step +
+    '" value="' +
+    flipperBoost +
+    '" list="flipperTicks" aria-describedby="flipperNote" aria-valuetext="' +
+    powerText() +
+    '"><datalist id="flipperTicks">' +
+    ticks.join('') +
+    '</datalist><div class="power-marks" aria-hidden="true"><span>Baseline</span><span>+50%</span><span>+100% · Double</span></div>' +
+    '<p id="flipperNote" class="hint">10% steps above the new baseline. Applies to all tables and saves automatically.</p></div>'
+  );
+}
 export const UI = {
   cur: null,
   q: [],
@@ -596,7 +620,9 @@ export const UI = {
       h += '</div><nav class="row">' + btn('alone', 'Ride alone') + btn('new', 'Back') + '</nav></div>';
     } else if (name === 'options') {
       h =
-        '<div class="pane"><h2>Options</h2><label for="optMusic">Music<input id="optMusic" type="range" min="0" max="100" value="' +
+        '<div class="pane"><h2>Options</h2>' +
+        powerControl() +
+        '<label for="optMusic">Music<input id="optMusic" type="range" min="0" max="100" value="' +
         Math.round(A.vol.m * 100) +
         '"></label><label for="optSfx">Sound effects<input id="optSfx" type="range" min="0" max="100" value="' +
         Math.round(A.vol.s * 100) +
@@ -641,6 +667,7 @@ export const UI = {
         };
       h =
         '<div class="pane doc"><h2>Paused</h2>' +
+        powerControl() +
         (r.main ? '<p class="lead">' + esc(UI.objText(r.main)) + '</p>' + ex(r.main) : '') +
         r.side
           .map(q => '<p class="sqline"><b>' + esc(q.name) + '.</b> ' + esc(UI.objText(q)) + '</p>' + ex(q))
@@ -989,7 +1016,12 @@ export function bindInput() {
   });
   $('menu').addEventListener('input', e => {
     const t = e.target;
-    if (t.id === 'optMusic') {
+    if (t.id === 'optFlipper') {
+      t.value = setFlipperBoost(t.value);
+      prefs.set('flipperBoost', flipperBoost);
+      $('flipperValue').textContent = powerText();
+      t.setAttribute('aria-valuetext', powerText());
+    } else if (t.id === 'optMusic') {
       A.vol.m = t.value / 100;
       A.setVol();
     } else if (t.id === 'optSfx') {

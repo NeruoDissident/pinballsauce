@@ -5,7 +5,7 @@
    It opens the table list and a table as a phone would (390 by 844, touch), and checks: the manifest and its icons;
    the service worker taking the page and serving it with no network; the way back to the table list; that the
    camera strip and the nudge block are not drawn; the view and pause buttons; the side panels (not shown upright,
-   shown on its side); nudging by double-tap; that the picture is not stretched after a rotation whose resize event
+   shown on its side when their systems are enabled); nudging by double-tap; that the picture is not stretched after a rotation whose resize event
    never arrives; and that the table sits in the same fog upright as on its side (the picture used to go dark).
    Two frames are saved in tests/out. Exits 1 if any line fails. */
 import {chromium} from 'playwright';
@@ -230,6 +230,8 @@ const side = await pg.evaluate(() => {
     cs = el => getComputedStyle(el),
     r = el => el.getBoundingClientRect();
   return {
+    wantsJournal: !!(window.__pb.api.uses.quests || window.__pb.api.uses.side),
+    wantsSheet: !!(window.__pb.api.uses.classes || window.__pb.api.uses.party || window.__pb.api.uses.cards),
     journal: cs(g('journal')).display,
     sheet: cs(g('sheet')).display,
     jw: Math.round(r(g('journal')).width),
@@ -238,8 +240,10 @@ const side = await pg.evaluate(() => {
   };
 });
 ok(
-  'on its side: both side panels are shown (' + JSON.stringify(side) + ')',
-  side.journal === 'block' && side.sheet === 'block' && side.gfx === 'none'
+  'on its side: panels follow enabled systems (' + JSON.stringify(side) + ')',
+  side.journal === (side.wantsJournal ? 'block' : 'none') &&
+    side.sheet === (side.wantsSheet ? 'block' : 'none') &&
+    side.gfx === 'none'
 );
 await pg.screenshot({path: path.join(here, 'out', 'phone-side.png'), timeout: 120000});
 await pg.setViewportSize({width: 390, height: 844});

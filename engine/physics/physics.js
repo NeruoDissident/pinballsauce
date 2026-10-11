@@ -12,6 +12,8 @@ import {TEXT} from '../table/content.js';
 import {railPos} from '../table/geometry.js';
 import {BR, CELL, FEEL, GRAV, NM, OX, VMAX, YTOP, tierOf} from '../table/layout.js';
 import {A} from '../ui/audio.js';
+import {enterRail} from '../table/mechanisms.js';
+import {stepMechanisms, collideMechanisms} from './mechanisms.js';
 
 /* ================= PHYSICS ================= */
 export const SUB = 1 / 480;
@@ -194,12 +196,30 @@ export function stepBall(b, h) {
   if (b.st === 'rail') {
     const r = b.rail,
       p = railPos(r, b.rs, b);
+    if (b.railHold > 0) {
+      b.railHold = Math.max(0, b.railHold - h);
+      if (!b.railHold) b.rv = r.hold.releaseSpeed;
+      return;
+    }
+    if (r.hold && !b.railHeld && b.rs >= r.len * r.hold.at) {
+      b.railHeld = true;
+      b.railHold = r.hold.duration;
+      b.rv = 0;
+      ev('magnet', r, b);
+      return;
+    }
     b.rv += GRAV * r.k * p.ty * h;
     b.rv -= b.rv * (r.drag === undefined ? FEEL.ramp.drag : r.drag) * h;
     if (r.drain && b.rv < 140) b.rv = 140; // a drain ramp never lets a ball roll back
+    if (r.minSpeed) b.rv = Math.max(r.minSpeed, b.rv);
     b.rs += b.rv * h;
     b.hgt = Math.min(1, b.rs / 80, (r.len - b.rs) / 80);
-    if (b.rs >= r.len) {
+    if (b.rs >= r.len && r.next) {
+      const next = r.divert && r.branch ? r.branch : r.next;
+      const speed = b.rv;
+      ev(r.drain ? 'chute' : 'ramp', r, b);
+      enterRail(b, next, speed);
+    } else if (b.rs >= r.len) {
       railPos(r, r.len, b);
       const v = clamp(b.rv, 200, r.exitV);
       b.vx = b.tx * v;
@@ -233,6 +253,7 @@ export function stepBall(b, h) {
   for (const f of T.flips) {
     if (b.y > f.y - 110 && b.y < f.y + 90 && Math.abs(b.x - f.x) < (f.L > 82 ? f.L + 28 : 110)) hitFlipper(b, f);
   }
+  if (T.mechanisms) collideMechanisms(b, hitSeg, ev);
   const row = T.grid[(b.y / CELL) | 0];
   if (row)
     for (let i = 0; i < row.length; i++) {
@@ -320,6 +341,10 @@ export function stepSensors(dt) {
             b.rs = 0;
             b.rv = v;
             b.hgt = 0;
+            if (b.rail.hold) {
+              b.railHeld = false;
+              b.railHold = 0;
+            }
             ev('rampIn', b.rail, b);
             break;
           }
@@ -332,7 +357,7 @@ export function stepSensors(dt) {
         const h = T.holes[id],
           dx = b.x - h.x,
           dy = b.y - h.y;
-        if (dx * dx + dy * dy < h.r * h.r) {
+        if (!h.closed && dx * dx + dy * dy < h.r * h.r) {
           b.st = 'held';
           b.held = {id, t: 0};
           b.x = h.x;
@@ -407,6 +432,7 @@ export function physics(dt) {
     h = dt / n;
   for (let k = 0; k < n; k++) {
     stepFlippers(h);
+    if (T.mechanisms) stepMechanisms(h);
     for (const b of G.balls) stepBall(b, h);
     if (G.balls.length > 1) collideBalls();
   }

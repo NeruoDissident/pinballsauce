@@ -1,5 +1,6 @@
 /* ================= ONE FRAME =================
    Poses everything from the game state and draws. Reads G and T, changes neither (it does add cosmetic sparks). */
+import {frameMovingParts} from './mechanisms.js';
 import {G, T, focusBall} from '../core/state.js';
 import {PI, clamp, hash, lerp, rand} from '../core/util.js';
 import {frameActors} from './actors.js';
@@ -63,6 +64,7 @@ export function frame3D(dt) {
     cls = run ? run.cls : 'knight',
     cl = CLASSES[cls];
   const ex = G.paused || G.choice || G.mode === 'over' ? 0 : (R3.acc || 0) * (G.slow > 0 ? 0.4 : 1);
+  if (T.mechanisms) frameMovingParts(G.balls);
   // flippers
   for (const o of D.flips) {
     const f = o.f,

@@ -1231,6 +1231,38 @@ tr.me td {
     --hudw: min(640px, calc(100% - 580px));
   }
 }
+.flipper-power {
+  margin: 16px 0 22px;
+  padding: 14px;
+  border: 1px solid #8b806250;
+  border-radius: 10px;
+  background: #ffffff08;
+}
+.flipper-power label {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.flipper-power output {
+  color: var(--gold);
+  font-variant-numeric: tabular-nums;
+}
+.flipper-power input[type='range'] {
+  width: 100%;
+  min-height: 36px;
+  margin: 0;
+  accent-color: var(--gold);
+}
+.power-marks {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  gap: 8px;
+}
+.flipper-power .hint {
+  margin-bottom: 0;
+}
 /* a phone on its side is wide but short: the panels are narrower and set smaller, and clear of the notch */
 @media (orientation: landscape) and (min-width: 700px) and (max-height: 540px) {
   #app.playing .side {

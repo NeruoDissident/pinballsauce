@@ -103,11 +103,11 @@ export function bank(id, tier, p0, p1, n, kind, o) {
   }
   return B;
 }
-export function mouthGeo(px, py, sx) {
-  const dx = sx * 0.38,
-    dy = sx ? -0.925 : -1,
-    qx = sx ? 0.925 : 1,
-    qy = sx * 0.38;
+export function mouthGeo(px, py, sx, angle) {
+  const dx = angle === undefined ? sx * 0.38 : Math.cos(angle),
+    dy = angle === undefined ? (sx ? -0.925 : -1) : Math.sin(angle),
+    qx = angle === undefined ? (sx ? 0.925 : 1) : -dy,
+    qy = dx;
   const lb = [px - qx * 28, py - qy * 28],
     rb = [px + qx * 28, py + qy * 28]; // a funnel: 56 wide at the lip, 38 at the throat
   return {

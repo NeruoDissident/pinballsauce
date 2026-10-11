@@ -2,7 +2,7 @@
    Loading a table, starting, continuing and ending a run, the run's modifiers, and how a campaign's main quest is
    assembled from the table's plan. */
 import {FXO, G, T, later} from '../core/state.js';
-import {pick, rand, setStoreNs, shuffle, store} from '../core/util.js';
+import {pick, prefs, rand, setStoreNs, shuffle, store} from '../core/util.js';
 import {startBall} from './ball.js';
 import {CLASSES} from './classes.js';
 import {checkLamps} from './lamps.js';
@@ -12,8 +12,9 @@ import {PERKS, RELICS} from './perks.js';
 import {qBegin, qResume, quests} from './quests.js';
 import {gold} from './score.js';
 import {buildTable} from '../table/build.js';
+import {resetMechanisms} from '../table/mechanisms.js';
 import {BOSSES, CAMPAIGNS, DEF, RULES, SIDE, THEME, TUNE, USE, setContent} from '../table/content.js';
-import {BT, TY, setFeel, setLayout} from '../table/layout.js';
+import {ST, TY, setFeel, setFlipperBoost, setLayout} from '../table/layout.js';
 import {A} from '../ui/audio.js';
 import {UI, popup} from '../ui/ui.js';
 
@@ -22,6 +23,7 @@ export function initGame(def) {
   setStoreNs('pinballsauce.' + (def.store || def.id) + '.');
   setLayout(def.layout);
   setFeel(def.feel);
+  setFlipperBoost(prefs.get('flipperBoost', 0));
   setContent(def);
   // the table's say on each of the engine's named effects (see burst, flash, shake, ring, bolt in core/state.js)
   for (const k in FXO) FXO[k] = THEME.fx[k] && typeof THEME.fx[k] === 'object' ? THEME.fx[k] : {};
@@ -29,11 +31,12 @@ export function initGame(def) {
   buildTable(def);
   checkLamps();
   G.statues = T.statues.map(s => ({x: s.x, y: s.y, r: s.r, tier: s.tier, id: s.id, on: true, flash: 0, cool: 0}));
-  G.cam.y = G.cam.ty = TY[BT] - 20;
-  G.focusTier = BT;
+  G.cam.y = G.cam.ty = TY[ST] - 20;
+  G.focusTier = ST;
   if (RULES.init) RULES.init();
 }
 export function resetWorld() {
+  if (T.mechanisms) resetMechanisms();
   G.gen = (G.gen || 0) + 1;
   Object.assign(G, {
     balls: [],
@@ -296,7 +299,7 @@ export function startRun(cls, comp) {
   resetWorld();
   G.mode = 'play';
   newRun(cls, comp);
-  G.cam.y = TY[BT] - 20;
+  G.cam.y = TY[ST] - 20;
   if (G.run.main) qBegin(G.run.main);
   startBall();
   if (G.run.main) popup(G.run.main.name, G.run.main.text, 'main');
@@ -307,7 +310,7 @@ export function newSideQuiet() {
   if (!USE.side) return;
   const r = G.run,
     pool = SIDE.filter(
-      s => s.steps[0].tier === BT || (s.steps[0].id && T.shots[s.steps[0].id] && T.shots[s.steps[0].id].tier === BT)
+      s => s.steps[0].tier === ST || (s.steps[0].id && T.shots[s.steps[0].id] && T.shots[s.steps[0].id].tier === ST)
     );
   if (!pool.length) return;
   const s = pick(pool);
@@ -352,7 +355,7 @@ export function continueRun() {
     G.run.wing = {key: cw && m.steps.some(x => x.id === 'wing') ? cw.key : null, open: false, done: false, prog: 0};
   }
   recalc();
-  G.cam.y = TY[BT] - 20;
+  G.cam.y = TY[ST] - 20;
   if (!G.run.main && USE.quests) {
     G.run.main = makeCampaign(G.run);
     qBegin(G.run.main);
