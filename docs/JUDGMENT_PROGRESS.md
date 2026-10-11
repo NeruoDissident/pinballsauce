@@ -25,4 +25,12 @@ Do not change any other table's layout, feel, rules, or defaults. Leave the shar
 
 Testing policy: focused checks during development, one complete final regression for shared changes; no video comparisons. Passing automation does not substitute for the owner's playtest.
 
-Final verification details are in docs/STATUS.md, Stage 8.1. All 120 five-minute replays match; existing tables and their recordings are unchanged. Engine commit 276d52a and table commit 9778fcd are pushed. Draft PR #1 has the final implementation and verification description. The full-menu and standalone HTML builds are delivered. No implementation tasks remain; awaiting the owner’s playtest.
+Final redesign verification details are in docs/STATUS.md, Stage 8.1. All 120 five-minute replays matched; existing tables and their recordings were unchanged. Engine commit 276d52a and table commit 9778fcd are pushed. Draft PR #1 has the redesign and verification description. The full-menu and standalone HTML builds are delivered.
+
+## Owner playtest: flipper strength trial
+
+The owner reports that Pilgrimage's entrance angle is difficult, Redemption is possible but difficult, and long ramps lack momentum. At the owner's request, increase only Judgment's `feel.flipper` to `1.15` (+15%). Keep the standard stroke acceleration and 85% cutoff, all geometry, and all ramp settings unchanged. No engine or other-table changes. Defer Pilgrimage repositioning until feedback on this strength trial.
+
+Judgment's ten-minute replay baseline is intentionally re-recorded for the new strength. Reach finds shots for every flipper; its limited timing sweep no longer finds Ascension, but the short soak completes Ascension once. Do not interpret reach as proof that a human cannot hit a shot. Two five-minute soak seeds find no stuck balls or errors; Pilgrimage completes 11 times without a failed climb. Standards pass (47/48 fair launches). These are structural checks, not evidence that aiming is comfortable. Full-menu and standalone builds now contain the trial. Await the owner's feedback before moving anything.
+
+Trial validation: `npm run check` and `npm test` pass, including all 120 replays and the progression/mechanism checks. Existing tables' baselines and every layout baseline remain unchanged. Two full-menu Judgment replays match source; the standalone file opens offline, launches, and responds to both flippers. Delivered as `Pinballsauce.html?v=flipper115#judgment` and `Judgment.html`.

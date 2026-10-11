@@ -11,7 +11,7 @@ export default {
   blurb: 'Heaven above. Hell below. Three souls to save, one Beast to overcome.',
   uses: {classes: false, levels: false, health: false, party: false, cards: false, gold: false},
   balls: 3,
-  feel: 'standard',
+  feel: {preset: 'standard', flipper: 1.15},
   layout,
   content,
   rules,
