@@ -68,6 +68,7 @@ Write the plan down as a list before any geometry: field, where it stands, how t
 cp -r tables/starfall tables/<id>         # plain pinball, one field, every optional system off, no art
 cp -r tables/test-bench tables/<id>       # an unusual shape: a grid, a room with no standard parts. No art
 cp -r tables/gravebound tables/<id>       # the RPG kind, every system on, a stack, wings, a full theme
+cp -r tables/crush-hour tables/<id>       # the RPG kind on a grid (a heart of three), its own words, effects and figures
 ```
 
 - `table.js`: set `id`, `name`, `store` (all new), `blurb`, `accent`, and `uses`, `balls`, `feel` from the brief.

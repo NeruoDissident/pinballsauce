@@ -23,10 +23,12 @@ want of a shorter word; read that as "the shared parts", not as a rule book.
 
 - No build step. Plain ES modules, opened through any static server (`npm start`, GitHub Pages, Vercel).
 - Three.js r128 is vendored in `vendor/three` and loaded as classic scripts, so `THREE` is a global.
-- Four tables ship. `tables/starfall`: one playfield, every optional system off: the reference for plain pinball.
+- Five tables ship. `tables/starfall`: one playfield, every optional system off: the reference for plain pinball.
   `tables/gravebound`: three levels, every optional system on: the reference for the RPG kind.
   `tables/neon-descent`: a second themed table with everything on. `tables/test-bench`: no art, uses every
   *layout* feature (a grid of fields, a field with no standard parts, three flipper sizes, drain ramps).
+  `tables/crush-hour`: a themed table on a grid (three fields as a heart), every system on, and the reference
+  for re-dressing the shared code's words and effects (`text.words`, `theme.fx`, its own enemy figures).
 - Still ahead, not started: a front-end editor (inspect mode is its first half), and table size as a setting.
 
 ## Map
@@ -99,7 +101,8 @@ wants the work done.
 
 **Hard (things break):**
 
-1. **A table imports only from `engine/api.js`.** The engine never imports from a table.
+1. **A table imports only from `engine/api.js`** (its `main.js` also imports the shell to boot), and never from
+   another table. The engine never imports from a table. `npm run check` fails on any of these.
 2. **Base modules import nothing upward.** `core/util.js`, `core/state.js`, `table/layout.js`, `table/content.js` are
    read by everything; they must not import rules, render or ui (ES module evaluation order breaks otherwise).
 3. **Nothing reads layout or content bindings while a module is being evaluated.** They are filled by `initGame()`.

@@ -2,7 +2,7 @@
 
 A table is a folder under `tables/`. The engine reads it; nothing in the engine knows any table by name.
 What a table should *have* (lights, goals, a fair launch) is in `PINBALL.md`. This page is how to write it down.
-Four tables ship, and each is a reference for something different:
+Five tables ship, and each is a reference for something different:
 
 - `tables/starfall` — plain pinball: one playfield, every optional game system off, goals written as data and as
   rules, state lamps on the playfield. **Read this one first for a table with no RPG in it.**
@@ -12,6 +12,10 @@ Four tables ship, and each is a reference for something different:
 - `tables/gravebound` — every optional game system on (classes, enemies, bosses, wings, doors, three campaigns, a
   full theme). A plain stack.
 - `tables/neon-descent` — a second themed table with everything on. A plain stack.
+- `tables/crush-hour` — a themed table on a grid: three fields standing as a heart, everything on. **Read this one
+  for a table that should not look or read like Gravebound**: its own words for the shared code's banners
+  (`text.words`), its own effects (`theme.fx`), its own enemy figures (`theme/figures.js`), and one feature of its
+  own in `rules.js` (the Perfect Day).
 
 ```
 tables/<id>/

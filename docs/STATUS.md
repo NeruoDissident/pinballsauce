@@ -1,8 +1,82 @@
 # Status
 
-Written 10 October 2026, at the end of the fifth stage (the third, fourth and fifth were the same day). Three lists
+Written 10 October 2026, at the end of the sixth stage (the third to the sixth were the same day). Three lists
 for each: what exists, what was checked and how, and what was not checked. Nothing in a "verified" list is a guess;
 anything that is a guess is in a "not verified" list.
+
+## Stage 6: Crush Hour, a fifth table
+
+The owner asked for one more table as the proof that the same ruleset can carry a table nothing like the others:
+cute, pinks, a school-and-suburb setting, a dating-sim theme. It was built as a table only: **no engine file was
+changed for it**. What it could not do within the engine as it stands is listed below, not worked round.
+
+**What it is.** `tables/crush-hour`: three playfields standing as a heart (`at` `[-.5,0]`, `[.5,0]`, `[0,1]`).
+Sakura High and Starlight Plaza are the two lobes; Maple Street is the point, with the plunger and the only real
+drain. The School Run and the Plaza Line climb from Maple Street to the lobes, the Sky Bridge and the Promenade
+cross between the lobes over the top of the heart, and a ball lost on a lobe slides back down to Maple Street.
+
+| The shared system | On this table |
+|---|---|
+| A campaign | one crush's route. Three (Momo, Hana, Riku); a run plays one. They share the steps for each playfield and differ in the date, the last playfield and the rivals in their waves |
+| Bosses | three people in the way (Dad at the Door, the Hall Monitor, the Queen Bee), then the crush, each a painted portrait |
+| Enemies | eight rivals, one per job. Six are this table's own figures (a small body under a big head: `theme/figures.js`); the corgi and the butterflies are stock figures recoloured |
+| Health, gold, the party, the Rally, the Grave | confidence, bucks, your friends, Squad Up, the Friend Zone |
+| The feature roles of Gravebound and Neon Descent | kept, one for one, under new names (listed at the top of its `rules.js`) |
+| One feature of its own | the Perfect Day: three stops, one on each playfield (the Boba Cafe, the Rooftop, the Photo Booth). All three on one ball pays 50,000, relights the kickback and gives 30 seconds of double scoring; lose the ball first and the stops go out. Three lamps on Maple Street show it |
+| Words | every banner and floating word the shared code produces, through `text.words` (46 of them), plus the named keys of `text` |
+| Effects | `theme.fx`: hearts when a rival is won over or a portrait is hit, stars off the bumpers and the big moments, softer flashes and shake, pink where the engine's colour is fire or lightning |
+| Lamp colours | the engine's, on purpose, so gold, blue and green mean here what they mean on the other tables. Only the "feature open" lamp changed (white) |
+| State on the playfield | multiplier, ball save, kickback, Rally and Friend Zone lamps on Maple Street; the lock's two lamps beside the Lockers; a wish lamp beside the Fountain; the three Perfect Day lamps |
+
+Where the geometry comes from: each lobe is the checklist's shot-tested symmetric field, Maple Street is its home
+field, and the two roads up and the two drain ramps are the test bench's. The two bridges over the cleft are new.
+
+Also in this stage: `npm run check` now enforces the import rule that until now was only written down (a table
+imports from its own folder and `engine/api.js`, never from another table or from inside the engine; `main.js` may
+import the shell). It was tried by pointing one of this table's files at an engine internal: the check failed and
+named the line.
+
+### Verified in stage 6
+
+| What | How | Result |
+|---|---|---|
+| Nothing sticks; every ramp can be climbed; the bridges work | `node tests/soak.mjs 20 --table crush-hour --seeds 8`: 160 minutes of bot play | 0 stuck. Every ramp made far more than failed (Sky Bridge 58 to 2, Promenade 81 to 9, School Run 68 to 8, Plaza Line 127 to 10). Both drain ramps ridden (84 and 93). One shot never made: Maple Street's right orbit (below) |
+| A fair launch, a light on every goal and shot, state on the playfield | `npm run standards -- crush-hour` | 48 of 48 launches reached a flipper; 25 of 25 goals and 28 of 28 shots have a light; multiplier, ball save, kickback and lock are on the floor. It printed no notes |
+| Every flipper has shots | `npm run reach -- crush-hour` | five or six shots per flipper on every playfield. Not found from a rolling ball: the Rooftop (behind its door), the lane sets and statues, and on Maple Street the two orbits, the Bus Stop and the Porch Lights. The soak made all of those but the right orbit |
+| No optional system is holding it up | `npm run switches -- crush-hour` | each of its eleven systems off in turn, and all off: every one loaded, played and ended a run |
+| All three routes can be finished | each route walked to its end with the dev key that completes a step, a bot on the flippers | eleven stages each, all four of its bosses woke and went down in order, and the run ended on the won screen with that crush's last line |
+| A rival won over; the Perfect Day | one rival removed and the three stops made by hand in a test page | sixteen heart particles and "WON OVER"; after the third stop the banner, 30 s of double scoring and one perfect day counted |
+| It looks like what was asked for | frames looked at: the title, each playfield in play, all eight rivals with two different portraits up, the whole table tilted in inspect mode with its scenery | hearts for bumpers on a pink street, a ruled exercise book with petals for the school, stars and a big wheel for the plaza; trees, houses, the school and the wheel round the table |
+| The other four tables are untouched | `npm test` with the new table added to it | 100 of 100 scenarios identical to their recordings: the 80 of the four older tables, and the 20 recorded for this one |
+
+### Not verified in stage 6
+
+- **Nobody has played it.** Everything above is a bot, a test page or a screenshot. Whether it is fun, and whether
+  it reads as cute in motion, is for the owner.
+- **Balance.** Every rival's and boss's numbers are copied from the Neon Descent rival or boss in the same place.
+  Nothing was tuned for three playfields instead of four.
+- **Maple Street's right orbit.** The bot never made it in 160 minutes. It is the same assembly as Neon Descent's
+  Undercity and the test bench's Home, where the bot does not make it either (0 in 80 minutes each), and Gravebound's
+  bot makes it rarely. No goal on this table depends on it. Whether a person can make it is a question for play.
+- **The Rooftop.** Made once in 160 minutes by the bot: it is behind a door that stays open 22 seconds, like Neon
+  Descent's Backstage. Hana's date and one favour need it, and the Perfect Day needs it on the same ball as two
+  other scoops. That may be too hard; it has not been judged.
+- **Each boss fought properly.** They were woken and finished by the dev key. Their phases and spells are the
+  shared code's and were not played through here.
+- **The one-file build** has the table in it and loads it (below), but was not soaked.
+- **Sound.** The table uses the engine's own sounds unchanged. Voice lines are the owner's to make.
+
+### What this table could not do without an engine change (noted, not done)
+
+- **The words in the side panels and menus.** The hero sheet beside the playfield still says "Hero", "Slain",
+  "Threat", "Rally", "the party comes out", "Spellbook", "Boons", and the pause and options screens are the
+  engine's. `text.words` covers banners, floating words and the HUD, not these. On a wide screen the hero sheet is
+  on show all the time, so this is the first thing a playtest is likely to ask for.
+- **The health bar has no name on it**, so it cannot be called confidence anywhere but the help pages.
+- **Portraits are flat.** Bosses are painted billboards; only the rivals are 3D.
+- **Scenery does not move.** The big wheel would turn if a theme had a per-frame hook; it has none.
+
+---
 
 ## Stage 5: nothing the shared code does is forced on a table
 

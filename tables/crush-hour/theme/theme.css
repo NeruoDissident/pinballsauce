@@ -1,0 +1,21 @@
+/* Crush Hour: the page's skin. Loaded after engine/ui/page.css; it only re-colours and re-letters, by setting the
+   variables page.css is written with. */
+:root {
+  --void: #24102a;
+  --stone: #341838;
+  --stone-2: #472148;
+  --line: #7a4a78;
+  --bone: #fff0f6;
+  --ash: #dcb0cc;
+  --gold: #ffd24a;
+  --blood: #ff5f9e;
+  --frost: #7fd4ff;
+  --moss: #8ff0c8;
+  --violet: #c9a8ff;
+  --display: 'Arial Rounded MT Bold', 'Trebuchet MS', 'Segoe UI', system-ui, sans-serif;
+  --label: 'Trebuchet MS', 'Segoe UI', system-ui, sans-serif;
+  --body: 'Trebuchet MS', 'Segoe UI', Arial, sans-serif;
+}
+#app {
+  background: radial-gradient(120% 80% at 50% 0%, #5a2a5e 0%, var(--void) 70%);
+}

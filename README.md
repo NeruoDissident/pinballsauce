@@ -17,6 +17,7 @@ A table is a folder of data, a few hook functions and art.
 | `tables/starfall/` | Plain pinball: one playfield, three balls, no health bar, no RPG. Shots, lights, a multiplier, a lock, a mission. The reference for a table with every optional system off |
 | `tables/gravebound/` | Gravebound Pinball. Dark fantasy, three levels, every optional system on |
 | `tables/neon-descent/` | Neon Descent: cyberpunk, four districts, every optional system on |
+| `tables/crush-hour/` | Crush Hour: cute. Three playfields standing as a heart, every optional system on and re-dressed (a route per crush, the Friend Zone for a Grave), its own rivals and effects |
 | `tables/test-bench/` | No art. Uses every layout feature: fields on a grid, three flipper sizes, a room of its own shape, drains that are ramps |
 | `engine/` | the shared code. Tables import from `engine/api.js` only |
 | `docs/` | start with [`docs/LLM_GUIDE.md`](docs/LLM_GUIDE.md); status in [`docs/STATUS.md`](docs/STATUS.md) |

@@ -83,6 +83,26 @@ for (const f of files) {
     }
     if (rel(f).startsWith('engine/') && rel(tgt).startsWith('tables/'))
       errs.push(rel(f) + ':' + im.line + ': the engine must not import from a table (' + im.from + ')');
+    // a table keeps to itself: its own folder, and the engine through its one door (main.js boots through the shell)
+    if (rel(f).startsWith('tables/')) {
+      const own = rel(f).split('/').slice(0, 2).join('/') + '/',
+        to = rel(tgt);
+      if (to.startsWith('tables/') && !to.startsWith(own))
+        errs.push(rel(f) + ':' + im.line + ': a table must not import from another table (' + im.from + ')');
+      if (
+        to.startsWith('engine/') &&
+        to !== 'engine/api.js' &&
+        !(rel(f) === own + 'main.js' && to === 'engine/app/shell.js')
+      )
+        errs.push(
+          rel(f) +
+            ':' +
+            im.line +
+            ': a table imports from engine/api.js only, not from ' +
+            to +
+            ' (main.js may import the shell)'
+        );
+    }
     const have = exportsOf(tgt);
     for (const n of im.names)
       if (n !== '*' && !have.has(n)) errs.push(rel(f) + ':' + im.line + ': ' + im.from + ' does not export ' + n);
