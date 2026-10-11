@@ -41,7 +41,7 @@ export const FEELS = {
     gravity: 1150, // units/s2 down the table
     maxSpeed: 2300, // nothing moves faster
     bounce: 0.45, // what a plain wall gives back
-    flipper: 1, // flipper strength
+    flipper: 1.15, // flipper strength; the owner's new shared baseline
     // The flipper's stroke, modelled on a real coil. The bat starts from a standstill and the coil drives it up to
     // speed, pushing hardest at the first instant and less as it gets going; over the last of the swing the power is
     // cut to a holding current and the bat slows. A ball on the bat is carried by it and let go where the bat
@@ -64,7 +64,7 @@ export const FEELS = {
   // standard, with the flipper the first tables were made with: one speed from the first instant to the stop. Not
   // a choice for a table: it is here so the recording made from the original Gravebound can still be replayed
   // (tests/replay.mjs --feel flat)
-  flat: {stroke: 'flat'},
+  flat: {stroke: 'flat', flipper: 1},
   fast: {speed: 1.15},
   slow: {speed: 0.88},
   lively: {bounce: 0.52, sling: 1.12, bumper: 520}
@@ -72,6 +72,18 @@ export const FEELS = {
 export let FEEL = FEELS.standard,
   GRAV = 1150,
   VMAX = 2300;
+export const FLIPPER_POWER = {min: 0, max: 100, step: 10};
+export let flipperBoost = 0;
+let baseFlipper = FEELS.standard.flipper;
+// Player preference scales only the powered stroke. Keep its base separately so repeated changes never compound.
+export function setFlipperBoost(value) {
+  const n = Number(value);
+  flipperBoost = Number.isFinite(n)
+    ? Math.round(Math.max(FLIPPER_POWER.min, Math.min(FLIPPER_POWER.max, n)) / FLIPPER_POWER.step) * FLIPPER_POWER.step
+    : 0;
+  FEEL = {...FEEL, flipper: baseFlipper * (1 + flipperBoost / 100)};
+  return flipperBoost;
+}
 export function setFeel(f) {
   const o = typeof f === 'string' ? {preset: f} : f || {},
     pre = FEELS[o.preset || 'standard'];
@@ -104,6 +116,8 @@ export function setFeel(f) {
   };
   GRAV = FEEL.gravity;
   VMAX = FEEL.maxSpeed;
+  baseFlipper = FEEL.flipper;
+  setFlipperBoost(flipperBoost);
 }
 // the flipper lengths the manufacturer makes. Standard is what every field gets unless its layout says otherwise.
 export const FLIPPER = {mini: 58, standard: 82, long: 92};
@@ -135,7 +149,7 @@ export let TY = [], // each tier's top
 export function setLayout(L) {
   NM = L.fields.length;
   BT = NM - 1;
-  const shooters = L.fields.map((f, i) => f.shooter ? i : -1).filter(i => i >= 0);
+  const shooters = L.fields.map((f, i) => (f.shooter ? i : -1)).filter(i => i >= 0);
   if (shooters.length !== 1) throw new Error('layout: exactly one field must have shooter:true');
   ST = shooters[0];
   GT = NM;

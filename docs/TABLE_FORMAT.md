@@ -84,7 +84,7 @@ Give an object to start from a preset and change single numbers: `feel:{preset:'
 | `gravity` | 1150 | pull down the table. Changing it alone changes how far a flipper shot climbs: check `npm run reach` |
 | `maxSpeed` | 2300 | nothing moves faster |
 | `bounce` | 0.45 | what a plain wall gives back (a wall's own `bounce` still wins) |
-| `flipper` | 1 | flipper strength |
+| `flipper` | 1.15 | baseline flipper strength, before the player's power boost |
 | `stroke` | `{punch:0, rise:.006, cut:.85, hold:.45, peak:1.05}` | how the bat swings (below) |
 | `sling`, `bumper` | 1, 470 | slingshot kick (a factor); pop-bumper kick (a bumper's own `kick` still wins) |
 | `plunge` | `[1330, 1950]` | launch speed, from a tap to a full pull |
@@ -107,6 +107,13 @@ shot that cannot be made.
 
 A feel is one table's. It never changes another table. After changing one, run `npm run soak`, `reach` and
 `standards` for that table: a faster ball finds different pockets.
+
+Players can add **0–100%** flipper power in **10% steps**, in Pause or Options. This preference is shared across
+tables and saved under `pinballsauce.prefs.flipperBoost`. It multiplies the table's baseline flipper strength
+without changing the stroke settings, return speed, gravity, bounce, ramps, or ball-speed cap. Baseline on every
+shipped table is now 1.15 (the owner's approved Judgment trial); +100% gives 2.3. `setFlipperBoost` clamps and
+rounds input without compounding prior adjustments. The archival `flat` preset retains its original baseline 1.
+Use `node tests/soak.mjs 5 --table judgment --boost 100` to check the upper setting.
 
 To try a preset before committing to it: open the table with `?feel=fast` on the address
 (`tables/starfall/?feel=fast`) and play it, or give a check `--feel` (`node tests/soak.mjs 15 --table starfall

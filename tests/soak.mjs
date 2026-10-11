@@ -1,7 +1,7 @@
 /* The soak test for a table's LAYOUT: the bot plays every field for a while and the engine reports where balls got
    stuck, which shots were never made, and whether anything threw.
 
-     node tests/soak.mjs [minutes=8] [--table neon-descent] [--seeds 4] [--feel fast]
+   node tests/soak.mjs [minutes=8] [--table neon-descent] [--seeds 4] [--feel fast] [--boost 100]
 
    Every run uses a fixed seed, so a finding can be reproduced. Every 45 s of game time the ball is dropped on the
    next field in turn, so the upper fields get as much play as the bottom one.
@@ -129,6 +129,11 @@ for (let k = 0; k < nSeeds; k++) {
   );
   await local(pg, table, feel && {feel});
   await pg.addInitScript(init, 7000 + k * 131);
+  if (opt('boost') !== null)
+    await pg.addInitScript(
+      value => localStorage.setItem('pinballsauce.prefs.flipperBoost', JSON.stringify(value)),
+      +opt('boost')
+    );
   await pg.goto(url);
   await pg.waitForFunction(() => window.__pb && window.__pb.ready(), null, {timeout: 180000, polling: 300});
   const r = await pg.evaluate(play, [CL[k % 4][0], CL[k % 4][1], 7000 + k * 131, mins]);

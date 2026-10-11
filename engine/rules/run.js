@@ -2,7 +2,7 @@
    Loading a table, starting, continuing and ending a run, the run's modifiers, and how a campaign's main quest is
    assembled from the table's plan. */
 import {FXO, G, T, later} from '../core/state.js';
-import {pick, rand, setStoreNs, shuffle, store} from '../core/util.js';
+import {pick, prefs, rand, setStoreNs, shuffle, store} from '../core/util.js';
 import {startBall} from './ball.js';
 import {CLASSES} from './classes.js';
 import {checkLamps} from './lamps.js';
@@ -14,7 +14,7 @@ import {gold} from './score.js';
 import {buildTable} from '../table/build.js';
 import {resetMechanisms} from '../table/mechanisms.js';
 import {BOSSES, CAMPAIGNS, DEF, RULES, SIDE, THEME, TUNE, USE, setContent} from '../table/content.js';
-import {ST, TY, setFeel, setLayout} from '../table/layout.js';
+import {ST, TY, setFeel, setFlipperBoost, setLayout} from '../table/layout.js';
 import {A} from '../ui/audio.js';
 import {UI, popup} from '../ui/ui.js';
 
@@ -23,6 +23,7 @@ export function initGame(def) {
   setStoreNs('pinballsauce.' + (def.store || def.id) + '.');
   setLayout(def.layout);
   setFeel(def.feel);
+  setFlipperBoost(prefs.get('flipperBoost', 0));
   setContent(def);
   // the table's say on each of the engine's named effects (see burst, flash, shake, ring, bolt in core/state.js)
   for (const k in FXO) FXO[k] = THEME.fx[k] && typeof THEME.fx[k] === 'object' ? THEME.fx[k] : {};

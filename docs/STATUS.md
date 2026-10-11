@@ -2,6 +2,36 @@
 
 Updated 11 October 2026 with Judgment. The earlier stages below retain their original verification notes.
 
+## Stage 8.2: player flipper power
+
+At the owner's explicit request, the shared standard flipper strength is now 1.15, matching Judgment's approved
+trial. Every shipped table uses it. Pause and Options expose a marked +0% to +100% slider in 10% steps; +100%
+doubles that baseline to 2.3. The preference persists across tables and reloads. Only the powered stroke's speed
+targets scale: stroke acceleration/cutoff/holding settings, return speed, gravity, bounce, ramps and the ball-speed
+cap are unchanged. No objects were moved. Pilgrimage's entrance remains a separate playtest issue.
+
+Verification:
+
+- Static checks, all six layout snapshots, all 120 five-minute replay scenarios, 25 Judgment progression checks
+  and 23 mechanism checks pass. `npm test` completed the five other tables before a browser-startup timeout on
+  Judgment; its complete replay and the two remaining suites passed when rerun in a fresh browser.
+- `npm run test:power`: all eleven settings, pause safety, keyboard control, persistence across all six tables,
+  bounded input, touch input, and desktop/phone render inspection.
+- Two five-minute soak seeds at baseline and maximum on each of six tables: 120 simulated minutes, zero stuck
+  balls, zero errors or recurring pockets. This is evidence of stability, not a claim about aiming or balance.
+- Reach finds shots for every flipper except Test Bench's lower-right mini on West. A comparison at its original
+  strength reproduces the same warning. The owner requested preserving layouts; no geometry was changed.
+- Standards retain existing lamp notes on Gravebound/Neon Descent and Test Bench's wide West drain gap. Every
+  table passes the launch criterion (46–48 of 48 launches). Judgment still has 29/29 shot inserts.
+- The full six-table bundle preserves the preference while switching tables and measures exactly double the
+  powered stroke velocity at +100% in an early-stroke comparison on each table.
+- Five standard replay baselines are intentionally updated for the newly approved shared strength, keeping their
+  previous durations. Judgment's already-matching baseline and the historical flat baseline are untouched. Two
+  archival flat replays still match. All layout snapshots remain unchanged.
+
+The earlier statements that other tables' feel is unchanged describe Stage 8.1. The owner explicitly authorized
+this shared strength change and requested pushing and merging the experimental branch to main after validation.
+
 ## Stage 8.1: Judgment mechanical redesign
 
 The same experimental branch now includes seven flippers and eight visible track sections. Earth has a right-orbit

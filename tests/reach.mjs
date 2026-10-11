@@ -1,6 +1,6 @@
 /* The reach test for a table's LAYOUT: which shots can each flipper actually make?
 
-     node tests/reach.mjs [--table test-bench] [--field west] [--feel fast]
+     node tests/reach.mjs [--table test-bench] [--field west] [--feel fast] [--flipper 1.15]
 
    For every flipper on every field a ball is rolled down the bat and flipped, at every timing from "far too early"
    to "far too late" and at three rolling speeds, with nothing else on the table. What the ball reaches is written
@@ -31,7 +31,7 @@ const opt = n => {
 };
 const table = opt('table') || 'gravebound',
   only = opt('field'),
-  feel = opt('feel'); // try the table on another feel preset without editing it
+  feel = opt('flipper') === null ? opt('feel') : {preset: opt('feel') || 'standard', flipper: +opt('flipper')};
 
 const run = only => {
   const P = window.__pb.api,
