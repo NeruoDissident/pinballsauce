@@ -83,14 +83,14 @@ function heaven(c, y) {
           [320, 330],
           [320 + Math.cos((i / 18) * TAU) * 570, 330 + Math.sin((i / 18) * TAU) * 570]
         ],
-        '#f8efce44',
+        '#f8efce22',
         2
       );
     ring(c, 320, 350, 178, '#ddc98b99', 3);
     ring(c, 320, 350, 188, '#d4b66b77');
     for (const s of [-1, 1])
       for (let i = 0; i < 12; i++)
-        feather(c, 320 + s * (70 + i * 8), 390 - i * 5, s * (0.6 + i * 0.065), 130 + i * 4, '#f9f6df88');
+        feather(c, 320 + s * (70 + i * 8), 390 - i * 5, s * (0.6 + i * 0.065), 130 + i * 4, '#f9f6df44');
     cross(c, 320, 268, 110, '#b7964699');
     ring(c, 320, 246, 77, '#b7964688', 3);
     border(c, '#e9cb8188');
@@ -141,8 +141,6 @@ function earth(c, y) {
         );
     border(c, '#c3a57855');
     text(c, 'E A R T H', 320, 66, 30, '#e5d5b5');
-    text(c, 'RESCUE THREE SOULS', 303, 632, 21, '#e6cca0');
-    text(c, 'CANDLES  ·  BELLS  ·  SANCTUARY', 303, 655, 10, '#bac0ce');
     text(c, 'HELL WAITS BELOW', 303, 1004, 15, '#e68b6b');
     for (const x of [95, 530]) {
       cross(c, x, 265, 35, '#ac9c8266');

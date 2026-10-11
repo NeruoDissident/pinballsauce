@@ -1,9 +1,9 @@
 import {floorArt} from './art.js';
-import {scenery, bumper} from './props.js';
+import {scenery, bumper, mechanism} from './props.js';
 
 export const theme = {
   pal: [
-    {a: '#647184', b: '#404e68', acc: '#e8c66d', acc2: '#fff4c6', glow: '#a1c7ed', stone: '#c9c2ad'},
+    {a: '#3b516c', b: '#23364e', acc: '#e8c66d', acc2: '#fff4c6', glow: '#a1c7ed', stone: '#c9c2ad'},
     {a: '#292d43', b: '#141722', acc: '#b49162', acc2: '#dcbf8a', glow: '#edc98f', stone: '#777180'},
     {a: '#300b12', b: '#10070d', acc: '#ad302a', acc2: '#ff925e', glow: '#ff543b', stone: '#3d2832'},
     {a: '#160810', b: '#080509', acc: '#80282a', acc2: '#ff925e', glow: '#ff543b', stone: '#31212a'}
@@ -11,6 +11,7 @@ export const theme = {
   flagstones: false,
   floorArt,
   scenery,
+  mechanism,
   bumper,
   fog: ['#1d3148', '#0b101c', '#12050b', '#12050b'],
   tierLight: ['#edf4ff', '#ecd7b6', '#ff6841', '#ff6841'],

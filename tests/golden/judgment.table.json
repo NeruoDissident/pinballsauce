@@ -3,11 +3,11 @@
  "sections": {
   "banks": {
    "n": 6,
-   "hash": "870c3b27c492c61b"
+   "hash": "ec407e87410e5783"
   },
   "blocks": {
-   "n": 15,
-   "hash": "f11377563f7acdc9"
+   "n": 11,
+   "hash": "12162e34dcb7a1ad"
   },
   "bossSpot": {
    "n": 0,
@@ -22,36 +22,40 @@
    "hash": "83c3d53454b27b4b"
   },
   "flips": {
-   "n": 6,
-   "hash": "68341c35eacc700d"
+   "n": 7,
+   "hash": "8a9bf36c27cf26db"
   },
   "grid": {
    "n": 53,
-   "hash": "9a2aaa18c64ad37d"
+   "hash": "a3ce1b851cd8e357"
   },
   "holes": {
    "n": 5,
-   "hash": "ce1491eec215069d"
+   "hash": "ceaa989f58a99633"
   },
   "lamps": {
-   "n": 44,
-   "hash": "204f731551f94ed"
+   "n": 45,
+   "hash": "49035f08753b9215"
+  },
+  "mechanisms": {
+   "n": 3,
+   "hash": "7ee17c836277172f"
   },
   "mouths": {
-   "n": 1,
-   "hash": "e3824ed447732a41"
+   "n": 3,
+   "hash": "ab44aa06f33f3535"
   },
   "rails": {
-   "n": 1,
-   "hash": "efb9b5574de1e269"
+   "n": 8,
+   "hash": "f3aa0b76f4e28847"
   },
   "segs": {
-   "n": 406,
-   "hash": "a1736af2441b188d"
+   "n": 398,
+   "hash": "72b92efd832ab133"
   },
   "sens": {
    "n": 31,
-   "hash": "c1f100b8da8444b"
+   "hash": "bc0f7f3dc515abfd"
   },
   "sets": {
    "n": 3,
@@ -62,8 +66,8 @@
    "hash": "260da8bb482cb08b"
   },
   "shots": {
-   "n": 27,
-   "hash": "52b4c151116c0e5f"
+   "n": 35,
+   "hash": "949077e6ff3471ad"
   },
   "slings": {
    "n": 6,
@@ -86,12 +90,12 @@
    "hash": "15ae15bbde584255"
   },
   "tunnels": {
-   "n": 2,
-   "hash": "7dfd9be852554837"
+   "n": 0,
+   "hash": "741638a53edf8317"
   },
   "wallPaths": {
-   "n": 51,
-   "hash": "6f5d8e40e23a623b"
+   "n": 58,
+   "hash": "832b88d3e53a2833"
   },
   "wings": {
    "n": 0,

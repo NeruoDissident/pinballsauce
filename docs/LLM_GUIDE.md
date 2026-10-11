@@ -30,7 +30,7 @@ want of a shorter word; read that as "the shared parts", not as a rule book.
   `tables/crush-hour`: a themed table on a grid (three fields as a heart), every system on, and the reference
   for re-dressing the shared code's words and effects (`text.words`, `theme.fx`, its own enemy figures).
   `tables/judgment`: Heaven, Earth and Hell, every optional system off, custom goals in rules. Launches on the
-  middle field (`ST`); only the bottom field (`BT`) loses a ball. One ascent ramp and two transfer scoops.
+  middle field (`ST`); only the bottom field (`BT`) loses a ball. Seven flippers, asymmetric ramps, working gates/jaw, a captive bell, magnetic hold and a track diverter (see `MECHANISMS.md`).
 - Still ahead, not started: a front-end editor (inspect mode is its first half), and table size as a setting.
 
 ## Map

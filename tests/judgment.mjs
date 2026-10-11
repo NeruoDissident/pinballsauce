@@ -63,7 +63,10 @@ try {
     capture('beast');
     check(r.wounds === 0, 'Beast cannot be defeated before opening Heaven');
     const escaped = capture('redemption');
-    for (let i = 0; i < 500; i++) P.gameStep(1 / 120);
+    for (let i = 0; i < 900; i++) {
+      P.gameStep(1 / 120);
+      if (escaped.st === 'live' && escaped.tier === 1) break;
+    }
     check(escaped.tier === 1, 'Redemption physically returns to Earth');
     L.done('candles', 320, L.TY[1] + 118);
     for (let i = 0; i < 6; i++)
@@ -95,6 +98,7 @@ try {
     L.relight();
     check(G.lampS.redemption === 'flash', 'Final Redemption shot is lit');
     capture('redemption');
+    for (let i = 0; i < 700 && G.mode !== 'over'; i++) P.gameStep(1 / 120);
     check(G.mode === 'over' && r.ended === 'won', 'Final Redemption ends the run in Salvation');
     P.startRun('knight', null);
     G.run.shield = true;
@@ -107,6 +111,7 @@ try {
     G.run.wounds = 3;
     G.opt.endless = true;
     capture('redemption');
+    for (let i = 0; i < 700 && G.run.judgment === 3; i++) P.gameStep(1 / 120);
     check(
       G.mode === 'play' && G.run.judgment === 0 && !G.run.souls.some(Boolean),
       'Endless mode starts a fresh pilgrimage'

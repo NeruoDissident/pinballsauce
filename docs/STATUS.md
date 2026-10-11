@@ -2,7 +2,45 @@
 
 Updated 11 October 2026 with Judgment. The earlier stages below retain their original verification notes.
 
-## Stage 8: Judgment
+## Stage 8.1: Judgment mechanical redesign
+
+The same experimental branch now includes seven flippers and eight visible track sections. Earth has a right-orbit
+feed to its upper-right flipper, a cross-field Ascension combo, a separate Pilgrimage return to the left inlane, and
+a restrained cathedral bell ball. Heaven has physical opening Gates, a raised halo, a timed magnetic catch, and a
+diverter that selects a long visible descent during Armageddon. Hell has a moving Beast jaw, 25-second attack
+windows, visible wounds, and a rising Redemption return. Redemption remains available before the finale so a
+player can recover from Hell; the final return awards Salvation when the ball actually arrives on Earth.
+
+The engine additions are optional layout data, with named defaults. Tables without mechanisms create no moving
+collision objects and retain their existing paths and defaults. See [MECHANISMS.md](MECHANISMS.md). The Grave
+exit and all five existing tables' files/recordings are unchanged. New mechanisms do not alter the user's flipper feel.
+
+Verified on 11 October 2026:
+
+- Static check: 103 modules. Full npm test: six layout snapshots, 120 five-minute replay matches, 25 progression
+  checks and 23 physical mechanism checks. Only Judgment's layout and ten-minute replay baselines were re-recorded.
+- Physical mechanism checks include closed-barrier rebound, open-barrier capture, safe late ejection when the jaw
+  timer expires, captive-ball movement/return, magnetic hold/release, both diverter routes, upper-flipper feed and reset.
+- Final soak: eight seeds, 160 simulated minutes, no errors or recurring pockets. One auto-cleared rest at Earth
+  (526,301). Ascension 17 successes / 4 failed climbs; Pilgrimage 158 / 5; the feed, halo and return tracks had no
+  failed climbs. The captive bell was hit 46 times. The bot did not qualify the Armageddon/Beast phase; focused
+  physical and progression tests cover those phases explicitly.
+- Reach: all seven flippers reach shots. Upper flipper reaches Ascension and the captive bell; both Heaven
+  flippers reach qualified Gates; Hell's left flipper reaches the open Beast. The fixed probe missed some lanes,
+  orbits and the Abyss scoop that the soak reached. Continuation tracks have no independent mouth to aim at.
+- Standards: 47/48 fair launches, 29/29 feature inserts, required status lamps and connected fields.
+- Combined build: all six menu → game → Other tables round trips pass without page errors. Two Judgment
+  five-minute scenarios in the bundled build match source. Standalone file opens with network requests blocked;
+  New run, Space launch and both arrow flippers work.
+- Visuals: all three fields, closed/open Gates and jaw, tilted/top views and phone-sized layout inspected.
+  Lower flippers remain clear. A track that crossed the upper flipper's aiming view was rerouted.
+
+Still for the owner to judge: human aim, the combo timing window, difficulty and whether the play is satisfying.
+No claim of realistic free-space magnetic simulation: the current magnet is a timed catch mounted on a rail.
+No video comparisons were made. Main remains untouched; the full six-table HTML is the primary playtest build.
+
+## Stage 8: Judgment, initial version (historical verification)
+
 
 ### What exists
 

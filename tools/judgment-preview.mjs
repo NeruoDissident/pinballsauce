@@ -58,6 +58,18 @@ try {
       });
     }
   }
+  if (!process.argv.includes('--ui-only')) for (const tier of [0,2]) {
+    await pg.evaluate(tier => {
+      const p=window.__pb.api;
+      p.closeInspect(); p.startRun('knight'); p.UI.menu(null);
+      Object.assign(p.G.run,{souls:[true,true,true],judgment:2,chains:true,attack:25,wounds:2});
+      p.G.balls=[];
+      for(let i=0;i<140;i++) p.gameStep(1/120);
+      p.G.balls=[p.newBall(320,p.fields[tier].y+650,0,0)];p.G.focusTier=tier;
+      p.UI.q=[];p.UI.next();p.draw(6,.8);p.UI.sync(true);
+    },tier);
+    await pg.screenshot({path:path.join(output,tier===0?'heaven-gates-open.png':'hell-jaw-open.png')});
+  }
   const phone = await br.newPage({viewport: {width: 390, height: 844}, isMobile: true, hasTouch: true});
   await local(phone, 'judgment');
   await phone.goto(srv.url + '/tables/judgment/');

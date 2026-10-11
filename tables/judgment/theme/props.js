@@ -1,4 +1,4 @@
-import {R3, SM, BM, TY, E, hash, bumperBase} from '../../../engine/api.js';
+import {G, R3, SM, BM, TY, E, hash, bumperBase} from '../../../engine/api.js';
 
 function mesh(g, geo, mat, x, y, z, rx = 0, rz = 0) {
   const m = new THREE.Mesh(geo, mat);
@@ -163,19 +163,74 @@ export function scenery() {
       for (let i = 0; i < 13; i++) block(g, gold, 176 + i * 24, 38, -104, 5, 96, 7);
       angel(g, ivory, gold, white, 320, -170, 1.55);
     }
-    if (t === 2) {
-      // A sculpted demonic mask behind the scoop, kept low enough for the shot beneath it to read.
-      const face = new THREE.Group();
-      face.position.set(346, 2, 337);
-      g.add(face);
-      orb(face, dark, 0, 25, 0, 43, 1.25, 0.8, 0.7);
-      horn(face, bone, -30, 27, 0, -1, 0.5);
-      horn(face, bone, 30, 27, 0, 1, 0.5);
-      for (const s of [-1, 1]) {
-        orb(face, fire, s * 21, 37, 25, 7, 1.4, 0.4, 0.7);
-      }
-      for (let i = 0; i < 6; i++) mesh(face, new THREE.ConeGeometry(4, 16, 5), bone, -25 + i * 10, 10, 25, Math.PI);
+  }
+}
+export function mechanism(m, o) {
+  const gold = SM({color: '#d5b46c', metalness: 0.8, roughness: 0.25});
+  const ivory = SM({color: '#fff3d5', roughness: 0.5});
+  if (m.id === 'pearlyGates') {
+    for (const x of [-7, 87]) {
+      mesh(o.root, new THREE.CylinderGeometry(6, 9, 90, 12), ivory, x, 45, -4);
+      mesh(o.root, new THREE.SphereGeometry(9, 12, 8), gold, x, 95, -4);
     }
+    const pts = [];
+    for (let i = 0; i <= 24; i++) {
+      const a = Math.PI - (i * Math.PI) / 24;
+      pts.push(new THREE.Vector3(40 + 47 * Math.cos(a), 87 + 29 * Math.sin(a), -4));
+    }
+    mesh(o.root, new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 32, 3, 8, false), gold, 0, 0, 0);
+    return;
+  }
+  if (m.id === 'cathedralBell') {
+    for (const x of [-24, 24]) block(o.root, gold, x, 31, -38, 5, 62, 6);
+    block(o.root, gold, 0, 63, -38, 58, 6, 8);
+    const bell = new THREE.Group();
+    bell.position.set(0, 55, -38);
+    o.root.add(bell);
+    mesh(bell, new THREE.CylinderGeometry(7, 24, 29, 24), gold, 0, -14, 0);
+    mesh(bell, new THREE.TorusGeometry(24, 3, 8, 32), gold, 0, -29, 0, Math.PI / 2);
+    orb(bell, ivory, 0, -32, 0, 5);
+    return () => {
+      bell.rotation.x = Math.sin(G.t * 24) * m.flash * 0.3;
+    };
+  }
+  if (m.id === 'beastJaw') {
+    const dark = SM({color: '#3d1924', roughness: 0.55}),
+      bone = SM({color: '#be9474', roughness: 0.65});
+    const fire = SM({color: '#ff9458', emissive: '#ff3a13', emissiveIntensity: 1.3});
+    const face = new THREE.Group();
+    face.position.set(37, 51, -42);
+    o.root.add(face);
+    orb(face, dark, 0, 14, 0, 51, 1.3, 0.72, 0.8);
+    horn(face, bone, -38, 27, -10, -1, 0.64);
+    horn(face, bone, 38, 27, -10, 1, 0.64);
+    for (const side of [-1, 1]) {
+      orb(face, fire, side * 25, 26, 31, 8, 1.6, 0.4, 0.65);
+      orb(face, dark, side * 47, -10, 16, 21, 0.6, 1, 0.7);
+      const brow = block(face, dark, side * 25, 35, 34, 39, 10, 12);
+      brow.rotation.z = side * 0.28;
+      const cheek = mesh(face, new THREE.ConeGeometry(16, 47, 4), dark, side * 43, -4, 31, 0, side * 0.4);
+      cheek.rotation.y = Math.PI / 4;
+    }
+    mesh(face, new THREE.ConeGeometry(10, 27, 4), bone, 0, 7, 35, Math.PI);
+    for (let i = 0; i < 7; i++) mesh(o.leaves[0], new THREE.ConeGeometry(4.5, 20, 6), bone, 5 + i * 10, -5, 6, Math.PI);
+    const cracks = [];
+    for (let i = 0; i < 3; i++) {
+      const crack = block(face, fire, -22 + i * 22, 30, 38, 3, 35, 3);
+      crack.rotation.z = (i - 1) * 0.35;
+      cracks.push(crack);
+    }
+    return () => {
+      const wounds = G.run?.wounds || 0;
+      // Dress the retracting barrier as a lower jaw folding flat toward the player.
+      o.leaves[0].position.y = 0;
+      o.leaves[0].rotation.x = m.position * Math.PI / 2;
+      cracks.forEach((q, i) => {
+        q.visible = i < wounds;
+      });
+      fire.emissiveIntensity = G.run?.judgment === 3 ? 0.12 : m.open ? 2.3 : 1;
+      face.rotation.z = m.flash * Math.sin(G.t * 35) * 0.05;
+    };
   }
 }
 export function bumper(b) {
