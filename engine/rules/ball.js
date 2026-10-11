@@ -15,7 +15,7 @@ import {spellCast, spellVal} from './spells.js';
 import {leaveWing} from './wings.js';
 import {PTS, RULES, TEXT, TUNE, USE, WING_KEYS, hook} from '../table/content.js';
 import {railPos} from '../table/geometry.js';
-import {CX, FEEL, GRID, GT, H, HW, TY, WLEN, WT0, tierOf} from '../table/layout.js';
+import {BT, ST, CX, FEEL, GRID, GT, H, HW, TY, WLEN, WT0, tierOf} from '../table/layout.js';
 import {DRAIN_Y} from '../table/parts.js';
 import {A} from '../ui/audio.js';
 import {UI, popup} from '../ui/ui.js';
@@ -88,7 +88,8 @@ export function updatePlunger(dt) {
     if (p.auto <= 0) addBall('shooter');
   }
   const b = G.balls.find(
-    b => b.st === 'live' && b.x > T.shooter.x - 17 && b.y > T.shooter.y - 60 && Math.abs(b.vy) < 60
+    b => b.st === 'live' && b.x > T.shooter.x - 17 && b.y > T.shooter.y - 60 &&
+      (ST === BT || (b.x < T.shooter.x + 17 && b.y < T.shooter.y + 20)) && Math.abs(b.vy) < 60
   );
   p.ready = !!b;
   if (!b) {

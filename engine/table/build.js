@@ -220,24 +220,26 @@ function piece(p, C) {
     case 'centerScoop':
       centerScoop(p.x + ox, y, p.w);
       break;
-    case 'shooter': // the plunger lane up the right side of the home field (column 0, so no offset)
+    case 'shooter': // one plunger, on the field marked shooter:true
+      if (!C.def.layout.fields[tier].shooter || T.shooter)
+        throw new Error('layout: one shooter piece is required on the field marked shooter:true');
       poly(
         [
-          [586, y + 335],
-          [586, H + 80]
+          [ox + 586, y + 335],
+          [ox + 586, tier === BT ? H + 80 : y + 992]
         ],
         {w: 2}
       );
-      gseg([586, y + 335], [620, y + 288], 480, y + 200);
+      gseg([ox + 586, y + 335], [ox + 620, y + 288], ox + 480, y + 200);
       T.wallPaths.push({
         pts: [
-          [586, y + 335],
-          [620, y + 288]
+          [ox + 586, y + 335],
+          [ox + 620, y + 288]
         ],
         style: 'flap'
       });
-      seg(586, y + 992, 620, y + 992, {e: 0.1});
-      T.shooter = {x: 603, y: y + 980};
+      seg(ox + 586, y + 992, ox + 620, y + 992, {e: 0.1});
+      T.shooter = {x: ox + 603, y: y + 980};
       break;
     case 'kickback':
       sensor(p.x + ox, y + p.y, p.r, {kind: 'kick', tier});
@@ -471,7 +473,7 @@ export function buildTable(def) {
     if (f.boss) T.bossSpot[i] = {x: f.boss.x + ox, y: y + f.boss.y};
     T.spawn[i] = (f.spawn || []).map(o);
   }
-  if (!T.shooter) throw new Error('layout: the bottom field needs a {t:"shooter"} piece');
+  if (!T.shooter) throw new Error('layout: the launch field needs a {t:"shooter"} piece');
   if (L.grave) from('grave', () => buildGrave(L.grave, C)); // a table without one simply loses the ball at the drain
   (L.wings || []).forEach((wd, k) => from(wd.key + ' room', () => buildWing(wd, k, C)));
   // a field named by id or by index; a point given on the plane, or inside a field as ['#fieldId', x, y]

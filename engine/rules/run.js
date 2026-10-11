@@ -13,7 +13,7 @@ import {qBegin, qResume, quests} from './quests.js';
 import {gold} from './score.js';
 import {buildTable} from '../table/build.js';
 import {BOSSES, CAMPAIGNS, DEF, RULES, SIDE, THEME, TUNE, USE, setContent} from '../table/content.js';
-import {BT, TY, setFeel, setLayout} from '../table/layout.js';
+import {ST, TY, setFeel, setLayout} from '../table/layout.js';
 import {A} from '../ui/audio.js';
 import {UI, popup} from '../ui/ui.js';
 
@@ -29,8 +29,8 @@ export function initGame(def) {
   buildTable(def);
   checkLamps();
   G.statues = T.statues.map(s => ({x: s.x, y: s.y, r: s.r, tier: s.tier, id: s.id, on: true, flash: 0, cool: 0}));
-  G.cam.y = G.cam.ty = TY[BT] - 20;
-  G.focusTier = BT;
+  G.cam.y = G.cam.ty = TY[ST] - 20;
+  G.focusTier = ST;
   if (RULES.init) RULES.init();
 }
 export function resetWorld() {
@@ -296,7 +296,7 @@ export function startRun(cls, comp) {
   resetWorld();
   G.mode = 'play';
   newRun(cls, comp);
-  G.cam.y = TY[BT] - 20;
+  G.cam.y = TY[ST] - 20;
   if (G.run.main) qBegin(G.run.main);
   startBall();
   if (G.run.main) popup(G.run.main.name, G.run.main.text, 'main');
@@ -307,7 +307,7 @@ export function newSideQuiet() {
   if (!USE.side) return;
   const r = G.run,
     pool = SIDE.filter(
-      s => s.steps[0].tier === BT || (s.steps[0].id && T.shots[s.steps[0].id] && T.shots[s.steps[0].id].tier === BT)
+      s => s.steps[0].tier === ST || (s.steps[0].id && T.shots[s.steps[0].id] && T.shots[s.steps[0].id].tier === ST)
     );
   if (!pool.length) return;
   const s = pick(pool);
@@ -352,7 +352,7 @@ export function continueRun() {
     G.run.wing = {key: cw && m.steps.some(x => x.id === 'wing') ? cw.key : null, open: false, done: false, prog: 0};
   }
   recalc();
-  G.cam.y = TY[BT] - 20;
+  G.cam.y = TY[ST] - 20;
   if (!G.run.main && USE.quests) {
     G.run.main = makeCampaign(G.run);
     qBegin(G.run.main);

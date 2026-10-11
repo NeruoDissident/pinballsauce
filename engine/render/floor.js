@@ -5,7 +5,7 @@ import {G, T} from '../core/state.js';
 import {PI, TAU, hash, lerp, mkCanvas} from '../core/util.js';
 import {R, fieldPath, flagstones, path} from './draw2d.js';
 import {PAL, THEME, USE} from '../table/content.js';
-import {BT, CHAINS, FIELD_H, H, HW, NM, OX, TY, W, roofed} from '../table/layout.js';
+import {BT, ST, CHAINS, FIELD_H, H, HW, NM, OX, TY, W, roofed} from '../table/layout.js';
 
 /* ================= PLAYFIELD ART FOR 3D =================
    The playfield is the 2D game's own painted art, laid flat as a texture. Walls, blocks, slings, ramps and
@@ -81,19 +81,20 @@ export function drawFloor3D(c, ss, ox) {
     }
   }
   {
-    const g = c.createLinearGradient(586, 0, 620, 0);
+    const sx = OX[ST];
+    const g = c.createLinearGradient(sx + 586, 0, sx + 620, 0);
     g.addColorStop(0, '#0a0a10');
     g.addColorStop(0.5, '#1c1c2a');
     g.addColorStop(1, '#0a0a10');
     c.fillStyle = g;
-    c.fillRect(587, TY[BT] + 336, 33, H);
+    c.fillRect(sx + 587, TY[ST] + 336, 33, ST === BT ? H : 656);
     c.strokeStyle = 'rgba(255,210,120,.25)';
     c.lineWidth = 2;
-    for (let y = TY[BT] + 420; y < T.shooter.y - 20; y += 46) {
+    for (let y = TY[ST] + 420; y < T.shooter.y - 20; y += 46) {
       c.beginPath();
-      c.moveTo(594, y + 9);
-      c.lineTo(603, y);
-      c.lineTo(612, y + 9);
+      c.moveTo(sx + 594, y + 9);
+      c.lineTo(sx + 603, y);
+      c.lineTo(sx + 612, y + 9);
       c.stroke();
     }
   }

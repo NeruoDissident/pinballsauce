@@ -6,7 +6,7 @@ import {CAMS, R3} from './core.js';
 import {_v} from './frame.js';
 import {E, ZX, ZZ, elev} from './world.js';
 import {THEME} from '../table/content.js';
-import {BT, FY, GT, GY, OX, TY} from '../table/layout.js';
+import {ST, FY, GT, GY, OX, TY} from '../table/layout.js';
 
 // Player view: place the camera so the flippers sit near the bottom of the screen and the top of the level near the top
 export function frameLevel(tier, pitch, fov, asp) {
@@ -70,11 +70,11 @@ export function updateCam3D(dt) {
     const s = G.t * 0.1;
     fov = 36;
     tx = 30 + Math.sin(s) * 50;
-    ty = E[BT] + 20;
-    tz = TY[BT] + 330;
+    ty = E[ST] + 20;
+    tz = TY[ST] + 330;
     px = -610 + Math.sin(s * 0.8) * 150;
-    py = E[BT] + 560 + Math.sin(s * 0.6) * 50;
-    pz = FY[BT] + 470;
+    py = E[ST] + 560 + Math.sin(s * 0.6) * 50;
+    pz = FY[ST] + 470;
     rate = 1.2;
     if (asp < 1) {
       px *= 0.5;

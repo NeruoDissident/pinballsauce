@@ -6,9 +6,10 @@
    table, 1040 apart; columns are 690 apart and may be halves or negative (a diamond is [0,0], [-0.5,1], [0.5,1],
    [0,2]). A layout that gives no `at` at all is a plain stack: column 0, one row per field, top first. Two fields
    in the same column on consecutive rows are joined: the upper one's drain falls into the lower one's arch. A
-   field with nothing joined below it is either the HOME field (the last one listed: it has the plunger, the real
+   field with nothing joined below it is either the HOME field (the last one listed: it has the real
    drain, and the Grave under it; it stands in column 0 on the lowest row) or it drains into a guided ramp to a
    field the layout names (a ramp with `drain`).
+   Exactly one field has shooter:true. ST is that launch field; it may be above the bottom field.
 
    Tiers. A "tier" is an index:
      0 .. NM-1   the fields, in the order the layout lists them   (BT = NM-1 is the home field)
@@ -108,6 +109,7 @@ export function setFeel(f) {
 export const FLIPPER = {mini: 58, standard: 82, long: 92};
 export let NM = 0,
   BT = 0,
+  ST = 0, // launch field; BT remains the bottom field and real drain
   GT = 0,
   WT0 = 0,
   NW = 0,
@@ -133,6 +135,9 @@ export let TY = [], // each tier's top
 export function setLayout(L) {
   NM = L.fields.length;
   BT = NM - 1;
+  const shooters = L.fields.map((f, i) => f.shooter ? i : -1).filter(i => i >= 0);
+  if (shooters.length !== 1) throw new Error('layout: exactly one field must have shooter:true');
+  ST = shooters[0];
   GT = NM;
   WT0 = NM + 1;
   NW = (L.wings || []).length;
@@ -170,7 +175,6 @@ export function setLayout(L) {
     TIER_NAME.push(f.name);
     LEVEL_NAMES[i] = f.short || f.name;
     FIELD_INDEX[f.id] = i;
-    if (f.shooter && i !== BT) throw new Error('layout: only the last field listed (the home field) has the shooter');
   }
   for (let i = 0; i < NM; i++) {
     ABOVE.push(col.findIndex((c, j) => c === col[i] && row[j] === row[i] - 1));

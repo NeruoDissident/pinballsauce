@@ -298,6 +298,13 @@ Grave under it if the table has one. It stands in column 0 on the lowest row.
 **drain ramp** that carries the ball to a field you name (see Ramps). The engine refuses to load a layout that
 leaves such a field without one.
 
+
+### Launching above the bottom field
+
+Exactly one field has `shooter:true` and a `{t:"shooter"}` piece. That field may be an interior field: balls start and saved balls return there. `ST` is its index; `BT` still means the last / bottom field and final drain. The bottom field still stands at column 0 on the lowest row. Existing tables keep their bottom launch unchanged. A launch field joined to a full-width field below has a flared right outlane transfer. Its plunger wall stops at its own backstop.
+
+This supports Earth-between-Heaven-and-Hell layouts without table-specific engine logic. The camera, initial side quests, plunger detection and lane painting all follow `ST`. A launch field uses the narrower right wall and centre line whether or not it is the bottom field.
+
 ### Coordinates
 
 - Inside a field (`pieces`, `spawn`, `statue`, `boss`, `torches`, `rise`, `drop`, and `shots`), points are **local**:

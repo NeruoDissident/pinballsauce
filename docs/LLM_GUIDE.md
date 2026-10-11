@@ -83,8 +83,8 @@ docs/                      this guide, PINBALL, TABLE_FORMAT, RULESET, NEW_TABLE
 - Fields stand on a grid: `at: [column, row]` in the layout. Rows run down the table. A layout that gives no `at`
   is a plain stack, top first. On the whole table a field's corner is at x `690 * column`, y `40 + 1040 * row`.
 - Same column, next row: the two fields are **joined** (the upper one's drain falls into the lower one's arch).
-- The **home field** is the last one listed: the plunger (`shooter:true`), the real drain, and the Grave under it
-  if the table has one.
+- The **home field** is the last one listed: the real drain and the Grave under it
+  if the table has one. Exactly one field has `shooter:true` and a shooter piece; its index is `ST`. It may be above the bottom field (`BT`), so the launch and final drain can be on different fields.
 - Any other field with nothing joined below it drains into a **drain ramp** (a "chute") to a field the layout names.
 - A **tier** is an index: fields `0..NM-1` in the order listed, then the Grave (`NM`; the slot is kept even on a
   table without one), then wings (`NM+1..`).
