@@ -1,6 +1,6 @@
 /* ================= HUD, MENUS, INPUT ================= */
 import {inspectKey, openInspect} from '../app/inspect.js';
-import {gfxKey, resize} from '../app/shell.js';
+import {gfxInfo, gfxKey, resize} from '../app/shell.js';
 import {G, T, xpNeed} from '../core/state.js';
 import {$, clamp, esc, fmt, prefs, store} from '../core/util.js';
 import {CAMS, R3} from '../render/core.js';
@@ -28,6 +28,9 @@ export function popup(title, sub, kind, note) {
   UI.popup(title, tr(sub || ''), kind || 'info', tr(note || ''));
 }
 export const VERSION = 'engine 0.1';
+// a table opened from its own folder (tables/<id>/) has the list of tables two levels up. An installed app has no
+// browser Back button, so the title menu offers the way there.
+const IN_REPO = /\/tables\/[^/]+\/(index\.html)?$/.test(location.pathname);
 export const UI = {
   cur: null,
   q: [],
@@ -145,7 +148,8 @@ export const UI = {
         'gold'
       );
     if (r.mult > 1) ch(r.mult + 'x', 'gold');
-    if (G.plunge.ready) ch(UI.touch ? 'Hold Nudge, release to launch' : 'Hold Space, release to launch', 'frost');
+    if (G.plunge.ready)
+      ch(UI.touch ? 'Hold the right side, let go to launch' : 'Hold Space, release to launch', 'frost');
     if (G.save > 0 && !G.plunge.ready) ch('Ball save ' + Math.ceil(G.save) + 's', 'frost');
     if (r.shield) ch('Ward', 'gold');
     if (G.inGrave) ch('The lid closes in ' + Math.ceil(G.graveT) + 's', G.graveT < 8 ? 'bad' : 'moss');
@@ -489,7 +493,7 @@ export const UI = {
         btn('options', 'Options') +
         btn('controls', 'Controls') +
         btn('inspect', 'Inspect table') +
-        (window.__pbTables ? btn('tables', 'Other tables') : '') +
+        (window.__pbTables || IN_REPO ? btn('tables', 'Other tables') : '') +
         '</nav>' +
         (meta.bosses && USE.gold
           ? '<p class="hint">Legacy: ' +
@@ -623,7 +627,7 @@ export const UI = {
           : USE.party
             ? '<dt>Rally</dt><dd>With a full meter, hold the ball still on a raised flipper until the ring fills</dd>'
             : '') +
-        '<dt>Pause</dt><dd>P or Esc</dd><dt>View, detail, full screen</dt><dd>C, Q and F</dd><dt>Touch</dt><dd>Left and right halves of the screen flip. The centre button nudges and launches.</dd></dl>' +
+        '<dt>Pause</dt><dd>P or Esc</dd><dt>View, detail, full screen</dt><dd>C, Q and F</dd><dt>Touch</dt><dd>Left and right halves of the screen flip. Hold the right half and let go to launch. Double-tap either half to nudge (mash and you will tilt); the bottom middle of the screen nudges too. The eye button at the top changes the view.</dd></dl>' +
         '<p class="lead">Every left flipper on the table moves together, and so does every right one. ' +
         esc(TEXT.controlsNote) +
         '</p><nav class="row">' +
@@ -789,7 +793,8 @@ export const UI = {
         openInspect();
         break;
       case 'tables':
-        window.__pbTables();
+        if (window.__pbTables) window.__pbTables();
+        else location.href = '../../index.html'; // the list of tables at the top of the repo
         break; // only in a build that carries more than one table (app/picker.js)
       case 'options':
         UI.back = UI.cur === 'pause' ? 'pause' : 'title';
@@ -1006,7 +1011,14 @@ export function bindInput() {
     A.init();
     togglePause();
   });
+  $('camBtn').addEventListener('click', e => {
+    A.init();
+    gfxKey('cam');
+    e.currentTarget.blur();
+  });
   // a flip zone keeps the finger that pressed it until that finger lifts, even if the thumb drifts off the zone
+  const DOUBLE_TAP = 230, // ms: a second tap on the same side this soon is a nudge
+    lastTap = {};
   const zone = (el, side) => {
     const ids = new Set();
     const up = e => {
@@ -1021,6 +1033,12 @@ export function bindInput() {
       } catch (_) {}
       setFlip(side, true);
       e.preventDefault();
+      // touch has no nudge key: tap the same side twice quickly to bang the cabinet. Mash and the tilt fills
+      const now = performance.now();
+      if (now - (lastTap[side] || -1e9) < DOUBLE_TAP) {
+        nudge();
+        lastTap[side] = -1e9;
+      } else lastTap[side] = now;
     });
     el.addEventListener('pointerup', up);
     el.addEventListener('pointercancel', up);
@@ -1045,8 +1063,10 @@ export function bindInput() {
   tn.addEventListener('pointercancel', nup);
   tn.addEventListener('lostpointercapture', nup);
   const showTouch = () => {
+    if (UI.touch) return;
     $('touch').hidden = false;
     UI.touch = true;
+    gfxInfo();
   };
   if (window.matchMedia && matchMedia('(pointer: coarse)').matches) showTouch();
   addEventListener(
@@ -1097,4 +1117,10 @@ export function bindInput() {
     G.in.n = false;
   });
   addEventListener('resize', resize);
+  // a phone turning over: the size is not settled when the event fires, so ask again shortly after
+  addEventListener('orientationchange', () => {
+    setTimeout(resize, 60);
+    setTimeout(resize, 400);
+  });
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', resize);
 }

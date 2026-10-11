@@ -13,6 +13,7 @@
     "reach": "node tests/reach.mjs --table",
     "standards": "node tests/standards.mjs --table",
     "switches": "node tests/switches.mjs 3 --table",
+    "mobile": "node tests/mobile.mjs --table",
     "bundle": "node tools/bundle.mjs",
     "format": "prettier --write \"engine/**/*.js\" \"tables/*/rules.js\" \"tables/*/table.js\" \"tables/*/main.js\" \"tables/*/theme/*.js\" \"tests/*.mjs\" \"tools/*.mjs\" \"engine/ui/page.css\" \"tables/*/theme/*.css\""
   },

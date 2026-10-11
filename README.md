@@ -34,6 +34,9 @@ npm start              # http://127.0.0.1:4187   the table picker
 ```
 
 - Play: `tables/<id>/`
+- On a phone: open the hosted site and use the browser's "Add to Home Screen" (or "Install app"). It then opens
+  full screen from its own icon and plays offline any table that has been opened once. Left and right halves of the
+  screen flip, the right half held and let go launches, a double-tap on either half nudges.
 - Inspect mode: `tables/<id>/?inspect`, or press `I` in a table, or "Inspect table" in its menu. Pan, zoom, top-down
   or tilted, a label on every piece with the layout line that made it, a coordinate grid, a screenshot button.
   A screenshot carries its field, centre and zoom in a caption, so it can be handed to an LLM with "move this".

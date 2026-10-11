@@ -1,8 +1,56 @@
 # Status
 
-Written 10 October 2026, at the end of the sixth stage (the third to the sixth were the same day). Three lists
+Written 10 October 2026, at the end of the seventh stage (the third to the seventh were the same day). Three lists
 for each: what exists, what was checked and how, and what was not checked. Nothing in a "verified" list is a guess;
 anything that is a guess is in a "not verified" list.
+
+## Stage 7: phones, and the site as an installable app
+
+The owner's list, for every table (this is shared code: the page, the stylesheet, the camera):
+
+| Asked | Done |
+|---|---|
+| No stretch on a phone; everything to scale | The size of the stage is checked every frame, not only when the browser says it changed: phones fire `resize` before a rotation has settled, or not at all, and the picture was left at the old shape. A rotation is also asked about again 60 and 400 ms later |
+| The block at the bottom that says Nudge: gone | The nudge zone is still there (bottom middle, 120 by 72) but nothing is drawn. Nudge on touch is also **a double-tap on either half** (two taps on one side inside 230 ms). Launch is the right half, held and let go |
+| The strip with the camera and quality: gone | Not shown on a touch screen. (A mouse-and-keyboard screen keeps it in the corner: it is the reminder for the C and Q keys.) |
+| Camera in Options, or a button at the top on a phone | Both. Options already had View and Detail. On touch there is now a 44 px eye button under the pause button, which is 44 px too |
+| Side panels: not upright, yes on its side | Never shown in an upright window. Shown in a wide one from 960 px, and on a phone held sideways (short and wide) in a narrower, smaller set. The HUD now keeps to the column between the panels, and the buttons stand at its edge, so nothing lies under a panel |
+| A true app icon | `manifest.webmanifest`, five icons in `assets/icons` (192, 512, a maskable 512, an Apple touch icon, a favicon) and `sw.js`. The table list is the app; every table page links the same manifest and worker. A table's title menu has "Other tables", because an installed app has no Back button |
+| The picture goes dark on a phone, more so upright | Found and fixed: the same cause as in the stand-alone Gravebound, and the same fix (below) |
+
+**The darkening.** An upright window is narrow, so the camera backs off to fit the table's width: 3,322 units from
+what it looks at instead of 1,639. The fog is set for the wide view, so upright the table sat in 83% fog where it
+should sit in 35%, and in a dark fog that is a dark picture. It came and went with the view and with where the
+ball was, which is why it looked like "sometimes". Now the fog thins as the camera backs off, so the table sits in
+the same amount of it at any shape of window. The corner darkening of the picture is also lighter upright, where
+the table reaches into the corners.
+
+**Offline.** The worker asks the network first for every file and keeps what it gets; with no network it serves
+the kept copy. So a phone that is online always runs the newest files, and a table that has been opened once plays
+offline. It does not run under an automated browser, so the checks are not served from a cache.
+
+### Verified in stage 7
+
+| What | How | Result |
+|---|---|---|
+| All of the list above | `npm run mobile -- <table>` (new: `tests/mobile.mjs`): the table list and a table opened as a 390 by 844 touch screen | 20 of 20 lines on Crush Hour and 20 of 20 on Gravebound. Among them: the manifest and its three icons load; the worker takes the page; the table and the table list both open with no network; no strip, no nudge block; 44 px view and pause buttons; a double-tap nudges once, two taps 0.4 s apart do not; after a rotation whose resize event was removed the picture matched the screen (2.164 to 2.164) |
+| The darkening | the camera's distance and the fog at the point it looks at, measured before and after in four window shapes | before: 35% wide, 83% upright (84% on a 360 by 800 screen). After: 35% in every shape |
+| It looks right | frames looked at: a phone upright, a phone on its side, a tablet on its side | upright: the table bright, two buttons top right, nothing at the bottom but the faint Flip rings. On its side: a panel each edge, the HUD between them |
+| Nothing else moved | `npm test` | 100 of 100 scenarios identical to their recordings, all five tables |
+
+### Not verified in stage 7
+
+- **A real phone.** Everything above is Chromium pretending to be one. iOS Safari is the browser these fixes are
+  mostly for (it is the one that drops the resize event) and it has not been tried. The owner's phone is the test.
+- **Installing it.** The manifest, icons and worker are what a browser asks for; the install prompt itself and the
+  icon on a home screen were not seen. It installs from wherever the repo is served over https (GitHub Pages,
+  Vercel), not from a file and not from the one-file build, which has no manifest.
+- **The double-tap in play.** It nudges; whether 230 ms is the right window, or whether fast flipping sets it off
+  by accident, is for the owner's thumbs.
+- **The side panels on a phone on its side** are small (about 164 px wide). They fit; whether they are worth the
+  room is his call.
+
+---
 
 ## Stage 6: Crush Hour, a fifth table
 

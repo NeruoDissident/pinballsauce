@@ -35,6 +35,8 @@ export function frameLevel(tier, pitch, fov, asp) {
   }
   return {h, zc: zA - kA, sn, cs};
 }
+const FOG0 = 0.0004, // the fog as scene.js sets it
+  FOG_D = 1640; // how far the camera stands from what it looks at in a wide window
 export function updateCam3D(dt) {
   inspectCam();
   const cam = R3.cam,
@@ -124,6 +126,10 @@ export function updateCam3D(dt) {
     pz += oz;
     tz += oz;
   }
+  // fog by distance. A tall, narrow window (a phone held upright) pulls the camera back about twice as far to fit the
+  // table's width, which used to bury the table in fog: the picture went dark. Thin the fog as the camera backs
+  // off, so the table always sits in the amount of it that the wide view has.
+  R3.scene.fog.density = FOG0 * Math.min(1, FOG_D / Math.max(1, Math.hypot(px - tx, py - ty, pz - tz)));
   const k = 1 - Math.exp(-dt * rate);
   cam.t.x += (tx - cam.t.x) * k;
   cam.t.y += (ty - cam.t.y) * k;

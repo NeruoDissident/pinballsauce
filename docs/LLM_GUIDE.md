@@ -56,8 +56,9 @@ engine/app/                shell.js (boot, loop, input, dev keys), inspect.js (i
 tables/<id>/               index.html, main.js, table.js, layout.js, content.js, rules.js, theme/
 tests/                     check.mjs (static), table.mjs (layout), replay.mjs (simulation), soak.mjs (bot),
                            reach.mjs (which shots each flipper can make), standards.mjs (a table against
-                           PINBALL.md), switches.mjs (each game system off in turn), golden/
+                           PINBALL.md), switches.mjs (each game system off in turn), mobile.mjs (a phone), golden/
 tools/bundle.mjs           one-file builds: a table, or all of them behind a picker (engine/app/picker.js)
+manifest.webmanifest, sw.js, assets/icons/   what makes the hosted site an installable app that plays offline
 docs/                      this guide, PINBALL, TABLE_FORMAT, RULESET, NEW_TABLE_CHECKLIST, STATUS
 ```
 
@@ -143,6 +144,7 @@ npm run soak -- <id>       a bot plays every field: stuck balls, shots never mad
 npm run reach -- <id>      every flipper, every timing: which shots it can make, which nobody can
 npm run standards -- <id>  the table against PINBALL.md: fair launch, a light on every goal and shot, state lamps
 npm run switches -- <id>   the table with each of its game systems off in turn: does anything throw?
+npm run mobile -- <id>     the site as a phone sees it: installable, touch controls, no stretch, no dark picture
 npm test               check + layout + 5-minute replay, every table
 npm run bundle -- all  dist/pinballsauce.html (one file); check it with  node tests/replay.mjs 5 --url dist/pinballsauce.html#gravebound
 ```

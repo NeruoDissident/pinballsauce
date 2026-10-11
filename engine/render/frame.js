@@ -441,7 +441,10 @@ export function frame3D(dt) {
     sc.fog.color.lerp(R3.tmpC, Math.min(1, dt * 2));
     sc.background.copy(sc.fog.color);
   }
-  if (R3.grade) R3.grade.uniforms.time.value = (t * 61) % 17;
+  if (R3.grade) {
+    R3.grade.uniforms.time.value = (t * 61) % 17;
+    R3.grade.uniforms.vig.value = R3.camera.aspect < 1 ? 0.45 : 0.85; // a tall window has the table in its corners: darken them less
+  }
   if (R3.composer) R3.composer.render();
   else R3.rn.render(sc, R3.camera);
   if (R3.probe > 0 && --R3.probe === 0) probeFrame();

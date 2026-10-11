@@ -1,0 +1,19 @@
+{
+  "name": "Pinballsauce",
+  "short_name": "Pinballsauce",
+  "description": "Pinball tables built from shared parts: Gravebound, Neon Descent, Crush Hour, Starfall.",
+  "id": "./index.html",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "fullscreen",
+  "display_override": ["fullscreen", "standalone"],
+  "orientation": "any",
+  "background_color": "#0e1022",
+  "theme_color": "#0e1022",
+  "categories": ["games"],
+  "icons": [
+    {"src": "assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "assets/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "assets/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}

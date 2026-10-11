@@ -1139,3 +1139,124 @@ tr.me td {
   line-height: 1.35;
   margin: -6px 0 4px;
 }
+
+/* ---------- the HUD's column. Everything that stands beside or on the HUD measures from --hudw, so the HUD can give
+   way to the side panels in a wide window without the buttons ending up under a panel ---------- */
+#stage {
+  --hudw: min(640px, 100%);
+}
+#hud {
+  width: var(--hudw);
+}
+#pauseBtn {
+  left: calc(50% + var(--hudw) / 2 - 38px);
+}
+/* ---------- touch: a real view button up top, under pause, instead of the info strip; a bigger pause; no strip ---------- */
+#camBtn {
+  position: absolute;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-sizing: border-box;
+  height: 44px;
+  min-width: 44px;
+  padding: 0 10px;
+  top: calc(58px + env(safe-area-inset-top));
+  right: calc(8px + env(safe-area-inset-right));
+  font: 700 10px var(--label);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--bone);
+  background: color-mix(in srgb, var(--stone) 80%, transparent);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  touch-action: manipulation;
+}
+#camBtn:active {
+  background: var(--stone-2);
+}
+@media (pointer: coarse) {
+  #pauseBtn,
+  #camBtn {
+    left: auto;
+    right: calc(50% - var(--hudw) / 2 + 8px + env(safe-area-inset-right));
+  }
+  #pauseBtn {
+    width: 44px;
+    height: 44px;
+    font-size: 12px;
+  }
+  #hud {
+    padding-right: 60px;
+  }
+  #gfx {
+    display: none;
+  }
+}
+@media (pointer: coarse) and (max-width: 600px) {
+  #camName {
+    display: none;
+  }
+  #camBtn {
+    width: 44px;
+    padding: 0;
+  }
+}
+/* the nudge zone at the bottom middle is invisible: same spot, nothing drawn over the drain */
+#tN {
+  background: none;
+  border: 0;
+  box-shadow: none;
+  width: 120px;
+  height: 72px;
+  padding: 0;
+  color: transparent;
+}
+/* ---------- the two side panels: never in an upright window; in a wide one when there is room beside the HUD ---------- */
+#app.playing .side {
+  display: none;
+}
+@media (orientation: landscape) and (min-width: 960px) {
+  #app.playing .side {
+    display: block;
+  }
+  #stage {
+    --hudw: min(640px, calc(100% - 480px));
+  }
+}
+@media (orientation: landscape) and (min-width: 1380px) {
+  #stage {
+    --hudw: min(640px, calc(100% - 580px));
+  }
+}
+/* a phone on its side is wide but short: the panels are narrower and set smaller, and clear of the notch */
+@media (orientation: landscape) and (min-width: 700px) and (max-height: 540px) {
+  #app.playing .side {
+    display: block;
+  }
+  .side {
+    width: 210px;
+    max-width: 210px;
+    padding-block: 10px;
+    padding-inline: 12px;
+    zoom: 0.78;
+  }
+  #journal {
+    padding-left: calc(12px + env(safe-area-inset-left));
+  }
+  #sheet {
+    padding-right: calc(12px + env(safe-area-inset-right));
+  }
+  #stage {
+    --hudw: min(640px, calc(100% - 344px));
+  }
+  #camName {
+    display: none;
+  }
+  #camBtn {
+    width: 44px;
+    padding: 0;
+  }
+}

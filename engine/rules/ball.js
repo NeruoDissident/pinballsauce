@@ -72,7 +72,7 @@ export function startBall() {
     'info',
     r.ballNum === 1 && r.time < 1
       ? UI.touch
-        ? 'Tap the left and right sides to flip. Hold Nudge and release to launch.'
+        ? 'Tap the left and right sides to flip. Hold the right side and let go to launch. Double-tap a side to nudge.'
         : 'Z and / flip. Hold Space and release to launch. Space also nudges.'
       : r.ballNum === 1
         ? ''

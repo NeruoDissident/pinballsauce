@@ -39,7 +39,9 @@ export function gfxSave() {
 export function gfxInfo() {
   const play = G.mode === 'play' && !G.demo;
   $('gfx').hidden = !play;
+  $('camBtn').hidden = !(play && UI.touch); // on touch the view is a button up top (the chip is not shown there)
   if (!play) return;
+  $('camName').textContent = CAMS[R3.camMode].name;
   $('gInfo').textContent =
     (UI.touch ? '' : 'C ') +
     CAMS[R3.camMode].name +
@@ -445,8 +447,19 @@ export let lastT = 0;
 export let acc = 0;
 export let hudT = 0;
 export let slowT = 0;
+// Phones fire `resize` (a rotation, the toolbar sliding in and out) before the layout has settled, and sometimes not at
+// all, which left the picture at the old shape, stretched to fit. So the real size of the stage is checked every
+// frame instead of trusting the event.
+let _stage = null;
+function fitCheck() {
+  _stage = _stage || $('stage');
+  const w = _stage.clientWidth,
+    h = _stage.clientHeight;
+  if (w && h && (w !== R3.w || h !== R3.h)) resize();
+}
 export function loop(ts) {
   requestAnimationFrame(loop);
+  fitCheck();
   if (R3.hold) {
     lastT = ts;
     return;
