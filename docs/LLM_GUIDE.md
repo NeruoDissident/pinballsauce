@@ -36,7 +36,8 @@ want of a shorter word; read that as "the shared parts", not as a rule book.
 ## Map
 
 ```
-index.html                 table picker
+index.html                 table picker (shared UI in engine/app/picker.js)
+catalog.js                 opening-screen order, groups, names and descriptions; no gameplay settings
 engine/api.js              the ONLY file a table imports from (re-exports the whole engine)
 engine/table/              layout.js  the level model (fields on a grid, Grave, wings; sizes; tierOf) and the feel
                                       presets (FEELS: gravity, bounce, kicks, the flipper's stroke, plunger, ramps)

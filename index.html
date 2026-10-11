@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0b0c12">
+<meta name="theme-color" content="#080b12">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32.png">
 <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
@@ -12,48 +12,15 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Pinballsauce">
 <title>Pinballsauce</title>
-<style>
-:root{--bg:#0b0c12;--panel:#14161f;--line:#2b2f3f;--ink:#e9e6dc;--dim:#9a9aa8;--gold:#d9a441;--cyan:#43e7ed;color-scheme:dark}
-*{box-sizing:border-box}
-body{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
-main{max-width:760px;margin:0 auto;padding:calc(40px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) calc(56px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left))}
-h1{font:700 30px/1.1 Georgia,"Times New Roman",serif;letter-spacing:.01em;margin:0 0 6px;text-wrap:balance}
-p.lead{color:var(--dim);margin:0 0 28px;max-width:56ch}
-ul{list-style:none;margin:0;padding:0;display:grid;gap:12px}
-a.table{display:grid;gap:4px;padding:18px 20px;background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--c,var(--gold));border-radius:6px;color:inherit;text-decoration:none}
-a.table:hover{border-color:var(--c,var(--gold))}
-a.table:focus-visible,a.small:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
-a.table b{font:700 21px/1.2 Georgia,"Times New Roman",serif}
-a.table span{color:var(--dim);font-size:15px}
-.row{display:flex;gap:16px;flex-wrap:wrap;margin-top:6px}
-a.small{color:var(--cyan);font-size:14px}
-footer{margin-top:36px;color:var(--dim);font-size:14px}
-footer a{color:var(--cyan)}
-</style>
+<style>html,body{margin:0;background:#080b12;color:#f1ede3;font-family:system-ui,sans-serif}</style>
 </head>
 <body>
-<main>
-  <h1>Pinballsauce</h1>
-  <p class="lead">Several pinball tables built from the same parts. Same ball and flippers on every one; each table switches on only the game systems it wants.</p>
-  <ul id="tables"></ul>
-  <footer>Inspect opens a table frozen, top-down, with a coordinate grid and a label on every piece. Docs are in <a href="docs/LLM_GUIDE.md">docs/</a>.</footer>
-</main>
-<script>
-// the tables this repo holds. Add a line here when you add a folder under tables/.
-const TABLES=[
-  {id:'judgment',name:'Judgment',line:'Biblical pinball. Rescue three souls on Earth, ascend to Heaven, and confront the Beast in Hell.',c:'#e6c88b'},
-  {id:'gravebound',name:'Gravebound Pinball',line:'Dark fantasy. Three levels, a grave and one campaign.',c:'#d9a441'},
-  {id:'neon-descent',name:'Neon Descent',line:'Cyberpunk. Four districts joined by freeways.',c:'#43e7ed'},
-  {id:'crush-hour',name:'Crush Hour',line:'Cute. A heart of three playfields: your street, your school, the plaza, and one confession to get right.',c:'#ff7eb6'},
-  {id:'starfall',name:'Starfall',line:'Plain pinball. One playfield, three balls, no health bar and no RPG: shots, lights, a multiplier and a mission.',c:'#7ad0ff'},
-  {id:'test-bench',name:'Test Bench',line:'Plain on purpose. Five fields on a grid, three flipper sizes, drains that are ramps: the engine\'s own test table.',c:'#62d8ff'}
-];
-const ul=document.getElementById('tables');
-for(const t of TABLES){const li=document.createElement('li');
-  li.innerHTML='<a class="table" style="--c:'+t.c+'" href="tables/'+t.id+'/"><b></b><span></span></a><div class="row"><a class="small" href="tables/'+t.id+'/?inspect">Inspect the table</a></div>';
-  li.querySelector('b').textContent=t.name;li.querySelector('span').textContent=t.line;ul.appendChild(li);}
+<noscript>Enable JavaScript to choose and play a table.</noscript>
+<script type="module">
+import {pickTable} from './engine/app/picker.js';
+import {CATALOG} from './catalog.js';
+pickTable(CATALOG, {}, CATALOG);
 </script>
-<!-- installable, and playable offline once a table has been opened (sw.js, at the top of the repo) -->
 <script>if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)&&!navigator.webdriver)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));</script>
 </body>
 </html>

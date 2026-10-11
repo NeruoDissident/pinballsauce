@@ -6,6 +6,8 @@ const CACHE = 'pinballsauce-v1',
   CORE = [
     './',
     'index.html',
+    'catalog.js',
+    'engine/app/picker.js',
     'manifest.webmanifest',
     'assets/icons/icon-192.png',
     'assets/icons/icon-512.png',
