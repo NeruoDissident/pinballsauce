@@ -50,6 +50,7 @@ const run = only => {
   let log = null;
   const idOf = {
     bump: o => o.group,
+    captive: o => o.id,
     target: o => o.bank,
     drop: o => o.bank,
     lane: o => o.set,
@@ -92,6 +93,18 @@ const run = only => {
           for (const id in T.holes) T.holes[id].busy = 0;
           for (const q of T.sens) if (q.kind === 'spin') q.rate = 0; // a spinner still turning from the last flip is not a hit
           for (const id in T.rails) T.rails[id].closed = false;
+          // Qualifiable shots are probed with their physical barriers open.
+          for (const m of Object.values(T.mechanisms || {})) {
+            if (m.leaves) {
+              m.open = true;
+              m.position = 1;
+              m.leaves.forEach(l => {
+                l.a = l.open;
+                l.w = 0;
+              });
+            }
+          }
+          for (const h of Object.values(T.holes)) if ('closed' in h) h.closed = false;
           G.enemies = [];
           G.tilt = 0;
           // the ball starts a little down the bat from the pivot, resting on it, rolling toward the tip

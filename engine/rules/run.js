@@ -12,6 +12,7 @@ import {PERKS, RELICS} from './perks.js';
 import {qBegin, qResume, quests} from './quests.js';
 import {gold} from './score.js';
 import {buildTable} from '../table/build.js';
+import {resetMechanisms} from '../table/mechanisms.js';
 import {BOSSES, CAMPAIGNS, DEF, RULES, SIDE, THEME, TUNE, USE, setContent} from '../table/content.js';
 import {ST, TY, setFeel, setLayout} from '../table/layout.js';
 import {A} from '../ui/audio.js';
@@ -34,6 +35,7 @@ export function initGame(def) {
   if (RULES.init) RULES.init();
 }
 export function resetWorld() {
+  if (T.mechanisms) resetMechanisms();
   G.gen = (G.gen || 0) + 1;
   Object.assign(G, {
     balls: [],

@@ -19,6 +19,7 @@ import {callFoes, campFoes, startWave, waveJoin} from './waves.js';
 import {breakSeal, wingDone} from './wings.js';
 import {DEF, PAL, PTS, RULES, TEXT, TUNE, USE, WINGS, hook} from '../table/content.js';
 import {FEEL, GT} from '../table/layout.js';
+import {enterRail} from '../table/mechanisms.js';
 import {A} from '../ui/audio.js';
 import {popup} from '../ui/ui.js';
 
@@ -408,6 +409,7 @@ export function addBall(from) {
   const h = T.holes[from],
     b = newBall(h.x, h.y + h.r + 2, h.ev[0] * rand(0.85, 1.15), h.ev[1]);
   b.noHole = 0.8;
+  if (h.rail) enterRail(b, h.rail);
   G.balls.push(b);
   h.glow = 1;
   A.s('eject');

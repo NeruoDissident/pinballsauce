@@ -56,6 +56,7 @@ import {
   standardOf
 } from './parts.js';
 import {WINGS} from './content.js';
+import {buildMechanisms} from './mechanisms.js';
 
 const RESERVED = new Set([
   't',
@@ -146,10 +147,10 @@ function piece(p, C) {
       break;
     }
     case 'mouth':
-      m[p.id] = mouthGeo(p.x + ox, y + p.y, p.side);
+      m[p.id] = mouthGeo(p.x + ox, y + p.y, p.side, p.angle);
       break;
     case 'block':
-      block(PTS(p.pts), {name: p.name, tier});
+      block(PTS(p.pts), {name: p.name, tier, ...(p.height === undefined ? {} : {height: p.height})});
       break;
     case 'hole':
       hole(p.id, p.x + ox, y + p.y, p.r, tier, p.name);
@@ -399,6 +400,7 @@ function buildWing(wd, k, C) {
 }
 
 export function buildTable(def) {
+  buildMechanisms(def.layout.mechanisms);
   const L = def.layout,
     C = {m: {}, aims: [], def};
   Object.assign(T, {
@@ -492,6 +494,16 @@ export function buildTable(def) {
     if (r.k !== undefined) o.k = r.k; // how hard gravity pulls along it (0.2)
     if (r.exitV !== undefined) o.exitV = r.exitV; // the fastest it lets a ball leave (520)
     if (r.drag !== undefined) o.drag = r.drag; // the share of its speed a ball loses each second (0.1)
+    for (const key of ['feedSpeed', 'minSpeed', 'hold', 'next', 'branch', 'endHeight', 'startHeight'])
+      if (r[key] !== undefined) o[key] = r[key];
+    if (r.entry) {
+      T.rails[r.id] = Object.assign(
+        resample(catmull([pt(r.entry)].concat(r.path.map(pt)), 14), 6),
+        {id: r.id, name: r.name, k: FEEL.ramp.k, exitV: FEEL.ramp.exitV},
+        o
+      );
+      continue;
+    }
     if (r.drain === undefined) {
       rail(r.id, r.name, C.m[r.mouth || r.id], r.path.map(pt), o);
       continue;
@@ -530,6 +542,16 @@ export function buildTable(def) {
           '", to, path})'
       );
   T.mouthGeo = C.m;
+  for (const r of Object.values(T.rails)) {
+    if (r.hold && (!(r.hold.at >= 0 && r.hold.at < 1) || !(r.hold.duration > 0) || !(r.hold.releaseSpeed > 0)))
+      throw Error('layout: rail hold needs at in [0,1), positive duration and releaseSpeed');
+    if (r.branch && !r.next) throw Error('layout: a branch needs a default next rail');
+    for (const id of [r.next, r.branch].filter(Boolean)) {
+      const next = T.rails[id];
+      if (!next || Math.hypot(r.x[r.n - 1] - next.x[0], r.y[r.n - 1] - next.y[0]) > 12)
+        throw Error('layout: disconnected rail junction ' + r.id + ' to ' + id);
+    }
+  }
   for (const k in WINGS)
     if (WINGS[k].rule === 'targets') {
       if (!T.banks[WINGS[k].bank]) throw new Error('content: wing ' + k + ' names a bank the layout does not have');

@@ -254,7 +254,7 @@ still work and are the tidier way for the words they cover.)
 ## 1. Layout (`layout.js`)
 
 ```js
-export const layout={fields:[...], grave:{...}, wings:[...], ramps:[...], tunnels:[...], shots:[...]};
+export const layout={fields:[...], grave:{...}, wings:[...], ramps:[...], tunnels:[...], shots:[...], mechanisms:[...]};
 ```
 
 ### What is fixed, and what is yours
@@ -755,3 +755,7 @@ variables `page.css` is written with: `--void --stone --stone-2 --line --bone --
 
 Art rules: no `Math.random` (use `hash(n)`), keep floor art faint enough that inserts read over it, and remember
 only what a real table would print belongs on the floor: walls, blocks, ramps and targets are real geometry.
+
+## Optional mechanical features
+
+See [MECHANISMS.md](MECHANISMS.md) for rotating gates, lifting shutters, captive balls, rail-mounted magnetic catches, visible scoop feeds and track diverters. These are opt-in layout features. Existing tables retain their physics and geometry without configuration changes.

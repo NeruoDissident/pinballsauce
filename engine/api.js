@@ -4,6 +4,7 @@ export * from './table/layout.js';
 export * from './table/content.js';
 export * from './core/state.js';
 export * from './table/geometry.js';
+export * from './table/mechanisms.js';
 export * from './table/parts.js';
 export * from './physics/physics.js';
 export * from './rules/classes.js';

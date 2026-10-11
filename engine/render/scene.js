@@ -1,5 +1,6 @@
 /* ================= BUILDING THE SCENE =================
    Turns T into meshes: walls, blocks, ramps, flippers, targets, inserts, scoops, torches, the plunger, the Grave. */
+import {buildMovingParts} from './mechanisms.js';
 import {defaultBumper, defaultStatue} from './defaults.js';
 import {G, T} from '../core/state.js';
 import {PI, TAU, clamp, hash, lerp, mkCanvas} from '../core/util.js';
@@ -102,6 +103,7 @@ export function init3D(canvas) {
   buildWings();
   for (const o of R3.scene.children) zshift(o);
   if (THEME.scenery) THEME.scenery();
+  buildMovingParts();
   buildFx();
   buildActors();
   R3.ready = true;
@@ -337,7 +339,7 @@ export function buildStatic() {
           sd < 0 ? arcPts(cx, nA, 300, 1.5 * PI - aG, PI + aF, 22) : arcPts(cx, nA, 300, 1.5 * PI + aG, TAU - aF, 22);
       prism(stone[b.tier], b.pts.slice(0, 4).concat(arc.slice(1, -1), [b.pts[4]]), WALL_H, {depth: 110});
     } else if (b.dead) prism(stone[b.tier], b.pts, WALL_H, {depth: 40});
-    else prism(stone[b.tier], b.pts, BLOCK_H);
+    else prism(stone[b.tier], b.pts, b.height ?? BLOCK_H);
   }
   // guide walls, scoops, posts, flaps and the one-way wards
   for (const w of T.wallPaths) {
@@ -526,6 +528,8 @@ export function buildRail(r, steel, iron) {
       prof = sstep(0, 1, Math.min(1, s / 80, (r.len - s) / 80)),
       base = Math.max(lerp(ef, et, sstep(40, r.len * 0.55, s)), elev(r.y[i], r.x[i]));
     r.h3[i] = base + (RAMP_H + (r.lift || 0)) * prof + (prof > 0 ? 1 : 0);
+    if (r.startHeight !== undefined && s < 80) r.h3[i] = lerp(ef + r.startHeight, r.h3[i], s / 80);
+    if (r.endHeight !== undefined && r.len - s < 80) r.h3[i] = lerp(et + r.endHeight, r.h3[i], (r.len - s) / 80);
     X.push(r.x[i] - 320);
     Yh.push(r.h3[i]);
     Z.push(r.y[i]);
