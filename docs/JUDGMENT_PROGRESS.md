@@ -21,8 +21,8 @@ Do not change any other table's layout, feel, rules, or defaults. Leave the shar
 - [x] Focused physical mechanism/shot checks, reach, standards and soak.
 - [x] Final existing-table layout/replay regression without re-recording those tables.
 - [x] Re-record Judgment intentionally and build the full six-table menu.
-- [ ] Commit/push the verified work and update draft PR #1.
+- [x] Commit/push the verified work and update draft PR #1.
 
 Testing policy: focused checks during development, one complete final regression for shared changes; no video comparisons. Passing automation does not substitute for the owner's playtest.
 
-Final verification details are in docs/STATUS.md, Stage 8.1. All 120 five-minute replays match; existing tables and their recordings are unchanged. The only remaining task is publishing the prepared branch commits/PR description.
+Final verification details are in docs/STATUS.md, Stage 8.1. All 120 five-minute replays match; existing tables and their recordings are unchanged. Engine commit 276d52a and table commit 9778fcd are pushed. Draft PR #1 has the final implementation and verification description. The full-menu and standalone HTML builds are delivered. No implementation tasks remain; awaiting the owner’s playtest.
