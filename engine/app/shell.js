@@ -279,7 +279,7 @@ export function drawOverlay() {
         else c.moveTo(_p.x, _p.y);
       }
       if (!ok) continue;
-      c.strokeStyle = '#8fd0ff';
+      c.strokeStyle = b.c || '#8fd0ff';
       c.lineWidth = 5;
       c.stroke();
       c.strokeStyle = '#fff';

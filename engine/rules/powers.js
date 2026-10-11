@@ -1,6 +1,6 @@
 /* ================= CLASS POWERS =================
    The nudge power, the cradle shot and the passive traits of each class. */
-import {G, T, bolt, burst, float, focusBall} from '../core/state.js';
+import {G, T, bolt, burst, flash, float, focusBall, ring, shake} from '../core/state.js';
 import {hitBoss, interruptBoss} from './bosses.js';
 import {CLASSES} from './classes.js';
 import {damageEnemy} from './foes.js';
@@ -33,13 +33,12 @@ export function powerImpact(b, type) {
 }
 export function explode(x, y) {
   const m = G.mods;
-  G.booms.push({x, y, r: 140, t: 0, c: '#ff8a3a'});
+  ring(x, y, 140, '#ff8a3a', 'fireball');
   if (m.scorch) G.zones.push({x, y, r: 110, t: m.scorch, tick: 0, pyre: true});
   burst(x, y, 40, '#ffb050', 440, 0.9, 'fireball');
   A.s('slam');
-  G.cam.shake = Math.max(G.cam.shake, 12);
-  G.flash = 0.3;
-  G.flashC = '#ff8a3a';
+  shake(12, 'fireball');
+  flash(0.3, '#ff8a3a', 'fireball');
   for (const e of G.enemies) {
     if (e.dead || e.spawn > 0 || Math.hypot(e.x - x, e.y - y) > 130 + e.r) continue;
     if (e.def.cast) e.castT = e.def.cast + 1;
@@ -67,7 +66,7 @@ export function classNudge() {
   G.nudgeCd = 2.5 + m.nudgeCd;
   const near = (e, d) => !e.dead && e.spawn <= 0 && live.some(b => Math.hypot(b.x - e.x, b.y - e.y) < d);
   if (c === 'knight') {
-    for (const b of live) G.booms.push({x: b.x, y: b.y, r: 150, t: 0, c: '#8fb0d8'});
+    for (const b of live) ring(b.x, b.y, 150, '#8fb0d8', 'knightNudge');
     for (const e of G.enemies)
       if (near(e, 150)) {
         e.atk = Math.max(e.atk, 6);
@@ -100,7 +99,7 @@ export function classNudge() {
       }
     }
     if (best) {
-      bolt(b, best);
+      bolt(b, best, 'mageNudge');
       if (best.def.cast) best.castT = best.def.cast + 1;
       if (m.sparkStun) {
         best.wind = 0;
@@ -114,7 +113,7 @@ export function classNudge() {
           .slice(0, m.chain);
         let from = best;
         for (const e of more) {
-          bolt(from, e);
+          bolt(from, e, 'mageNudge');
           damageEnemy(e, m.pow * 0.6, false);
           from = e;
         }
@@ -122,7 +121,7 @@ export function classNudge() {
     } else {
       const bo = G.boss;
       if (bo && bo.alive && bo.rise <= 0 && bo.phase !== 'shield' && Math.hypot(bo.x - b.x, bo.y - b.y) < 320) {
-        bolt(b, bo);
+        bolt(b, bo, 'mageNudge');
         hitBoss(bo, m.pow * 0.5, false);
         if (m.sparkStun && bo.phase === 'cast') interruptBoss(bo);
       }
@@ -136,7 +135,7 @@ export function classNudge() {
           G.curse[k] = 0;
           break;
         }
-    for (const b of live) G.booms.push({x: b.x, y: b.y, r: 150, t: 0, c: '#ffcf70'});
+    for (const b of live) ring(b.x, b.y, 150, '#ffcf70', 'clericNudge');
     for (const e of G.enemies) if (e.def.undead && near(e, 150)) damageEnemy(e, m.pow * 0.5, false);
   }
 }
@@ -211,7 +210,7 @@ export function updatePowers(dt) {
           if (c === 'mage') {
             if (d < b.r + e.r + 24 && !(e.wakeT > G.t)) {
               e.wakeT = G.t + 1;
-              bolt(b, e);
+              bolt(b, e, 'powerShot');
               damageEnemy(e, m.pow * 0.35, false);
             }
           } else {

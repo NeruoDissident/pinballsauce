@@ -1,7 +1,7 @@
 /* ================= TABLE EVENTS =================
    Everything the ball does to the table arrives here: ev(type, thing, ball, impact). This is where a hit becomes
    score, meter, quest progress and a call to the table's own rules (onComplete, onScoop). */
-import {G, T, bolt, burst, comboF, float, later} from '../core/state.js';
+import {G, T, bolt, burst, comboF, flash, float, later} from '../core/state.js';
 import {rand} from '../core/util.js';
 import {newBall} from '../physics/physics.js';
 import {serve} from './ball.js';
@@ -121,7 +121,7 @@ export function ev(type, o, b, imp) {
             .sort((p, q) => Math.hypot(p.x - o.x, p.y - o.y) - Math.hypot(q.x - o.x, q.y - o.y))
             .slice(0, n);
         for (const best of near) {
-          bolt(o, best);
+          bolt(o, best, 'conduit');
           damageEnemy(best, G.mods.pow * 0.5, false);
         }
       }
@@ -358,8 +358,7 @@ export function handleHole(h, b) {
     xp(20);
     popup(TEXT.risen[0], TEXT.risen[1], 'main');
     A.s('victory');
-    G.flash = 0.8;
-    G.flashC = '#eaffd0';
+    flash(0.8, '#eaffd0', 'graveRise');
   } // the way out of the Grave
   else if (h.wingGoal) {
     hd.plan = 'tunnel';
@@ -395,8 +394,7 @@ export function startMultiball(name, add, from) {
   popup(name + ' Multiball', 'Ramps and orbits score jackpots', 'mb');
   A.s('multiball');
   G.save = Math.max(G.save, TUNE.mbSave);
-  G.flash = 0.5;
-  G.flashC = '#ffd24a';
+  flash(0.5, '#ffd24a', 'multiball');
   for (let i = 0; i < add; i++) later(0.7 + i * 0.8, () => addBall(from));
   relight();
 }

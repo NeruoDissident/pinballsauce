@@ -16,14 +16,21 @@ nothing, so none of them changed. Engine work only: no sound, voice or effect wa
 |---|---|---|
 | Any of the 51 built-in sounds | `theme.sounds` | `false` is silence; a file path (or a list, played in turn) plays a recording, which is how a table gets its own voice lines; a function plays whatever it likes |
 | The music | `theme.music: false` | off (the tone settings it already had still work) |
-| Any of the 29 particle sprays (a kill, a bumper, a slingshot, a boss going down...) | `theme.fx.bursts` | `false` removes it; `{n, col, speed, life}` changes how many, what colour, how fast, how long |
-| The shape of a particle | `theme.fx.particle` | `'dot'` (default), `'heart'`, `'star'`, `'spark'`, or the table's own drawing |
-| Screen flash, camera shake, shock rings, lightning | `theme.fx.flash`, `shake`, `rings`, `bolts` | a strength (0 is off) for the first two, on or off for the others |
+| Any of the 29 particle sprays (a kill, a bumper, a slingshot, a boss going down...) | `theme.fx.bursts` | `false` removes it; `{n, col, speed, life, shape}` changes how many, what colour, how fast, how long, and what each particle is drawn as |
+| The shape of a particle | `theme.fx.particle` for the table, `shape` on any one spray | `'dot'` (default), `'heart'`, `'star'`, `'spark'`, or the table's own drawings by name (`fx.shapes`). Hearts on a kill and sparks off a bumper is two lines |
+| Any of the 15 screen flashes, 15 camera shakes, 11 shock rings and 11 kinds of lightning, each by name | `theme.fx.flashes`, `shakes`, `rings`, `bolts` | `false` removes that one; or its strength and colour (a flash), its amount (a shake), its colour and size (a ring), its colour (lightning) |
+| Flash, shake, rings and lightning for the whole table | `theme.fx.flash`, `shake`, `rings`, `bolts` | a strength (0 is off) for the first two, `false` for the others |
 | The colours of the playfield lights | `theme.lampCols` | by lamp kind |
 | Any word the shared code puts on screen: banners, floating text, HUD lines and chips, end-of-ball bonus lines | `text.words` in `content.js` | `{'KICKBACK': 'SECOND CHANCE'}` replaces it; `''` drops that banner or float altogether |
 | 24 rule numbers: ball-save time, combo time and steps, tilt (nudges and time), multiball save and ball count, wave timing and size, level-up curve, cradle timings, Rally time, Grave hits and time, health scaling | `tune` in `table.js` | `tune: {ballSave: 15}` |
 
-A misspelt name in `tune`, `fx.bursts` or `fx.particle` stops the table with a message listing the valid names,
+This was done in two passes the same evening. The first gave flash, shake, rings and lightning one setting each for
+the whole table, and one particle shape for the whole table; the owner asked why, and the answer was only that it
+was the smaller job. The second pass named all 58 places the shared code fires one of them and let each spray
+choose its shape. A table's own rules fire the same effects through the same functions (`flash`, `shake`, `ring`,
+`bolt`, `burst`), unnamed, and nothing overrides those.
+
+A misspelt name in `tune`, any of the five `fx` maps or a particle shape stops the table with a message listing the valid names,
 the same as `points` and `uses`. The lists of names are in `docs/TABLE_FORMAT.md`.
 
 ### Verified in stage 5
@@ -36,13 +43,24 @@ the same as `points` and `uses`. The lists of names are in `docs/TABLE_FORMAT.md
 | `fx.bursts` | slingshot spray set to `false`, kill spray to three pink particles | none on a slingshot, three pink on a kill, every other spray unchanged |
 | `theme.sounds` | one sound set to `false`, one to a function, one to a file, one to a file that is not there, in a page with real audio | silent; the function ran; the file played; the missing file gave one warning in the console and silence |
 | `theme.lampCols`, `fx.particle` | set in a test page and a frame drawn | the lamp colour changed; the particles were hearts |
-| Misspelt or unknown names are refused | `tune:{ballsave:5}`, `fx:{bursts:{explosion:false}}`, `fx:{particle:'cube'}` | each stopped the table with the list of valid names |
+| One flash, shake, ring or bolt changed by name | Gravebound loaded with some of each switched off or changed, then each fired and read back, and the real nudge pressed | the ones switched off did not happen (no shake on the nudge), the changed ones had the new strength or colour, everything not named was as built, and a table's own unnamed effects were untouched |
+| The defaults of all 58 are what they were | the same read-back on Gravebound and Starfall with nothing set; and each rewritten line compared with the line it replaced | same strengths, colours and sizes |
+| A shape per spray | kill set to hearts, bumper to stars, slingshot left alone, a table's own spray as sparks and another as a shape the table drew itself; one frame drawn and looked at | all five shapes in the same frame, each where it was fired |
+| The effect names in the docs are the ones in the code, and every name is used | compared by script | 15, 15, 11 and 11 names; none missing, none unused |
+| The four tables still play exactly as before, after the second pass | the replay alarm again on all four; Starfall and Gravebound once more after a last drawing-only fix | 80 of 80 identical; then 40 of 40 |
+| Misspelt or unknown names are refused | `tune:{ballsave:5}`, `fx:{bursts:{explosion:false}}`, `fx:{particle:'cube'}`, a wrong name in each of `flashes`, `shakes`, `rings`, `bolts`, a spray given `shape:'cube'` | each stopped the table with the list of valid names |
 | The sound names in the docs are the ones in the code | the two lists compared by script | 51 and 51, none missing either way |
 
 ### Not verified in stage 5
 
 - **No table uses any of it.** Each override was tried by handing a table a patch in a test page. The first table
   that sets them for real is the real test.
+- **A changed lightning colour was read back, not looked at.** The bolt carries the colour and the drawing uses it
+  (one line); no frame was checked.
+- **Every one of the 58 in play.** Each kind was fired by hand and the nudge was pressed for real. The other 57 were
+  checked by reading the rewritten lines, not by playing to a boss kill or a Rally with an override set.
+- **Many shapes at once.** Each shape in use is its own batch of up to 320 particles. Five were drawn together; the
+  cost of, say, fifteen on a slow machine was not measured.
 - **Recorded sound was tried with one generated clip**, not with real voice files, and not for timing (two lines
   called at once will talk over each other; there is no queue yet).
 - **Recorded sound files do not travel in the one-file build** (`tools/bundle.mjs`): it does not pack audio. A
@@ -53,14 +71,24 @@ the same as `points` and `uses`. The lists of names are in `docs/TABLE_FORMAT.md
   values are not.
 - **Soak, reach and standards were not run.** No layout, physics or rule default changed, and the alarm says so.
 
+### Found on the way in stage 5
+
+- A table with no bosses (Starfall) made the 3D library print a harmless warning at load: the boss's sprite was
+  given a picture that did not exist. Fixed in `engine/render/actors.js`.
+- Switching off a lightning line does not change how a table plays (it still draws its random kinks). Switching
+  off or resizing a particle spray does, because particles draw random numbers that are then not drawn. That is in
+  TABLE_FORMAT. It only matters to a table's own replay recording.
+
 ### Still the same on every table after stage 5
 
 These are not sounds, effects, words or numbers, and this stage did not touch them:
 
 - **Models the shared code builds:** flippers, drop targets, standups, spinners, slingshots, scoops, the ball,
   pickups, companion figures. A table colours them; it cannot bring its own. (Enemies and bosses it can.)
-- **Effects by kind, not by event:** flash, shake, rings and lightning are one strength each for the whole table,
-  and the particle shape is one per table. A table cannot yet say "hearts on a kill, sparks on a bumper".
+- **Particle size** is one number for the whole table (`particleSize`), and a particle is a flat sprite that
+  rises and fades: a spray cannot have its own size, spin or gravity.
+- **What a flash, a shake, a ring and a bolt are.** A table changes how strong, what colour and whether; it cannot
+  swap the full-screen flash for, say, a border glow without drawing that itself.
 - **Structure:** where the HUD and menus are and the words inside the menus; the camera; how the music is
   generated; playfield size; the fixed sets of 4 classes, 16 abilities, 35 cards, 8 enemy behaviours and the boss
   phase types.

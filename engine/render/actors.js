@@ -140,7 +140,7 @@ export function buildActors() {
     });
   X.boss = {
     glow: sprite({map: R3.glowTex, blending: THREE.AdditiveBlending, opacity: 0.5}),
-    sp: sprite({map: X.tex['b_' + Object.keys(BOSSES)[0]]}),
+    sp: sprite(Object.keys(BOSSES).length ? {map: X.tex['b_' + Object.keys(BOSSES)[0]]} : {}), // a table may have no bosses
     rg: decal(X.ringG, '#ffffff', 0.5),
     blob: blob(),
     key: '',

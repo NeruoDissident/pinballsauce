@@ -1,6 +1,6 @@
 /* ================= BOSSES =================
    A boss stands on its field's circle and loops through phases: shield | open | summon | cast | frenzy. */
-import {G, T, burst, float, later} from '../core/state.js';
+import {G, T, burst, flash, float, later, shake} from '../core/state.js';
 import {clamp, rand} from '../core/util.js';
 import {startMultiball} from './events.js';
 import {spawnEnemy} from './foes.js';
@@ -87,9 +87,8 @@ export function wakeBoss(key) {
   bossNext(bo);
   popup('Boss Awakened', d.name, 'boss');
   A.s('boss');
-  G.cam.shake = 14;
-  G.flash = 0.6;
-  G.flashC = '#ff3040';
+  shake(14, 'bossWake', true);
+  flash(0.6, '#ff3040', 'bossWake');
   relight();
 }
 export function bossPhaseEnd(bo) {
@@ -221,9 +220,8 @@ export function updateBoss(dt) {
       if (bo.castT <= 0) {
         hurt(bo.def.cast.dmg * bo.th);
         G.curse[bo.def.cast.curse] = 12;
-        G.flash = 0.5;
-        G.flashC = bo.def.color;
-        G.cam.shake = 18;
+        flash(0.5, bo.def.color, 'bossCast');
+        shake(18, 'bossCast', true);
         A.s('slam');
         float(bo.x, bo.y + 62, bo.def.cast.name.toUpperCase(), '#ff6060', 16);
         bossNext(bo);
@@ -336,9 +334,8 @@ export function killBoss(bo) {
   score(PTS.boss, bo.x, bo.y);
   xp(d.xp);
   gold(d.gold, bo.x, bo.y);
-  G.cam.shake = 24;
-  G.flash = 1;
-  G.flashC = '#ffffff';
+  shake(24, 'bossDown', true);
+  flash(1, '#ffffff', 'bossDown');
   A.s('bossDie');
   burst(bo.x, bo.y, 60, d.color, 420, 1.6, 'bossDown');
   let note = '';

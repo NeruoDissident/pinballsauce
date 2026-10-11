@@ -1,7 +1,7 @@
 /* ================= FOES =================
    Every foe has a job on the table (swarm, thief, hunter, possess, ritual, wall, duel, gate), a visible wind-up
    and a shot that answers it. A table lists its foes in content.foes; the jobs are played here. */
-import {G, T, bolt, burst, float, focusBall, later} from '../core/state.js';
+import {G, T, bolt, burst, float, focusBall, later, ring} from '../core/state.js';
 import {PI, clamp, lerp, pick, rand, shuffle} from '../core/util.js';
 import {hitCircle} from '../physics/physics.js';
 import {strikeBoss} from './bosses.js';
@@ -180,7 +180,7 @@ export function foeStrike(e, fb) {
   if (spellOn('shieldWall')) {
     const k = spellVal('shieldWall', 'ref'),
       st = spellVal('shieldWall', 'stun');
-    bolt(fb, e);
+    bolt(fb, e, 'shieldWall');
     float(fb.x, fb.y - 26, 'BLOCKED', '#8fb0d8', 13);
     A.s('clank');
     if (st) {
@@ -205,7 +205,7 @@ export function foeStrike(e, fb) {
           q.stun = Math.max(q.stun, 1);
           damageEnemy(q, G.mods.pow * 2 * k, false);
         }
-        G.booms.push({x: fb.x, y: fb.y, r: 150, t: 0, c: '#9fe8ff'});
+        ring(fb.x, fb.y, 150, '#9fe8ff', 'barrier');
         endCast(cb);
       }
       return;
@@ -230,7 +230,7 @@ export function foeStrike(e, fb) {
     A.s('ward');
     return;
   }
-  bolt(e, fb);
+  bolt(e, fb, 'foeStrike');
   burst(fb.x, fb.y, 8, '#ff5a5a', 200, 0.5, 'foeStrike');
   if (e.job === 'thief') {
     const n = Math.min(r.gold, 4 + r.level * 2);
@@ -517,7 +517,7 @@ export function updateEnemies(dt) {
       e.castT -= dt;
       if (e.castT <= 0) {
         e.castT = d.cast;
-        bolt(e, fb);
+        bolt(e, fb, 'foeCast');
         hurt(10 * th);
         G.curse[pick(['dark', 'weak', 'hex'])] = 10;
         float(e.x, e.y - 34, 'CURSED', '#c08cff', 13);

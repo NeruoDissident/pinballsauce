@@ -1102,24 +1102,40 @@ export function buildFx() {
   R3.ballGeo = new THREE.SphereGeometry(1, 40, 28);
   R3.ballTex = ctex(texBall());
   R3.blobGeo = new THREE.CircleGeometry(1, 20).rotateX(-PI / 2);
+  /* Particles are drawn in batches, one per sprite. Nearly always there is one: the table's own (theme.fx.particle).
+     A spray that asks for a shape of its own (theme.fx.bursts, or a table rule's burst) gets a batch the first time
+     it fires. */
   const N = 320,
-    pg = new THREE.BufferGeometry();
-  pg.setAttribute('position', new THREE.BufferAttribute(new Float32Array(N * 3), 3));
-  pg.setAttribute('color', new THREE.BufferAttribute(new Float32Array(N * 3), 3));
-  R3.parts = new THREE.Points(
-    pg,
-    new THREE.PointsMaterial({
-      size: THEME.fx.particleSize,
-      map: THEME.fx.particle === 'dot' ? R3.glowTex : ctex(texParticle(THEME.fx.particle)),
-      vertexColors: true,
-      transparent: true,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false,
-      sizeAttenuation: true
-    })
-  );
-  R3.parts.frustumCulled = false;
-  sc.add(R3.parts);
+    batch = shape => {
+      const pg = new THREE.BufferGeometry();
+      pg.setAttribute('position', new THREE.BufferAttribute(new Float32Array(N * 3), 3));
+      pg.setAttribute('color', new THREE.BufferAttribute(new Float32Array(N * 3), 3));
+      for (let i = 0; i < N; i++) pg.attributes.position.setXYZ(i, 0, -9999, 0);
+      const kind = typeof shape === 'string' && shape in THEME.fx.shapes ? THEME.fx.shapes[shape] : shape,
+        pts = new THREE.Points(
+          pg,
+          new THREE.PointsMaterial({
+            size: THEME.fx.particleSize,
+            map: kind === 'dot' ? R3.glowTex : ctex(texParticle(kind)),
+            vertexColors: true,
+            transparent: true,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+            sizeAttenuation: true
+          })
+        );
+      pts.frustumCulled = false;
+      pts.userData.used = pts.userData.was = 0;
+      sc.add(pts);
+      return pts;
+    };
+  R3.parts = batch(THEME.fx.particle);
+  R3.partsBy = new Map(); // shape -> its batch
+  R3.partBatch = shape => {
+    let b = R3.partsBy.get(shape);
+    if (!b) R3.partsBy.set(shape, (b = batch(shape)));
+    return b;
+  };
   const Mn = 260,
     mg = new THREE.BufferGeometry();
   mg.setAttribute('position', new THREE.BufferAttribute(new Float32Array(Mn * 3), 3));

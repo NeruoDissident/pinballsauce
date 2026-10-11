@@ -1,7 +1,7 @@
 /* ================= THE GRAVE =================
    Every table has one. Hitting the bumpers marked opensGrave opens it; an open Grave always takes the next lost
    ball, tilted or not. The room itself is built in table/build.js. */
-import {G, T, float} from '../core/state.js';
+import {G, T, flash, float} from '../core/state.js';
 import {relight} from './lamps.js';
 import {heroBalls} from './spells.js';
 import {catmull, resample} from '../table/geometry.js';
@@ -21,8 +21,7 @@ export function graveHit(o) {
     g.open = true;
     popup(TEXT.graveOpen[0], TEXT.graveOpen[1], 'good');
     A.s('summon');
-    G.flash = 0.4;
-    G.flashC = '#7dffb0';
+    flash(0.4, '#7dffb0', 'graveOpen');
   } else if (g.hits % 3 === 0 || g.need - g.hits <= 2)
     float(o.x, o.y - 34, TEXT.graveCount + ' ' + g.hits + '/' + g.need, '#9dffc8', 12);
 }
@@ -74,8 +73,7 @@ export function graveCatch(b) {
   b.vx = b.vy = 0;
   popup(TEXT.graveIn[0], TEXT.graveIn[1], 'boss');
   A.s('boss');
-  G.flash = 0.6;
-  G.flashC = '#0a2a14';
+  flash(0.6, '#0a2a14', 'graveCatch');
   relight();
   G.dirty = true;
   return true;

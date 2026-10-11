@@ -1,6 +1,6 @@
 /* ================= RALLY =================
    A full meter cradled: the party comes out as balls. */
-import {G, T, bolt, burst, float, focusBall, later} from '../core/state.js';
+import {G, T, bolt, burst, flash, float, focusBall, later, ring, shake} from '../core/state.js';
 import {rand} from '../core/util.js';
 import {newBall} from '../physics/physics.js';
 import {hitBoss} from './bosses.js';
@@ -85,15 +85,14 @@ export function rally() {
       b.pulse = rand(0.2, RALLY_PULSE);
       dress(b);
       G.balls.push(b);
-      G.booms.push({x: b.x, y: b.y, r: 120, t: 0, c: b.pg});
+      ring(b.x, b.y, 120, b.pg, 'rallyBall');
       burst(b.x, b.y, 34, b.pg, 520, 0.9, 'rallyBall');
       burst(b.x, b.y, 18, '#ffe9b0', 300, 0.7, 'rallySpark');
       float(b.x, b.y - 46, b.label.toUpperCase() + '!', b.pg, 17);
       A.s('launch');
       A.s('slam');
-      G.cam.shake = Math.max(G.cam.shake, 9);
-      G.flash = 0.18;
-      G.flashC = b.pg;
+      shake(9, 'rallyBall');
+      flash(0.18, b.pg, 'rallyBall');
       G.dirty = true;
     })
   );
@@ -101,9 +100,8 @@ export function rally() {
   G.rallyT = T0;
   popup('Rally', 'The party is coming. Keep your own ball alive', 'good');
   A.s('multiball');
-  G.flash = 0.5;
-  G.flashC = '#ffe9b0';
-  G.cam.shake = Math.max(G.cam.shake, 12);
+  flash(0.5, '#ffe9b0', 'rally');
+  shake(12, 'rally');
   G.dirty = true;
 }
 // what each party ball does on its pulse, besides its own ability
@@ -113,7 +111,7 @@ export function rallyPulse(b) {
     bo = G.boss && G.boss.alive && G.boss.tier === b.tier && G.boss.rise <= 0 ? G.boss : null;
   burst(b.x, b.y, 10, b.pg || '#ffe9b0', 260, 0.5, 'partyPulse');
   if (b.party === 'tank') {
-    G.booms.push({x: b.x, y: b.y, r: 110, t: 0, c: b.pg});
+    ring(b.x, b.y, 110, b.pg, 'rallyTank');
     for (const f of nearFoes(b.x, b.y, 110, b.tier)) {
       f.stun = Math.max(f.stun, 1.2);
       f.wind = 0;
@@ -123,20 +121,20 @@ export function rallyPulse(b) {
   } else if (b.party === 'healer') {
     heal(3);
     for (const c of G.run.party || []) if (c.hp > 0) c.hp = Math.min(c.maxHp, c.hp + 4);
-    G.booms.push({x: b.x, y: b.y, r: 90, t: 0, c: '#ffe0a0'});
+    ring(b.x, b.y, 90, '#ffe0a0', 'rallyHeal');
   } else {
     if (e) {
-      bolt(b, e);
+      bolt(b, e, 'rallyPulse');
       damageEnemy(e, P * (b.party === 'dps' ? 0.6 : 0.45), b.party === 'dps');
     } else if (bo && bo.phase !== 'shield') {
-      bolt(b, bo);
+      bolt(b, bo, 'rallyPulse');
       hitBoss(bo, P * 0.35, false);
     }
     if ((b.pn = (b.pn || 0) + 1) % 3 === 0) {
-      G.booms.push({x: b.x, y: b.y, r: 130, t: 0, c: b.pg});
+      ring(b.x, b.y, 130, b.pg, 'rallySlam');
       for (const f of nearFoes(b.x, b.y, 130, b.tier)) damageEnemy(f, P * 0.4, false);
       A.s('slam');
-      G.cam.shake = Math.max(G.cam.shake, 5);
+      shake(5, 'rallySlam');
     }
   }
 }

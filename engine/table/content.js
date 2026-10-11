@@ -73,15 +73,106 @@ export const POINTS0 = {
   wing: 100000 // a wing won
 };
 /* The engine's own visual effects, and what a table's theme may do about them:  theme.fx = {...}
+   For the whole table:
      flash     how strong the full-screen colour flashes are (1 = as built, 0 = none)
      shake     how strong the camera shake is (the player's own Screen Shake option still switches it off)
-     rings     false = no shockwave rings on the floor
-     bolts     false = no lightning lines
-     particle  the sprite every particle is drawn with: 'dot', 'heart', 'star', 'spark', or a function
-               (c, size) that paints one in white on a 2D canvas context
-     particleSize   how big it is drawn (9)
-     bursts    {name: false | {n, col, speed, life}}: silence or change one named spray of particles */
-export const FX0 = {flash: 1, shake: 1, rings: true, bolts: true, particle: 'dot', particleSize: 9, bursts: {}};
+     rings     false = no shockwave rings on the floor at all
+     bolts     false = no lightning lines at all
+     particle  the sprite a particle is drawn with unless its spray says otherwise: 'dot', 'heart', 'star', 'spark',
+               one of this table's own `shapes`, or a function (c, size) that paints one in white on a 2D canvas
+     particleSize   how big a particle is drawn (9)
+     shapes    {name: (c, size) => {...}}: this table's own particle sprites, usable by name wherever a shape is
+   For one moment, by its name (the lists below; a name that is not in its list stops the table loading):
+     bursts    {name: false | {n, col, speed, life, shape}}   one spray of particles
+     flashes   {name: false | strength | {v, col}}            one screen flash
+     shakes    {name: false | amount | {v}}                   one camera shake
+     rings     {name: false | {col, r}}                       one shockwave ring
+     bolts     {name: false | {col}}                          one kind of lightning line */
+export const FX0 = {
+  flash: 1,
+  shake: 1,
+  rings: true,
+  bolts: true,
+  particle: 'dot',
+  particleSize: 9,
+  shapes: {},
+  bursts: {},
+  flashes: {},
+  shakes: {}
+};
+export const SHAPES = ['dot', 'heart', 'star', 'spark'];
+// Is this something a particle can be drawn as? Throws, naming what can, if not.
+export function checkShape(s) {
+  if (typeof s === 'function' || SHAPES.includes(s) || (THEME.fx && THEME.fx.shapes && s in THEME.fx.shapes)) return s;
+  throw new Error(
+    'a particle shape is ' +
+      SHAPES.concat(Object.keys((THEME.fx && THEME.fx.shapes) || {})).join(', ') +
+      ' or a function, not "' +
+      s +
+      '"'
+  );
+}
+// every screen flash, camera shake, shockwave ring and lightning line the engine fires, by name
+export const FLASHES = [
+  'jackpot',
+  'multiball',
+  'cast', // an ability going off
+  'fireball',
+  'martyr',
+  'rally',
+  'rallyBall', // each party ball arriving
+  'graveOpen',
+  'graveCatch', // the ball taken down into the Grave
+  'graveRise', // out of the Grave
+  'wingEnter',
+  'wingWon',
+  'bossWake',
+  'bossCast', // a boss's spell landing
+  'bossDown'
+];
+export const SHAKES = [
+  'nudge',
+  'hurt',
+  'wave', // a wave of enemies arriving
+  'cast',
+  'fireball',
+  'meteor',
+  'rally',
+  'rallyBall',
+  'rallySlam', // every third pulse of a party ball
+  'partyFall', // a companion going down
+  'graveFall', // a ball landing in the Grave
+  'sealBreak', // a wing's seal breaking
+  'bossWake',
+  'bossCast',
+  'bossDown'
+];
+export const RINGS = [
+  'aegis',
+  'barrier',
+  'fireball',
+  'meteor',
+  'frostNova',
+  'knightNudge',
+  'clericNudge',
+  'rallyBall',
+  'rallyTank',
+  'rallyHeal',
+  'rallySlam'
+];
+export const BOLTS = [
+  'conduit', // a mage's bumper arcing to an enemy
+  'mageNudge',
+  'powerShot', // a mage's charged ball arcing to enemies it passes
+  'knives',
+  'blink',
+  'judgement',
+  'shieldWall',
+  'guardBolt', // a companion at the drain striking back
+  'rallyPulse',
+  'foeStrike', // an enemy hitting the ball
+  'foeCast' // an enemy's curse
+];
 // every spray of particles the engine fires, by name
 export const BURSTS = [
   'sling',
@@ -226,10 +317,36 @@ function themeDefaults(def, th) {
   if (!t.rampCol) t.rampCol = P.slice(0, nm).map(p => p.glow);
   if (!t.fog) t.fog = each(p => p.b);
   if (!t.motes) t.motes = P.slice(0, nm + 1).map(p => ({col: p.glow, style: 'drift'}));
-  for (const k in (th.fx || {}).bursts || {})
-    if (!BURSTS.includes(k))
-      throw new Error('theme: there is no particle effect "' + k + '" (' + BURSTS.join(', ') + ')');
-  t.fx = Object.assign({}, FX0, th.fx || {});
+  const fx = th.fx || {};
+  for (const [key, list, what] of [
+    ['bursts', BURSTS, 'particle effect'],
+    ['flashes', FLASHES, 'screen flash'],
+    ['shakes', SHAKES, 'camera shake'],
+    ['rings', RINGS, 'shockwave ring'],
+    ['bolts', BOLTS, 'lightning line']
+  ]) {
+    const m = fx[key];
+    if (!m || typeof m !== 'object') continue; // rings and bolts may also be true or false for the whole table
+    for (const k in m)
+      if (!list.includes(k))
+        throw new Error('theme: fx.' + key + ' has no ' + what + ' "' + k + '" (' + list.join(', ') + ')');
+  }
+  t.fx = Object.assign({}, FX0, fx);
+  // shapes: the table's default and any a spray asks for must be ones that exist
+  const shapeOk = s =>
+    typeof s === 'function' || SHAPES.includes(s) || s in t.fx.shapes
+      ? s
+      : (() => {
+          throw new Error(
+            'theme: a particle shape is ' +
+              SHAPES.concat(Object.keys(t.fx.shapes)).join(', ') +
+              ' or a function, not "' +
+              s +
+              '"'
+          );
+        })();
+  shapeOk(t.fx.particle);
+  for (const k in t.fx.bursts) if (t.fx.bursts[k] && t.fx.bursts[k].shape) shapeOk(t.fx.bursts[k].shape);
   t.sounds = th.sounds || {};
   return t;
 }

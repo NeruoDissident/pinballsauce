@@ -1,6 +1,6 @@
 /* ================= THE BALL'S LIFE =================
    Serve, plunger, nudge and tilt, flipper input, scoops and tunnels, drains, ball save, end-of-ball bonus. */
-import {G, T, burst, float, later} from '../core/state.js';
+import {G, T, burst, float, later, ring, shake} from '../core/state.js';
 import {irand, rand} from '../core/util.js';
 import {newBall} from '../physics/physics.js';
 import {addBall} from './events.js';
@@ -127,7 +127,7 @@ export function nudge() {
       b.vy -= 230 * FEEL.speed;
       b.vx += ((b.x < cx ? 1 : -1) * 90 + rand(-40, 40)) * FEEL.speed;
     }
-  G.cam.shake = Math.max(G.cam.shake, 10);
+  shake(10, 'nudge');
   G.nudgeT = 0.25;
   A.s('nudge');
   classNudge();
@@ -245,7 +245,7 @@ export function updateBalls(dt) {
         b.trail = [];
         G.graveLive = true;
         A.s('slam');
-        G.cam.shake = 14;
+        shake(14, 'graveFall', true);
         burst(b.x, b.y, 20, '#9dffc8', 260, 0.8, 'graveFall');
       } else if (b.rs >= tn.len) {
         const h = T.holes[tn.to];
@@ -278,7 +278,7 @@ export function onDrain(b) {
     if (cA) {
       saveBall('Aegis', 'The ward returns your ball');
       if (spellVal('aegis', 'wave')) {
-        G.booms.push({x: b.x, y: b.y, r: 400, t: 0, c: '#8fb0d8'});
+        ring(b.x, b.y, 400, '#8fb0d8', 'aegis');
         for (const e of G.enemies)
           if (e.tier === G.focusTier && !e.dead) {
             e.wind = 0;
@@ -310,7 +310,7 @@ export function onDrain(b) {
       r.shield = false;
       saveBall('Aegis', 'The ward returns your ball');
       if (G.mods.bulwark) {
-        G.booms.push({x: b.x, y: b.y, r: 400, t: 0, c: '#8fb0d8'});
+        ring(b.x, b.y, 400, '#8fb0d8', 'aegis');
         for (const e of G.enemies)
           if (e.tier === G.focusTier && !e.dead) {
             e.wind = 0;

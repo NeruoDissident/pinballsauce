@@ -367,31 +367,39 @@ export function frame3D(dt) {
     l.userData.t = Math.max(0, l.userData.t - dt * 5.5);
     l.intensity = l.userData.t * 2.6 * (l.userData.p || 1);
   }
-  // particles: the 2D game moves them on the table; here each also arcs up off it
+  // particles: the 2D game moves them on the table; here each also arcs up off it. Newest first, into the batch for
+  // its sprite (the table's own unless its spray asked for another), until that batch is full
   {
-    const P = R3.parts.geometry.attributes.position,
-      C = R3.parts.geometry.attributes.color,
-      n = P.count,
-      c = R3.tmpC,
-      L = G.parts,
-      m = L.length,
-      o0 = Math.max(0, m - n);
-    for (let i = 0; i < n; i++) {
-      const p = L[o0 + i];
-      if (!p) {
-        P.setXYZ(i, 0, -9999, 0);
-        continue;
-      }
+    const c = R3.tmpC,
+      L = G.parts;
+    R3.parts.userData.used = 0;
+    for (const b of R3.partsBy.values()) b.userData.used = 0;
+    for (let j = L.length - 1; j >= 0; j--) {
+      const p = L[j],
+        B = p.shape ? R3.partBatch(p.shape) : R3.parts,
+        P = B.geometry.attributes.position,
+        i = B.userData.used;
+      if (i >= P.count) continue;
+      B.userData.used = i + 1;
       const u = p.life / p.max,
         k = Math.max(0, 1 - u);
       P.setXYZ(i, p.x - 320 + ZX(p.y), elev(p.y, p.x) + 6 + (p.size || 3) * 26 * u * (1 - u), p.y + ZZ(p.y));
       c.set(p.color)
         .convertSRGBToLinear()
         .multiplyScalar(k * 1.8);
-      C.setXYZ(i, c.r, c.g, c.b);
+      B.geometry.attributes.color.setXYZ(i, c.r, c.g, c.b);
     }
-    P.needsUpdate = true;
-    C.needsUpdate = true;
+    const tidy = B => {
+      const P = B.geometry.attributes.position,
+        d = B.userData;
+      if (!d.used && !d.was) return; // nothing in it now or last frame
+      for (let i = d.used; i < d.was; i++) P.setXYZ(i, 0, -9999, 0);
+      d.was = d.used;
+      P.needsUpdate = true;
+      B.geometry.attributes.color.needsUpdate = true;
+    };
+    tidy(R3.parts);
+    for (const b of R3.partsBy.values()) tidy(b);
   }
   // drifting motes
   {

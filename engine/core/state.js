@@ -3,7 +3,7 @@
    sensors, scoops, banks, ramps). Both are plain objects every module reads and writes. Also the few helpers that
    only touch G: delayed calls, floating text, particles, lightning, the ball the camera follows. */
 import {TAU, lerp, prefs, rand} from './util.js';
-import {TUNE, tr} from '../table/content.js';
+import {TUNE, checkShape, tr} from '../table/content.js';
 
 export const T = {
   segs: [],
@@ -102,23 +102,30 @@ export function float(x, y, text, color, size) {
   G.floats.push({x, y, text, color: color || '#ffe9b0', size: size || 13, t: 0});
   if (G.floats.length > 40) G.floats.shift();
 }
-/* A spray of particles. Every spray the engine itself fires has a name (the last argument), and a table's theme may
-   change or silence any of them: fx: {bursts: {kill: {col: '#ff9ac8', n: 24}, sling: false}}  (see FX0 in
-   table/content.js for the names). A table's own rules call burst() with no name, or with one of their own. */
-export const FXO = {}; // name -> false | {n, col, speed, life}, filled from the table's theme when it loads
-export function burst(x, y, n, color, sp, life, name) {
-  const o = name === undefined ? undefined : FXO[name];
+/* The engine's own visual effects. Every one the engine itself fires has a name (the last argument), and a table's
+   theme may change or silence any of them by that name (theme.fx; the names are in table/content.js):
+     bursts   {kill: {col: '#ff9ac8', n: 24, shape: 'heart'}, sling: false}     sprays of particles
+     flashes  {jackpot: false, bossDown: {v: 0.4, col: '#ffd0e8'}}             full-screen colour flashes
+     shakes   {nudge: false, bossDown: 8}                                      camera shake
+     rings    {fireball: {col: '#ff9ac8'}, frostNova: false}                   shockwave rings on the floor
+     bolts    {foeStrike: false, knives: {col: '#ffd0e8'}}                     lightning lines
+   A table's own rules call the same functions with no name: nothing overrides those. */
+export const FXO = {bursts: {}, flashes: {}, shakes: {}, rings: {}, bolts: {}}; // filled from the table's theme when it loads
+export function burst(x, y, n, color, sp, life, name, shape) {
+  const o = name === undefined || name === null ? undefined : FXO.bursts[name];
   if (o === false) return;
   if (o) {
     if (o.n !== undefined) n = o.n;
     if (o.col) color = o.col;
     if (o.speed !== undefined) sp = o.speed;
     if (o.life !== undefined) life = o.life;
+    if (o.shape) shape = o.shape;
   }
+  if (shape) checkShape(shape);
   for (let i = 0; i < n; i++) {
     const a = rand(TAU),
       v = rand(0.3, 1) * (sp || 220);
-    G.parts.push({
+    const p = {
       x,
       y,
       vx: Math.cos(a) * v,
@@ -127,12 +134,48 @@ export function burst(x, y, n, color, sp, life, name) {
       max: rand(0.3, 0.8) * (life || 1),
       color,
       size: rand(1.5, 3.5)
-    });
+    };
+    if (shape) p.shape = shape; // drawn with its own sprite; without one, the table's (theme.fx.particle)
+    G.parts.push(p);
   }
   if (G.parts.length > 450) G.parts.splice(0, G.parts.length - 450);
 }
-export function bolt(a, b) {
+// A full-screen flash of colour. v is how strong (1 is the strongest the engine uses).
+export function flash(v, col, name) {
+  const o = name === undefined ? undefined : FXO.flashes[name];
+  if (o === false) return;
+  if (typeof o === 'number') v = o;
+  else if (o) {
+    if (o.v !== undefined) v = o.v;
+    if (o.col) col = o.col;
+  }
+  G.flash = v;
+  if (col) G.flashC = col;
+}
+// Camera shake. v is how hard (the engine uses 3 to 24). It never lowers a harder shake already running, unless
+// `set` is given (the engine's own largest moments set it outright).
+export function shake(v, name, set) {
+  const o = name === undefined ? undefined : FXO.shakes[name];
+  if (o === false) return;
+  if (typeof o === 'number') v = o;
+  else if (o && o.v !== undefined) v = o.v;
+  G.cam.shake = set ? v : Math.max(G.cam.shake, v);
+}
+// A shockwave ring spreading over the floor to radius r.
+export function ring(x, y, r, col, name) {
+  const o = name === undefined ? undefined : FXO.rings[name];
+  if (o === false) return;
+  if (o) {
+    if (o.r !== undefined) r = o.r;
+    if (o.col) col = o.col;
+  }
+  G.booms.push({x, y, r, t: 0, c: col});
+}
+// A line of lightning between two things. (It draws its random kinks even when the table has switched it off, so
+// that switching it off does not change how the table plays.)
+export function bolt(a, b, name) {
   if (!a || !b) return;
+  const o = name === undefined ? undefined : FXO.bolts[name];
   const pts = [],
     n = 7;
   for (let i = 0; i <= n; i++) {
@@ -140,7 +183,8 @@ export function bolt(a, b) {
       j = i && i < n ? 1 : 0;
     pts.push([lerp(a.x, b.x, t) + j * rand(-16, 16), lerp(a.y, b.y, t) + j * rand(-16, 16)]);
   }
-  G.bolts.push({pts, t: 0});
+  if (o === false) return;
+  G.bolts.push({pts, t: 0, c: (o && o.col) || null});
 }
 export function focusBall() {
   let f = null;

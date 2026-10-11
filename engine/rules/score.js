@@ -1,5 +1,5 @@
 /* ================= SCORE, GOLD, XP, HEALTH, THE METER ================= */
-import {G, float, focusBall, xpNeed} from '../core/state.js';
+import {G, flash, float, focusBall, shake, xpNeed} from '../core/state.js';
 import {fmt} from '../core/util.js';
 import {interruptBoss} from './bosses.js';
 import {CLASSES} from './classes.js';
@@ -63,7 +63,7 @@ export function hurt(n) {
   if (!PLAYER_HP()) {
     if (G.mods.deathWish) r.charge = Math.max(0, r.charge - G.mods.deathWish);
     G.hurtT = 0.4;
-    G.cam.shake = Math.max(G.cam.shake, 6);
+    shake(6, 'hurt');
     A.s('hurt');
     G.dirty = true;
     return;
@@ -75,7 +75,7 @@ export function hurt(n) {
   r.hp -= v;
   if (G.mods.deathWish) r.charge = Math.max(0, r.charge - G.mods.deathWish);
   G.hurtT = 0.6;
-  G.cam.shake = Math.max(G.cam.shake, 8);
+  shake(8, 'hurt');
   A.s('hurt');
   const b = focusBall();
   if (b) float(b.x, b.y - 22, '-' + v, '#ff5a5a', 16);
@@ -86,8 +86,7 @@ export function hurt(n) {
     G.curse = {};
     popup("Martyr's Light", 'You stand. 40 health', 'good');
     A.s('ward');
-    G.flash = 0.5;
-    G.flashC = '#ffe0a0';
+    flash(0.5, '#ffe0a0', 'martyr');
     return;
   }
   if (r.hp <= 0) {
@@ -137,6 +136,5 @@ export function jackpot(x, y) {
   m.jackpot = Math.min(PTS.jackpotMax, m.jackpot + PTS.jackpotStep);
   G.run.stat.jackpots++;
   A.s('jackpot');
-  G.flash = 0.35;
-  G.flashC = '#ffd24a';
+  flash(0.35, '#ffd24a', 'jackpot');
 }

@@ -159,9 +159,9 @@ that says nothing gets what the first tables got. Where each one is set:
 |---|---|---|
 | Sounds | `theme.sounds` | by name, below |
 | The generated music | `theme.music` | `false` for none; or its tone per field (see Theme) |
-| Particle sprays | `theme.fx.bursts` | by name, below |
-| Screen flashes, camera shake, shockwave rings, lightning | `theme.fx` | `flash` and `shake` are strengths (1 as built, 0 none); `rings:false`, `bolts:false` |
-| The shape of every particle | `theme.fx.particle` | `'dot'`, `'heart'`, `'star'`, `'spark'`, or a painter `(c, size)`; `particleSize` (9) |
+| Particle sprays | `theme.fx.bursts` | each by name: none, or its count, colour, speed, life and shape; below |
+| Screen flashes, camera shake, shockwave rings, lightning | `theme.fx.flashes`, `shakes`, `rings`, `bolts` | each by name; below. For the whole table: `flash` and `shake` are strengths (1 as built, 0 none); `rings:false`, `bolts:false` |
+| The shape of a particle | `theme.fx.particle`, and `shape` on any spray | `'dot'`, `'heart'`, `'star'`, `'spark'`, one of the table's own `shapes`, or a painter `(c, size)`; `particleSize` (9) |
 | What colour each kind of light is | `theme.lampCols` | `{main, side, lock, gold, soft, danger, spell}`, any of them |
 | Banners, floating words, score chips, bonus lines, HUD labels | `content.text.words` | the engine's wording and yours, below |
 | Rule numbers, point values, feel, game systems | `tune`, `points`, `feel`, `uses` | above |
@@ -184,13 +184,52 @@ The names: `flip` `flipDown` `knock` `sling` `bump` `bell` `target` `drop` `lane
 `jackpot` `multiball` `boss` `bossHit` `bossDie` `slam` `cast` `ward` `summon` `drain` `save` `kick` `tilt` `nudge`
 `ability` `pickup` `lock` `choice` `pick` `deny` `ui` `ballEnd` `over` `victory`.
 
-**Particle sprays.** `bursts:{kill:{col:'#ff9ac8', n:24, speed:300, life:1.2}, sling:false}`: any of `n` (how many),
-`col`, `speed`, `life`, or `false` for none. The names: `sling` `bump` `bell` `bumpDead` `kickback` `eject` `barred`
-`pickup` `graveFall` `powerShot` `fireball` `consecrate` `cloak` `meteor` `rallyBall` `rallySpark` `partyPulse`
-`partyLeave` `guardSave` `guardStruck` `foeRise` `foeDeny` `foeStrike` `foeSwat` `armor` `kill` `bossAura`
-`bossHit` `bossDown`. A name that is not one of these stops the table loading. A table's rules add sprays of their
-own with `burst(x, y, n, colour, speed, life)`. (Changing how many particles a spray has changes that table's replay
-recording: particles draw random numbers.)
+**Particle sprays.** `bursts:{kill:{col:'#ff9ac8', n:24, speed:300, life:1.2, shape:'heart'}, sling:false}`: any of `n`
+(how many), `col`, `speed`, `life`, `shape`, or `false` for none. The names: `sling` `bump` `bell` `bumpDead`
+`kickback` `eject` `barred` `pickup` `graveFall` `powerShot` `fireball` `consecrate` `cloak` `meteor` `rallyBall`
+`rallySpark` `partyPulse` `partyLeave` `guardSave` `guardStruck` `foeRise` `foeDeny` `foeStrike` `foeSwat` `armor`
+`kill` `bossAura` `bossHit` `bossDown`. (Changing how many particles a spray has, or removing it, changes that
+table's replay recording: particles draw random numbers. Colour and shape do not.)
+
+**Shapes.** A particle is drawn as `fx.particle` (the table's default, `'dot'` unless set) unless its spray names a
+`shape`. So hearts on a kill and sparks off the bumpers is `bursts:{kill:{shape:'heart'}, bump:{shape:'spark'}}`.
+The built-in shapes are `dot` `heart` `star` `spark`. A table adds its own by name, each a function that paints one
+in white on a 64 by 64 canvas, and uses them like the built-in ones:
+
+```js
+fx:{shapes:{petal:(c, size) => {c.beginPath(); c.ellipse(32, 32, 12, 26, .5, 0, 7); c.fill();}},
+    particle:'petal', bursts:{bossDown:{shape:'star'}}}
+```
+
+All particles on a table are drawn at one size (`particleSize`).
+
+**Flashes, shake, rings, lightning.** Each one the engine fires has a name, like the sprays, in a map of its own:
+
+```js
+fx:{flashes:{jackpot:false, bossDown:{v:.4, col:'#ffd0e8'}, multiball:.2},   // false | strength | {v, col}
+    shakes:{nudge:false, bossDown:8},                                        // false | amount | {v}
+    rings:{fireball:{col:'#ff9ac8'}, frostNova:false},                       // false | {col, r}
+    bolts:{foeStrike:false, knives:{col:'#ffd0e8'}}}                         // false | {col}
+```
+
+A flash's strength runs 0 to 1 (the engine's are 0.18 to 1); a shake's amount is 3 to 24 as built. `rings:false`
+or `bolts:false` in place of a map switches the whole kind off. The names:
+
+- flashes: `jackpot` `multiball` `cast` `fireball` `martyr` `rally` `rallyBall` `graveOpen` `graveCatch` `graveRise`
+  `wingEnter` `wingWon` `bossWake` `bossCast` `bossDown`
+- shakes: `nudge` `hurt` `wave` `cast` `fireball` `meteor` `rally` `rallyBall` `rallySlam` `partyFall` `graveFall`
+  `sealBreak` `bossWake` `bossCast` `bossDown`
+- rings: `aegis` `barrier` `fireball` `meteor` `frostNova` `knightNudge` `clericNudge` `rallyBall` `rallyTank`
+  `rallyHeal` `rallySlam`
+- bolts: `conduit` `mageNudge` `powerShot` `knives` `blink` `judgement` `shieldWall` `guardBolt` `rallyPulse`
+  `foeStrike` `foeCast`
+
+A name that is not in its list stops the table loading, and the message gives the list. Switching a flash, shake,
+ring or bolt off does not change the table's replay recording.
+
+**A table's own effects.** Its rules call the same functions the engine does, with no name, and nothing overrides
+them: `burst(x, y, n, colour, speed, life, null, shape)`, `flash(strength, colour)`, `shake(amount)`,
+`ring(x, y, radius, colour)`, `bolt(from, to)`.
 
 **Words.** The engine's banners ("Tilt", "Level Up", "Boss Slain"), the words that float off the table ("JACKPOT",
 "STAGGERED", "3x COMBO", "KICKBACK"), the chips under the score, the lines of the end-of-ball bonus and the HUD's
@@ -657,6 +696,8 @@ What hooks usually call (all from `engine/api.js`):
 |---|---|
 | `popup(title, text, kind)` | the banner; kind `good` `bad` `main` `boss` `mb` `info` |
 | `float(x, y, text, colour, size)` | words rising off a spot |
+| `burst(x, y, n, colour, speed, life, null, shape)` | a spray of particles; `shape` is optional (`'heart'`, `'star'`, `'spark'`, one of the table's own) |
+| `flash(strength, colour)`, `shake(amount)`, `ring(x, y, radius, colour)`, `bolt(from, to)` | a screen flash (0 to 1), camera shake (3 to 24), a shockwave ring on the floor, a lightning line between two things with `x, y` |
 | `score(n, x, y)`, `gold(n, x, y)`, `xp(n)`, `heal(n)` | pay out |
 | `G.buffs.sharp=30` / `.aegis` / `.moon` | +25% damage / half damage / double scoring, in seconds |
 | `G.curse={}` | lift curses |

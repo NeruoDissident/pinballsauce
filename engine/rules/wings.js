@@ -1,6 +1,6 @@
 /* ================= WINGS =================
    Side rooms with their own flippers, a rule to meet and a clock. Rules: targets | kills | coins (content.wings). */
-import {G, T, float} from '../core/state.js';
+import {G, T, flash, float, shake} from '../core/state.js';
 import {openDoor} from './events.js';
 import {relight} from './lamps.js';
 import {qEvent} from './quests.js';
@@ -65,8 +65,7 @@ export function enterWing(hd) {
   if (d.rule === 'coins') wingCoins();
   popup(d.name, d.enter, 'boss', d.note);
   A.s('boss');
-  G.flash = 0.5;
-  G.flashC = '#101010';
+  flash(0.5, '#101010', 'wingEnter');
 }
 export function breakSeal() {
   const w = G.run.wing,
@@ -79,7 +78,7 @@ export function breakSeal() {
   });
   popup(d.broke[0], d.broke[1], 'good');
   A.s('slam');
-  G.cam.shake = Math.max(G.cam.shake, 10);
+  shake(10, 'sealBreak');
   relight();
 }
 export function wingProg(sec, x, y) {
@@ -113,8 +112,7 @@ export function wingDone(h) {
   const x = giveRelic();
   popup(d.won, x ? 'Relic claimed: ' + x.name : 'Grave-gold spills out', 'main', x ? x.desc : '');
   A.s('victory');
-  G.flash = 0.7;
-  G.flashC = d.col;
+  flash(0.7, d.col, 'wingWon');
   G.save = Math.max(G.save, 6);
   G.enemies.forEach(e => {
     if (e.tier === T.wings[w.key].tier) e.dead = true;

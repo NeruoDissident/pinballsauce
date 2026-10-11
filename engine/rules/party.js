@@ -1,7 +1,7 @@
 /* ================= THE PARTY: the guard at the drain =================
    The companion picked with the hero stands on a post at the bottom drain. (Recruits and the Rally are in
    rules/tavern.js and rules/rally.js.) */
-import {G, T, bolt, burst, float} from '../core/state.js';
+import {G, T, bolt, burst, float, shake} from '../core/state.js';
 import {shuffle} from '../core/util.js';
 import {damageEnemy} from './foes.js';
 import {relight} from './lamps.js';
@@ -163,7 +163,7 @@ export function guardHit(c, p, b, imp) {
     case 'bolt': {
       const e = near();
       if (e) {
-        bolt(p, e);
+        bolt(p, e, 'guardBolt');
         damageEnemy(e, G.mods.pow * 0.6, false);
       }
       break;
@@ -187,7 +187,7 @@ export function guardHit(c, p, b, imp) {
       'bad'
     );
     A.s('hurt');
-    G.cam.shake = Math.max(G.cam.shake, 8);
+    shake(8, 'partyFall');
   }
   G.dirty = true;
 }

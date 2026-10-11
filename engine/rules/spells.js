@@ -1,7 +1,7 @@
 /* ================= THE SPELLBOOK =================
    Four abilities per class, one per purpose (breaker, guard, striker, pressure), unlocked and levelled on level-up,
    cast by completing a goal on the table. */
-import {G, bolt, burst, float, focusBall} from '../core/state.js';
+import {G, bolt, burst, flash, float, focusBall, ring, shake} from '../core/state.js';
 import {TAU, clamp, rand} from '../core/util.js';
 import {hitBoss, interruptBoss} from './bosses.js';
 import {openChoice} from './choices.js';
@@ -427,9 +427,8 @@ export function castSpell(id, b) {
   if (F && F.start) F.start(cast, b);
   popup(d.name, d.text, 'good');
   A.s('ability');
-  G.flash = 0.35;
-  G.flashC = CLASSES[r.cls].glow;
-  G.cam.shake = Math.max(G.cam.shake, 5);
+  flash(0.35, CLASSES[r.cls].glow, 'cast');
+  shake(5, 'cast');
   relight();
   G.dirty = true;
 }
@@ -480,10 +479,10 @@ export const SPELL_FX = {
         d = rand(20, 90),
         x = clamp(b.x + Math.cos(a) * d, OX[b.tier] + 30, OX[b.tier] + 610),
         y = clamp(b.y + Math.sin(a) * d, TY[b.tier] + 40, TY[b.tier] + 880);
-      G.booms.push({x, y, r: rr, t: 0, c: '#ff8a3a'});
+      ring(x, y, rr, '#ff8a3a', 'meteor');
       burst(x, y, 14, '#ffb050', 300, 0.7, 'meteor');
       A.s('slam');
-      G.cam.shake = Math.max(G.cam.shake, 3);
+      shake(3, 'meteor');
       for (const e of nearFoes(x, y, rr, b.tier)) {
         e.armor = 0;
         damageEnemy(e, m.pow * 1.2 * k, false);
@@ -500,13 +499,13 @@ export const SPELL_FX = {
         n = spellVal('knives', 'n'),
         ps = spellVal('knives', 'poison');
       for (const e of nearFoes(b.x, b.y, 230, b.tier, n)) {
-        bolt(b, e);
+        bolt(b, e, 'knives');
         if (ps) e.poison = ps;
         damageEnemy(e, m.pow * 0.6, false);
       }
       const bo = bossNear(b.x, b.y, 230, b.tier);
       if (bo) {
-        bolt(b, bo);
+        bolt(b, bo, 'knives');
         hitBoss(bo, m.pow * 0.6, false);
       }
     }
@@ -516,7 +515,7 @@ export const SPELL_FX = {
       if (c.tick > 0 || !b) return;
       c.tick = 1.2;
       const rr = spellVal('frostNova', 'r');
-      G.booms.push({x: b.x, y: b.y, r: rr, t: 0, c: '#9fe8ff'});
+      ring(b.x, b.y, rr, '#9fe8ff', 'frostNova');
       A.s('ward');
       for (const e of nearFoes(b.x, b.y, rr, b.tier)) {
         e.wind = 0;
@@ -549,7 +548,7 @@ export const SPELL_FX = {
         e = first,
         done = [];
       for (let k = 0; k <= chain && e; k++) {
-        bolt(from, e);
+        bolt(from, e, 'blink');
         damageEnemy(e, m.pow * 0.5, false);
         done.push(e);
         from = e;
@@ -697,7 +696,7 @@ export function holyFire(x, y, tier) {
   const m = G.mods,
     n = spellVal('judgement', 'chain');
   for (const e of nearFoes(x, y, 260, tier, n)) {
-    bolt({x, y}, e);
+    bolt({x, y}, e, 'judgement');
     damageEnemy(e, m.pow * 0.6, false);
   }
 }

@@ -1,5 +1,5 @@
 /* ================= WAVES, CALLS AND PICKUPS ================= */
-import {G, T, burst, float, later} from '../core/state.js';
+import {G, T, burst, float, later, shake} from '../core/state.js';
 import {pick, rand, shuffle} from '../core/util.js';
 import {spawnEnemy} from './foes.js';
 import {qCur, qEvent, quests} from './quests.js';
@@ -60,7 +60,7 @@ export function launchWave(tier, list, why, camp, quiet) {
   const nm = why === 'bell' ? TEXT.bell : TEXT.wave;
   popup(nm[0], nm[1], 'bad', list.length + ' foes');
   A.s('summon');
-  G.cam.shake = Math.max(G.cam.shake, 6);
+  shake(6, 'wave');
   G.dirty = true;
   return true;
 }

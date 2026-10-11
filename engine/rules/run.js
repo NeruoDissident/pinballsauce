@@ -23,8 +23,8 @@ export function initGame(def) {
   setLayout(def.layout);
   setFeel(def.feel);
   setContent(def);
-  for (const k in FXO) delete FXO[k];
-  Object.assign(FXO, THEME.fx.bursts); // the table's say on the engine's particle effects (see burst in core/state.js)
+  // the table's say on each of the engine's named effects (see burst, flash, shake, ring, bolt in core/state.js)
+  for (const k in FXO) FXO[k] = THEME.fx[k] && typeof THEME.fx[k] === 'object' ? THEME.fx[k] : {};
   applyNames((def.content || {}).names);
   buildTable(def);
   checkLamps();
