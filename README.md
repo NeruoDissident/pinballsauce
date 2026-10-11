@@ -14,6 +14,7 @@ A table is a folder of data, a few hook functions and art.
 
 | | |
 |---|---|
+| `tables/judgment/` | Judgment: Heaven, Earth and Hell. Launch on Earth, rescue three souls, open the Pearly Gates, break the Chains and defeat the Beast. Three balls, one ascent ramp, no RPG systems |
 | `tables/starfall/` | Plain pinball: one playfield, three balls, no health bar, no RPG. Shots, lights, a multiplier, a lock, a mission. The reference for a table with every optional system off |
 | `tables/gravebound/` | Gravebound Pinball. Dark fantasy, three levels, every optional system on |
 | `tables/neon-descent/` | Neon Descent: cyberpunk, four districts, every optional system on |

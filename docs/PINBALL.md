@@ -43,7 +43,7 @@ to sound or look like another.
   about two and a half balls wide, not five, and the outlanes are reached by a bad bounce, not by a normal shot.
 - **Mercy at the start.** A ball save runs for the first seconds of every ball, so a ball lost immediately comes
   back. Past that, losing the ball is the player's problem.
-- **Upstairs is safe.** On a table with more than one playfield, only the home playfield (the one with the plunger)
+- **Upstairs is safe.** On a table with more than one playfield, only the home playfield (the bottom field)
   loses the ball. Draining from any other playfield costs position: the ball falls or rides to another playfield.
 
 ## 3. Shots

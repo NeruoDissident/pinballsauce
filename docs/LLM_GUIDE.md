@@ -23,12 +23,14 @@ want of a shorter word; read that as "the shared parts", not as a rule book.
 
 - No build step. Plain ES modules, opened through any static server (`npm start`, GitHub Pages, Vercel).
 - Three.js r128 is vendored in `vendor/three` and loaded as classic scripts, so `THREE` is a global.
-- Five tables ship. `tables/starfall`: one playfield, every optional system off: the reference for plain pinball.
+- Six tables ship. `tables/starfall`: one playfield, every optional system off: the reference for plain pinball.
   `tables/gravebound`: three levels, every optional system on: the reference for the RPG kind.
   `tables/neon-descent`: a second themed table with everything on. `tables/test-bench`: no art, uses every
   *layout* feature (a grid of fields, a field with no standard parts, three flipper sizes, drain ramps).
   `tables/crush-hour`: a themed table on a grid (three fields as a heart), every system on, and the reference
   for re-dressing the shared code's words and effects (`text.words`, `theme.fx`, its own enemy figures).
+  `tables/judgment`: Heaven, Earth and Hell, every optional system off, custom goals in rules. Launches on the
+  middle field (`ST`); only the bottom field (`BT`) loses a ball. One ascent ramp and two transfer scoops.
 - Still ahead, not started: a front-end editor (inspect mode is its first half), and table size as a setting.
 
 ## Map
@@ -168,7 +170,8 @@ npm run bundle -- all  dist/pinballsauce.html (one file); check it with  node te
 
 ## Vocabulary
 
-**field** one playfield with its own flippers. **home field** the last one listed: plunger, real drain. **joined**
+**field** one playfield with its own flippers. **home field** the last one listed: real drain. **launch field**
+the one marked `shooter:true`, with the plunger. **joined**
 two fields one above the other in a column. **tier** field, Grave or wing by index. **piece** one entry of a
 field's `pieces`. **standard part** what a field has unless it says not. **mouth** a ramp entrance. **rail / ramp**
 the path a ball rides from a mouth. **drain ramp / chute** the ramp a field with nothing below it drains into.

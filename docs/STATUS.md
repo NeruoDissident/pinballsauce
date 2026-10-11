@@ -1,5 +1,43 @@
 # Status
 
+Updated 11 October 2026 with Judgment. The earlier stages below retain their original verification notes.
+
+## Stage 8: Judgment
+
+### What exists
+
+- A new three-field table: Heaven above Earth above Hell. Earth launches; only Hell loses a ball. One Ascension
+  ramp, physical falls between fields, an Abyss transfer down and a Redemption return to Earth.
+- A complete custom goal sequence: three distinct souls, Pearly Gates / Armageddon multiball, Chains, three Beast
+  strikes, final Redemption / Salvation. Supporting Choir locks, Grace, kickback, multiplier and double scoring.
+  Three balls, standard feel, no RPG systems. Progress lamps repeat beside every pair of flippers.
+- Procedural floor art and scenery, custom bell and demon bumpers, sounds, realm palettes, help and menus.
+  Picker registration, layout/replay recordings, a dedicated behavior check, and a screenshot utility.
+- A generic engine addition: `ST` is the field with the shooter; `BT` remains the final drain. Start/continue and
+  the title camera use the launch field. An interior shooter gets its own bounded lane and a flared transfer
+  into the next field's right orbit. No existing table changes its chosen launch field or geometry.
+- Work is isolated on `codex/judgment`. The shared-engine change is a separate commit for review.
+
+### Verified for Judgment
+
+| What | How | Result |
+|---|---|---|
+| Ball traps and circulation | `node tests/soak.mjs 20 --table judgment --seeds 8` | 160 simulated minutes, zero stuck balls; every tracked shot made. Ascension: 134 made, six failed climbs. Early layout pockets were corrected before this run |
+| Flipper coverage | `npm run reach -- judgment` | All six flippers reach multiple shots. The fixed roll-down probe did not hit Heaven's Virtues/right orbit or Earth's Candles/right orbit; all four were reached by the longer soak. This does not prove every shot is equally easy to aim |
+| Launch and shot lamps | `npm run standards -- judgment` | 48/48 fair launches; 21/21 feature shots with inserts; required state lamps; 56-unit flipper gaps; all fields connected. Goals are custom rules, so the data-goal count is zero; goal lighting is tested separately below |
+| Complete rules and custom goal lights | `node tests/judgment.mjs` | 25 checks: physical falls, Earth serve, lower field cannot activate its plunger, Redemption return, distinct souls, every goal phase lit, three-ball Armageddon, Chains protection, Beast defeat, Salvation, Grace, endless reset, save/continue and both Choir locks |
+| Disabled systems | `npm run switches -- judgment` | Loads, plays and ends with every optional system off, as shipped |
+| Phone browser and offline play | `npm run mobile -- judgment` | Final run: 20/20. Includes offline reload, touch controls, rotation and fog. The check now expects side panels only for enabled systems. One earlier run missed the timed double-tap check under concurrent test load; rerun passed without changing input code |
+| Standalone build | `npm run bundle -- judgment`, then ten-minute replay with `--url dist/judgment.html` | All 20 scenarios match the new source recording. The final title-size-only CSS adjustment was applied after that replay |
+| Visual inspection | `tools/judgment-preview.mjs` | All three fields examined in play, top-down and tilted with flippers/outlanes visible; title, phone title/play and staged Salvation screen checked. Title overflow and a Redemption insert obscured by a block were corrected |
+
+### Not verified for Judgment
+
+- Human aim, difficulty, scoring balance and whether the table is fun. A bot reaches the shots; it does not
+  establish that a player can reliably make the intended combinations.
+- Real phone hardware, iOS Safari, installation prompts, and audible balance through speakers/headphones.
+- Long-term saves across future schema changes. Current save/continue is covered by the behavior test.
+
 Written 10 October 2026, at the end of the seventh stage (the third to the seventh were the same day). Three lists
 for each: what exists, what was checked and how, and what was not checked. Nothing in a "verified" list is a guess;
 anything that is a guess is in a "not verified" list.
