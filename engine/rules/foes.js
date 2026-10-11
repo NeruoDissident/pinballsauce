@@ -147,7 +147,7 @@ export function spawnEnemy(type, tier, quest, minion) {
   };
   if (def.prowl) e.ax = clamp(p[0], P.cx - 110, P.cx + 110);
   G.enemies.push(e);
-  burst(e.x, e.y, 8, '#7dffb0', 120, 0.8);
+  burst(e.x, e.y, 8, '#7dffb0', 120, 0.8, 'foeRise');
   return e;
 }
 export function foeEscape(e) {
@@ -160,7 +160,7 @@ export function foeEscape(e) {
     13
   );
   A.s('deny');
-  burst(e.x, e.y, 8, '#6f9a4a', 120, 0.6);
+  burst(e.x, e.y, 8, '#6f9a4a', 120, 0.6, 'foeDeny');
   if (G.boss && e.minion) G.boss.minions--;
 }
 export function foeStrike(e, fb) {
@@ -169,7 +169,7 @@ export function foeStrike(e, fb) {
     th = 1 + 0.4 * (r.threat - 1);
   if (e.tgt && e.tgt.hp > 0) {
     guardStruck(e.tgt, d.dmg * th, e);
-    burst(e.x, e.y + 20, 8, '#ff5a5a', 200, 0.5);
+    burst(e.x, e.y + 20, 8, '#ff5a5a', 200, 0.5, 'guardStruck');
     return;
   }
   if (!fb) return;
@@ -231,7 +231,7 @@ export function foeStrike(e, fb) {
     return;
   }
   bolt(e, fb);
-  burst(fb.x, fb.y, 8, '#ff5a5a', 200, 0.5);
+  burst(fb.x, fb.y, 8, '#ff5a5a', 200, 0.5, 'foeStrike');
   if (e.job === 'thief') {
     const n = Math.min(r.gold, 4 + r.level * 2);
     if (n > 0) {
@@ -356,7 +356,7 @@ export function updateEnemies(dt) {
                   sx = o ? Math.sign(o.x - b.x) || 1 : b.x < P.cx ? -1 : 1;
                 b.vx = sx * rand(230, 310);
                 b.vy = Math.max(b.vy, 0) + rand(170, 250);
-                burst(b.x, b.y, 10, '#ff5a5a', 220, 0.5);
+                burst(b.x, b.y, 10, '#ff5a5a', 220, 0.5, 'foeSwat');
                 hurt(d.dmg * th);
                 float(e.x, e.y - 36, 'BATTED', '#ff8a8a', 13);
                 break;
@@ -602,7 +602,7 @@ export function strikeEnemy(e, b, imp, sure) {
       e.flash = 1;
       A.s('clank');
       float(e.x, e.y - 26, e.armor ? 'ARMOR CRACKED' : 'ARMOR BROKEN', '#cfd8e0', 12);
-      burst(e.x, e.y, 6, '#cfd8e0', 200, 0.5);
+      burst(e.x, e.y, 6, '#cfd8e0', 200, 0.5, 'armor');
       charge(1, 'hit');
       return false;
     } else {
@@ -710,7 +710,7 @@ export function killEnemy(e) {
   if (G.mods.healKill) heal(G.mods.healKill);
   charge(1, 'kill');
   A.s('kill');
-  burst(e.x, e.y, 16, e.def.undead ? '#9dffc8' : '#ff8a6a', 260, 0.9);
+  burst(e.x, e.y, 16, e.def.undead ? '#9dffc8' : '#ff8a6a', 260, 0.9, 'kill');
   if (G.boss && e.minion) G.boss.minions--;
   if (Math.random() < 0.12)
     later(0.05, () => {

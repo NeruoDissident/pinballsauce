@@ -9,7 +9,18 @@ import {LITC, R} from './draw2d.js';
 import {paintFloorChunks} from './floor.js';
 import {MB, at, box, cyl, offsets, prism, strip, ugeo} from './mesh.js';
 import {buildRunes} from './runes.js';
-import {texBall, texFlame, texGlow, texGround, texRampBed, texRampGlow, texSky, texStone, texWood} from './textures.js';
+import {
+  texBall,
+  texFlame,
+  texGlow,
+  texGround,
+  texParticle,
+  texRampBed,
+  texRampGlow,
+  texSky,
+  texStone,
+  texWood
+} from './textures.js';
 import {buildWings} from './wings.js';
 import {
   BLOCK_H,
@@ -81,6 +92,8 @@ export function init3D(canvas) {
   pm.dispose();
   setWorld(DEF.layout);
   if (THEME.fonts) Object.assign(R, THEME.fonts);
+  // what each lamp colour means is the engine's (main, side, lock, gold, soft, danger, spell); the colours are the table's
+  if (THEME.lampCols) Object.assign(LITC, THEME.lampCols);
   buildMaterials();
   buildLights();
   buildFloor3D();
@@ -1096,8 +1109,8 @@ export function buildFx() {
   R3.parts = new THREE.Points(
     pg,
     new THREE.PointsMaterial({
-      size: 9,
-      map: R3.glowTex,
+      size: THEME.fx.particleSize,
+      map: THEME.fx.particle === 'dot' ? R3.glowTex : ctex(texParticle(THEME.fx.particle)),
       vertexColors: true,
       transparent: true,
       blending: THREE.AdditiveBlending,

@@ -12,6 +12,9 @@ What this repo is for: the owner makes pinball tables and does not want to repea
 - Nothing is core. Classes, levels, health, enemies, bosses, quests, the party, cards, the Grave are switches
   (`uses` in a table's `table.js`). Never tell him a table must have one. If a table cannot run without one, fix
   the shared code.
+- Nothing is forced. Every sound, effect, word, light colour, point value and rule number the shared code has is
+  a named default a table can change or switch off. If you find one a table cannot change, make it a named default
+  in the shared code (existing tables unchanged); do not work round it inside the table.
 - Hard rules are only the ones code depends on: a table imports only from `engine/api.js`; the engine never names
   a table; art never calls `Math.random` (use `hash`).
 - One table's feel is its own: set `feel` in its `table.js`. Do not edit a shared number to suit one table.

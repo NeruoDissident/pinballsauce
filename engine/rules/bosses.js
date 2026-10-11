@@ -175,7 +175,7 @@ export function updateBoss(dt) {
   if (bo.hitCd > 0) bo.hitCd -= dt;
   if (!bo.alive) {
     bo.dying -= dt;
-    if (Math.random() < 0.5) burst(bo.x + rand(-30, 30), bo.y + rand(-30, 30), 3, bo.def.color, 200, 1);
+    if (Math.random() < 0.5) burst(bo.x + rand(-30, 30), bo.y + rand(-30, 30), 3, bo.def.color, 200, 1, 'bossAura');
     return;
   }
   if (G.focusTier !== bo.tier) {
@@ -317,7 +317,7 @@ export function hitBoss(bo, dmg, crit) {
     crit ? '#ffb040' : '#ffffff',
     crit ? 17 : 13
   );
-  burst(bo.x, bo.y, 8, bo.def.color, 260, 0.6);
+  burst(bo.x, bo.y, 8, bo.def.color, 260, 0.6, 'bossHit');
   G.dirty = true;
   if (bo.hp <= 0) killBoss(bo);
 }
@@ -340,7 +340,7 @@ export function killBoss(bo) {
   G.flash = 1;
   G.flashC = '#ffffff';
   A.s('bossDie');
-  burst(bo.x, bo.y, 60, d.color, 420, 1.6);
+  burst(bo.x, bo.y, 60, d.color, 420, 1.6, 'bossDown');
   let note = '';
   if (d.relic && !r.relics.includes(d.relic)) {
     r.relics.push(d.relic);

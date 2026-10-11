@@ -17,7 +17,7 @@ import {charge, gold, heal, jackpot, major, score, shot, xp} from './score.js';
 import {holyFire, spellOn, spellProg, spellVal} from './spells.js';
 import {callFoes, campFoes, startWave, waveJoin} from './waves.js';
 import {breakSeal, wingDone} from './wings.js';
-import {DEF, PAL, PTS, RULES, TEXT, USE, WINGS, hook} from '../table/content.js';
+import {DEF, PAL, PTS, RULES, TEXT, TUNE, USE, WINGS, hook} from '../table/content.js';
 import {FEEL, GT} from '../table/layout.js';
 import {A} from '../ui/audio.js';
 import {popup} from '../ui/ui.js';
@@ -51,7 +51,7 @@ export function ev(type, o, b, imp) {
         b.arm = 0;
         b.pow = {t: r.cls === 'knight' ? 3.5 : 3, hits: 0};
         A.s('ability');
-        burst(b.x, b.y, 18, CLASSES[r.cls].glow, 300, 0.6);
+        burst(b.x, b.y, 18, CLASSES[r.cls].glow, 300, 0.6, 'powerShot');
         float(b.x, b.y - 30, CLASSES[r.cls].shot.toUpperCase(), CLASSES[r.cls].glow, 15);
       }
       break;
@@ -61,12 +61,12 @@ export function ev(type, o, b, imp) {
       charge(1, 'hit');
       if (spellOn('judgement')) holyFire(b.x, b.y, b.tier);
       if (G.mods.bumpGold && Math.random() < 0.3) gold(1, b.x, b.y);
-      burst(b.x, b.y, 4, '#ffd9a0', 160, 0.5);
+      burst(b.x, b.y, 4, '#ffd9a0', 160, 0.5, 'sling');
       break;
     case 'bump': {
       if (o.poss && !o.poss.dead) {
         A.s('clank');
-        burst(o.x, o.y, 5, '#9be8e0', 160, 0.5);
+        burst(o.x, o.y, 5, '#9be8e0', 160, 0.5, 'bumpDead');
         powerImpact(b, type);
         break;
       }
@@ -74,7 +74,7 @@ export function ev(type, o, b, imp) {
       A.s(o.bell ? 'bell' : 'bump', o.tier);
       charge(1, 'hit');
       shot(o.group, o.x, o.y);
-      burst(o.x, o.y, 6, o.bell ? '#ffd070' : '#bfe6ff', 200, 0.5);
+      burst(o.x, o.y, 6, o.bell ? '#ffd070' : '#bfe6ff', 200, 0.5, o.bell ? 'bell' : 'bump');
       if (o.ward) {
         o.ward = false;
         wardHit(o);
@@ -258,7 +258,7 @@ export function ev(type, o, b, imp) {
       charge(1, 'spin');
       shot(o.id, o.x, o.y);
       G.spinN = (G.spinN || 0) + 1;
-      if (G.spinN % 18 === 0 && o.calls)
+      if (G.spinN % TUNE.spinCall === 0 && o.calls)
         callFoes(o.tier, o.calls.foes ? o.calls.foes : campFoes(o.calls.camp), o.calls.text, o.x, o.y);
       if (!(b && b.party)) spellProg('pressure', 1);
       break;
@@ -271,7 +271,7 @@ export function ev(type, o, b, imp) {
         b.vy = -2050 * FEEL.speed;
         A.s('kick');
         float(b.x + 40, b.y - 40, 'KICKBACK', '#9fe8ff', 15);
-        burst(b.x, b.y, 14, '#9fe8ff', 300, 0.6);
+        burst(b.x, b.y, 14, '#9fe8ff', 300, 0.6, 'kickback');
         relight();
       }
       break;
@@ -394,14 +394,14 @@ export function startMultiball(name, add, from) {
   if (!G.mb) G.mb = {name, jackpot: PTS.jackpot};
   popup(name + ' Multiball', 'Ramps and orbits score jackpots', 'mb');
   A.s('multiball');
-  G.save = Math.max(G.save, 8);
+  G.save = Math.max(G.save, TUNE.mbSave);
   G.flash = 0.5;
   G.flashC = '#ffd24a';
   for (let i = 0; i < add; i++) later(0.7 + i * 0.8, () => addBall(from));
   relight();
 }
 export function addBall(from) {
-  if (G.balls.length >= 5 || G.sub || !G.run) return;
+  if (G.balls.length >= TUNE.mbMaxBalls || G.sub || !G.run) return;
   if (from === 'shooter') {
     G.balls.push(newBall(T.shooter.x, T.shooter.y - 6, 0, -2280));
     A.s('launch');

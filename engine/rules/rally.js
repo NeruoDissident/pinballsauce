@@ -13,9 +13,9 @@ import {RECRUIT_RETURNS, armRecruit} from './tavern.js';
 import {BT, CX, OX, TY} from '../table/layout.js';
 import {A} from '../ui/audio.js';
 import {popup} from '../ui/ui.js';
+import {TUNE} from '../table/content.js';
 
 /* ---------- Rally: three bars cradled, the party comes out ---------- */
-export const RALLY_T = 20;
 /* The Rally is a spectacle: the party is fired up the field one ball at a time from between the flippers, each
    launch an explosion, and every ball out there keeps working: a pulse every second (bolts, shockwaves, heals, bursts)
    on top of its own ability. The music goes double time. */
@@ -32,7 +32,7 @@ export function rally() {
     A.s('deny');
     return;
   }
-  const T0 = RALLY_T * (G.mods.twin ? 2 : 1),
+  const T0 = TUNE.rallyTime * (G.mods.twin ? 2 : 1),
     tier = h.tier,
     cx = CX[tier],
     yF = TY[tier] + 900,
@@ -86,8 +86,8 @@ export function rally() {
       dress(b);
       G.balls.push(b);
       G.booms.push({x: b.x, y: b.y, r: 120, t: 0, c: b.pg});
-      burst(b.x, b.y, 34, b.pg, 520, 0.9);
-      burst(b.x, b.y, 18, '#ffe9b0', 300, 0.7);
+      burst(b.x, b.y, 34, b.pg, 520, 0.9, 'rallyBall');
+      burst(b.x, b.y, 18, '#ffe9b0', 300, 0.7, 'rallySpark');
       float(b.x, b.y - 46, b.label.toUpperCase() + '!', b.pg, 17);
       A.s('launch');
       A.s('slam');
@@ -111,7 +111,7 @@ export function rallyPulse(b) {
   const e = nearFoes(b.x, b.y, 260, b.tier)[0],
     P = G.mods.pow,
     bo = G.boss && G.boss.alive && G.boss.tier === b.tier && G.boss.rise <= 0 ? G.boss : null;
-  burst(b.x, b.y, 10, b.pg || '#ffe9b0', 260, 0.5);
+  burst(b.x, b.y, 10, b.pg || '#ffe9b0', 260, 0.5, 'partyPulse');
   if (b.party === 'tank') {
     G.booms.push({x: b.x, y: b.y, r: 110, t: 0, c: b.pg});
     for (const f of nearFoes(b.x, b.y, 110, b.tier)) {
@@ -145,7 +145,7 @@ export function endRally(why) {
   const had = G.balls.some(b => b.party);
   G.balls = G.balls.filter(b => {
     if (b.party) {
-      burst(b.x, b.y, 10, '#ffe9b0', 200, 0.6);
+      burst(b.x, b.y, 10, '#ffe9b0', 200, 0.6, 'partyLeave');
       return false;
     }
     return true;
@@ -188,7 +188,7 @@ export function updateRally(dt) {
   if (gone)
     G.balls = G.balls.filter(b => {
       if (b.gone && b.party) {
-        burst(b.x, b.y, 10, '#ffe9b0', 200, 0.6);
+        burst(b.x, b.y, 10, '#ffe9b0', 200, 0.6, 'partyLeave');
         if (
           b.party === 'recruit' &&
           b.st === 'live' &&

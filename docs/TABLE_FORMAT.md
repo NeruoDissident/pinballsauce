@@ -28,14 +28,15 @@ tables/<id>/
 Optional on `table.js`: `blurb` (one line) and `accent` (a colour) for the picker of a combined build, and the three
 keys below. A table imports only from `engine/api.js`.
 
-### What the table uses (`uses`), how many balls (`balls`), how it feels (`feel`), what things are worth (`points`)
+### What the table uses (`uses`), how many balls (`balls`), how it feels (`feel`), what things are worth (`points`), the rule numbers (`tune`)
 
 ```js
 export default {id:'starfall', name:'Starfall', store:'starfall', layout, content, rules, theme,
   uses:{classes:false, party:false, cards:false, gold:false},   // the game systems this table leaves out
   balls:3,                                                       // balls in a run (3)
   feel:'standard',                                               // or 'fast', or {preset:'fast', bounce:.5}
-  points:{ramp:6000}};                                           // what things are worth, where not the default
+  points:{ramp:6000},                                            // what things are worth, where not the default
+  tune:{ballSave:15}};                                           // the rule numbers, where not the default
 ```
 
 **`uses`: nothing is core.** Every game system is a switch. Some are on unless `uses` says `false`; the rest are on
@@ -125,6 +126,85 @@ points:{ramp:6000, spin:100, jackpot:60000, jackpotStep:10000}
 
 A name that is not on the list stops the table loading and says so. A table's rules can read the live values
 (`PTS.ramp`, from the api). What a table's own feature pays (Starfall's cargo) is in its rules, not here.
+
+**`tune`: the rule numbers.** How long, how many, how often. The same idea as `points`: defaults in the shared code
+(`TUNE0` in `engine/table/content.js`), and a table lists the ones it changes. Rules can read them as `TUNE`.
+
+```js
+tune:{ballSave:15, tiltNudges:4, comboTime:8}
+```
+
+| Name | Default | What it is |
+|---|---|---|
+| `ballSave` | 10 | seconds of ball save from the launch (a class may add its own) |
+| `comboTime` | 5 | seconds between two shots that still count as a combo |
+| `comboStep`, `comboSteps` | 0.25, 8 | each step of a combo pays this much more, for this many steps |
+| `tiltNudges`, `tiltTime` | 5, 4 | this many nudges inside this many seconds is a tilt; one fewer is the warning |
+| `mbSave`, `mbMaxBalls` | 8, 5 | ball save when a multiball starts; the most balls on the table at once |
+| `spinCall` | 18 | a spinner that calls something calls it every this many turns |
+| `healthScale`, `ballHeal` | 0.3, 0.6 | enemies hit for this share of their listed damage; health is topped up to this share at each ball |
+| `waveEvery`, `waveFaster`, `waveMin` | 30, 1.5, 14 | seconds between waves, less this much a level, never under this |
+| `waveBudget`, `waveBudgetStep` | 3, 0.6 | what a wave may spend on enemies, plus this much a level |
+| `xpBase`, `xpGrow` | 45, 1.32 | experience for the second level; each level after needs this many times more |
+| `cradleArm`, `cradleRally` | 0.8, 1.5 | seconds a ball is held on a raised flipper to arm the class shot; to call the Rally |
+| `rallyTime` | 20 | seconds a Rally lasts |
+| `graveHits`, `graveHitsStep`, `graveTime` | 8, 4, 22 | hits that open the Grave the first time, more each time after, seconds to get out |
+
+### Nothing the shared code does is forced on a table
+
+Every sound, effect and word the shared code produces is a default. A table changes it or switches it off; a table
+that says nothing gets what the first tables got. Where each one is set:
+
+| What | Where | How |
+|---|---|---|
+| Sounds | `theme.sounds` | by name, below |
+| The generated music | `theme.music` | `false` for none; or its tone per field (see Theme) |
+| Particle sprays | `theme.fx.bursts` | by name, below |
+| Screen flashes, camera shake, shockwave rings, lightning | `theme.fx` | `flash` and `shake` are strengths (1 as built, 0 none); `rings:false`, `bolts:false` |
+| The shape of every particle | `theme.fx.particle` | `'dot'`, `'heart'`, `'star'`, `'spark'`, or a painter `(c, size)`; `particleSize` (9) |
+| What colour each kind of light is | `theme.lampCols` | `{main, side, lock, gold, soft, danger, spell}`, any of them |
+| Banners, floating words, score chips, bonus lines, HUD labels | `content.text.words` | the engine's wording and yours, below |
+| Rule numbers, point values, feel, game systems | `tune`, `points`, `feel`, `uses` | above |
+
+**Sounds.** Each of the engine's sounds has a name. For any of them a theme may give `false` (silence), a file or a
+list of files (played instead; a list is played in turn), or a function `(arg, A)` that makes the sound itself with
+`A.tone`, `A.noise`, `A.arp` or `A.clip`:
+
+```js
+sounds:{kill:false, jackpot:'voice/jackpot.mp3', multiball:['voice/mb1.mp3','voice/mb2.mp3'], bump:(arg, A) => A.tone(880, .05)}
+```
+
+A file is given from the table's own page, so `'voice/jackpot.mp3'` is `tables/<id>/voice/jackpot.mp3`. It is
+fetched once, kept, and played through the player's sound-effects volume. A file that is not there stays silent and
+says so once in the console. A table's rules can play one at any moment of their own with `A.clip('voice/hello.mp3')`
+(for a voice line on an event that has no engine sound). Recorded files do not travel inside the one-file build.
+
+The names: `flip` `flipDown` `knock` `sling` `bump` `bell` `target` `drop` `lane` `spin` `orbit` `rampIn` `ramp`
+`hole` `eject` `chute` `launch` `hit` `kill` `clank` `hurt` `curse` `interrupt` `quest` `questDone` `level` `bank`
+`jackpot` `multiball` `boss` `bossHit` `bossDie` `slam` `cast` `ward` `summon` `drain` `save` `kick` `tilt` `nudge`
+`ability` `pickup` `lock` `choice` `pick` `deny` `ui` `ballEnd` `over` `victory`.
+
+**Particle sprays.** `bursts:{kill:{col:'#ff9ac8', n:24, speed:300, life:1.2}, sling:false}`: any of `n` (how many),
+`col`, `speed`, `life`, or `false` for none. The names: `sling` `bump` `bell` `bumpDead` `kickback` `eject` `barred`
+`pickup` `graveFall` `powerShot` `fireball` `consecrate` `cloak` `meteor` `rallyBall` `rallySpark` `partyPulse`
+`partyLeave` `guardSave` `guardStruck` `foeRise` `foeDeny` `foeStrike` `foeSwat` `armor` `kill` `bossAura`
+`bossHit` `bossDown`. A name that is not one of these stops the table loading. A table's rules add sprays of their
+own with `burst(x, y, n, colour, speed, life)`. (Changing how many particles a spray has changes that table's replay
+recording: particles draw random numbers.)
+
+**Words.** The engine's banners ("Tilt", "Level Up", "Boss Slain"), the words that float off the table ("JACKPOT",
+"STAGGERED", "3x COMBO", "KICKBACK"), the chips under the score, the lines of the end-of-ball bonus and the HUD's
+own labels ("Lv 3", "Ball 2", "Aegis ready", the line under a boss's name) are all the engine's wording until a table gives its own, by writing the engine's wording and the replacement:
+
+```js
+text:{words:{'JACKPOT':'FIRST KISS', 'Tilt':'Busted', 'The table goes dead':'Grounded', 'COMBO':'CHAIN', 'STAGGERED':''}}
+```
+
+A whole line that matches is replaced as it stands. Otherwise each phrase is replaced wherever it appears in a line,
+longest first, so `'COMBO'` also changes "3x COMBO". An empty string drops a floating word or a whole banner. To see
+the engine's wordings, search `engine/rules` for `popup(` and `float(`, and `engine/ui/ui.js` for `tr(`. The words
+inside the menus (Options, Controls, the pause screen) are not covered. (The named keys in `text`, further down,
+still work and are the tidier way for the words they cover.)
 
 ---
 
@@ -602,7 +682,8 @@ With no theme at all a table runs in the engine's default look. Add what you wan
 |---|---|
 | `pal` | one per tier (fields, then the Grave, then wings): `{a, b, acc, acc2, glow, stone}`: floor gradient top and bottom, two accents, the glow colour, wall base |
 | `stoneCol`, `tierLight`, `rampCol`, `fog`, `motes` | wall colour per tier; light pool per field then the Grave; ramp colour per field; fog per tier; `{col, style}` (style is `'rise'`, `'blink'` or `'drift'`) per field then the Grave. Each falls back to `pal` |
-| `music` | per field: `{wave, low:true}` (wave is `'sine'`, `'square'`, `'sawtooth'` or `'triangle'`) |
+| `sounds`, `fx`, `lampCols` | this table's say on the engine's sounds, effects and light colours: see "Nothing the shared code does is forced on a table" |
+| `music` | `false` for no generated music. Otherwise per field: `{wave, low:true}` (wave is `'sine'`, `'square'`, `'sawtooth'` or `'triangle'`) |
 | `fonts` | `{fontD, fontL}`: the display and label faces lettered on the table (CSS font-family strings) |
 | `flagstones:false` | no paving pattern on the floor |
 | `floorBase(c)` | paints what shows between and round the fields (default: brickwork). It is called once for each column of joined fields, with x 0 to 640 across that column and y whole-table |

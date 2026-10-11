@@ -311,7 +311,7 @@ export function stepSensors(dt) {
             b.vy = -b.vy * 0.55 + 90;
             A.s('clank');
             float(b.x, b.y - 26, TEXT.barred, '#cfd8e0', 12);
-            burst(b.x, b.y, 6, '#cfd8e0', 200, 0.5);
+            burst(b.x, b.y, 6, '#cfd8e0', 200, 0.5, 'barred');
             break;
           }
           if (v > 90) {

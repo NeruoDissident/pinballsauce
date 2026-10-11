@@ -5,9 +5,9 @@ import {hitBoss, interruptBoss} from './bosses.js';
 import {CLASSES} from './classes.js';
 import {damageEnemy} from './foes.js';
 import {rally} from './rally.js';
-import {CRADLE_ARM, CRADLE_RALLY, heal, hurt} from './score.js';
+import {heal, hurt} from './score.js';
 import {spellOn, spellVal} from './spells.js';
-import {USE} from '../table/content.js';
+import {TUNE, USE} from '../table/content.js';
 import {tierOf} from '../table/layout.js';
 import {A} from '../ui/audio.js';
 
@@ -35,7 +35,7 @@ export function explode(x, y) {
   const m = G.mods;
   G.booms.push({x, y, r: 140, t: 0, c: '#ff8a3a'});
   if (m.scorch) G.zones.push({x, y, r: 110, t: m.scorch, tick: 0, pyre: true});
-  burst(x, y, 40, '#ffb050', 440, 0.9);
+  burst(x, y, 40, '#ffb050', 440, 0.9, 'fireball');
   A.s('slam');
   G.cam.shake = Math.max(G.cam.shake, 12);
   G.flash = 0.3;
@@ -54,7 +54,7 @@ export function consecrate(x, y) {
   G.zones.push({x, y, r: 100, t: G.mods.zoneT, tick: 0});
   heal(8);
   A.s('ward');
-  burst(x, y, 24, '#ffe0a0', 260, 0.9);
+  burst(x, y, 24, '#ffe0a0', 260, 0.9, 'consecrate');
   float(x, y - 30, 'CONSECRATED', '#ffe0a0', 13);
 }
 export function classNudge() {
@@ -86,7 +86,7 @@ export function classNudge() {
     }
   } else if (c === 'rogue') {
     G.phase = m.phaseT;
-    for (const b of live) burst(b.x, b.y, 10, '#b08cff', 180, 0.5);
+    for (const b of live) burst(b.x, b.y, 10, '#b08cff', 180, 0.5, 'cloak');
   } else if (c === 'mage') {
     const b = focusBall();
     let best = null,
@@ -175,7 +175,7 @@ export function updatePowers(dt) {
         }
     if (held) {
       b.cr += dt;
-      if (USE.classes && !b.arm && b.cr >= CRADLE_ARM) {
+      if (USE.classes && !b.arm && b.cr >= TUNE.cradleArm) {
         b.arm = 9;
         b.armCost = 33;
         A.s('ward');
@@ -183,7 +183,7 @@ export function updatePowers(dt) {
         G.dirty = true;
         if (!full) b.cr = 0;
       }
-      if (full && b.cr >= CRADLE_RALLY) {
+      if (full && b.cr >= TUNE.cradleRally) {
         b.cr = 0;
         b.arm = 0;
         b.armCost = 0;

@@ -1,8 +1,71 @@
 # Status
 
-Written 10 October 2026, at the end of the fourth stage (the third and fourth were the same day). Three lists
+Written 10 October 2026, at the end of the fifth stage (the third, fourth and fifth were the same day). Three lists
 for each: what exists, what was checked and how, and what was not checked. Nothing in a "verified" list is a guess;
 anything that is a guess is in a "not verified" list.
+
+## Stage 5: nothing the shared code does is forced on a table
+
+The owner's point: shared code is useful, but a table should never have an effect, a sound or a word pushed into
+it. Before this stage a table could add things of its own but could not take the shared ones away: every table had
+the same explosion on a kill, the same sounds, the same banner words, the same ball-save and tilt timings. Now each
+of those is a named default. A table that says nothing gets exactly what it got before; the four tables say
+nothing, so none of them changed. Engine work only: no sound, voice or effect was made.
+
+| What a table can now change | Where | How |
+|---|---|---|
+| Any of the 51 built-in sounds | `theme.sounds` | `false` is silence; a file path (or a list, played in turn) plays a recording, which is how a table gets its own voice lines; a function plays whatever it likes |
+| The music | `theme.music: false` | off (the tone settings it already had still work) |
+| Any of the 29 particle sprays (a kill, a bumper, a slingshot, a boss going down...) | `theme.fx.bursts` | `false` removes it; `{n, col, speed, life}` changes how many, what colour, how fast, how long |
+| The shape of a particle | `theme.fx.particle` | `'dot'` (default), `'heart'`, `'star'`, `'spark'`, or the table's own drawing |
+| Screen flash, camera shake, shock rings, lightning | `theme.fx.flash`, `shake`, `rings`, `bolts` | a strength (0 is off) for the first two, on or off for the others |
+| The colours of the playfield lights | `theme.lampCols` | by lamp kind |
+| Any word the shared code puts on screen: banners, floating text, HUD lines and chips, end-of-ball bonus lines | `text.words` in `content.js` | `{'KICKBACK': 'SECOND CHANCE'}` replaces it; `''` drops that banner or float altogether |
+| 24 rule numbers: ball-save time, combo time and steps, tilt (nudges and time), multiball save and ball count, wave timing and size, level-up curve, cradle timings, Rally time, Grave hits and time, health scaling | `tune` in `table.js` | `tune: {ballSave: 15}` |
+
+A misspelt name in `tune`, `fx.bursts` or `fx.particle` stops the table with a message listing the valid names,
+the same as `points` and `uses`. The lists of names are in `docs/TABLE_FORMAT.md`.
+
+### Verified in stage 5
+
+| What | How | Result |
+|---|---|---|
+| The four tables play exactly as before | the replay alarm (`npm test`) on all four, after the code changes | all 80 scenarios identical to the recordings. (The HUD labels were routed through the word table after that run; Gravebound was replayed again afterwards, 20 of 20 identical) |
+| `tune` reaches the rules | Gravebound loaded with `tune:{ballSave:20, tiltNudges:3, comboTime:9}` and stepped | the ball save and combo time were the new ones plus the class's own; the table tilted on the third nudge |
+| `text.words` | Gravebound given its own words for the tilt banner, two floating words and four HUD labels, then read back | replaced where given ("3x COMBO" became "3x CHAIN", "Lv 1" became "Year 1"), the float gone where given `''`, everything else as before |
+| `fx.bursts` | slingshot spray set to `false`, kill spray to three pink particles | none on a slingshot, three pink on a kill, every other spray unchanged |
+| `theme.sounds` | one sound set to `false`, one to a function, one to a file, one to a file that is not there, in a page with real audio | silent; the function ran; the file played; the missing file gave one warning in the console and silence |
+| `theme.lampCols`, `fx.particle` | set in a test page and a frame drawn | the lamp colour changed; the particles were hearts |
+| Misspelt or unknown names are refused | `tune:{ballsave:5}`, `fx:{bursts:{explosion:false}}`, `fx:{particle:'cube'}` | each stopped the table with the list of valid names |
+| The sound names in the docs are the ones in the code | the two lists compared by script | 51 and 51, none missing either way |
+
+### Not verified in stage 5
+
+- **No table uses any of it.** Each override was tried by handing a table a patch in a test page. The first table
+  that sets them for real is the real test.
+- **Recorded sound was tried with one generated clip**, not with real voice files, and not for timing (two lines
+  called at once will talk over each other; there is no queue yet).
+- **Recorded sound files do not travel in the one-file build** (`tools/bundle.mjs`): it does not pack audio. A
+  table with voice files plays them when the repo is served, not from the single page.
+- **The line under a boss's name** goes through the word table like the other HUD labels, but was not on screen in
+  the check, so its replacement was not seen.
+- **`tune` values far from the defaults** (a combo of 40 steps, a wave every second). The names are checked; the
+  values are not.
+- **Soak, reach and standards were not run.** No layout, physics or rule default changed, and the alarm says so.
+
+### Still the same on every table after stage 5
+
+These are not sounds, effects, words or numbers, and this stage did not touch them:
+
+- **Models the shared code builds:** flippers, drop targets, standups, spinners, slingshots, scoops, the ball,
+  pickups, companion figures. A table colours them; it cannot bring its own. (Enemies and bosses it can.)
+- **Effects by kind, not by event:** flash, shake, rings and lightning are one strength each for the whole table,
+  and the particle shape is one per table. A table cannot yet say "hearts on a kill, sparks on a bumper".
+- **Structure:** where the HUD and menus are and the words inside the menus; the camera; how the music is
+  generated; playfield size; the fixed sets of 4 classes, 16 abilities, 35 cards, 8 enemy behaviours and the boss
+  phase types.
+
+---
 
 ## Stage 4: the flipper's stroke, point values, the Cathedral Freeway
 

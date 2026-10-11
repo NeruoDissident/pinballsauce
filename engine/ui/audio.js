@@ -116,11 +116,59 @@ export const A = {
   arp(notes, step, type, vol, dur) {
     notes.forEach((n, i) => A.tone(n, dur || 0.22, type || 'triangle', vol || 0.12, 0, i * step));
   },
+  /* A recorded sound: a table's own voice line or effect. `src` is a file (given from the table's page, so
+     'voice/jackpot.mp3' is tables/<id>/voice/jackpot.mp3), or a list of files, which are played in turn. It is
+     fetched once and kept. It plays through the sound-effects volume. */
+  clips: {},
+  turn: {},
+  clip(src, vol) {
+    if (!A.ctx || G.demo || A.ctx.state !== 'running') return;
+    if (Array.isArray(src)) {
+      if (!src.length) return;
+      const k = src.join('|'),
+        i = (A.turn[k] = ((A.turn[k] || 0) + 1) % src.length);
+      src = src[i];
+    }
+    const c = A.clips[src];
+    if (c === undefined) {
+      A.clips[src] = null; // on its way
+      fetch(src)
+        .then(r => (r.ok ? r.arrayBuffer() : Promise.reject(new Error(src + ': ' + r.status))))
+        .then(b => A.ctx.decodeAudioData(b))
+        .then(buf => {
+          A.clips[src] = buf;
+          A.clip(src, vol);
+        })
+        .catch(e => {
+          A.clips[src] = false; // not there, or not a sound: stay quiet and do not ask again
+          console.warn('sound: could not load ' + src + ' (' + e.message + ')');
+        });
+      return;
+    }
+    if (!c) return;
+    const n = A.ctx.createBufferSource(),
+      g = A.ctx.createGain();
+    n.buffer = c;
+    g.gain.value = vol === undefined ? 1 : vol;
+    n.connect(g);
+    g.connect(A.sfx);
+    n.start();
+  },
+  /* One of the engine's own sounds, by name (the cases below). A table's theme may answer for any of them:
+       sounds: {kill: false}                      silence it
+       sounds: {jackpot: 'voice/jackpot.mp3'}     play this file instead (or a list of files, in turn)
+       sounds: {bump: (arg, A) => {...}}          do it yourself, with A.tone, A.noise, A.arp or A.clip */
   s(name, arg) {
     if (!A.ctx || G.demo || A.ctx.state !== 'running') return;
     const now = A.ctx.currentTime;
     if (now - (A.last[name] || 0) < 0.035) return;
     A.last[name] = now;
+    const own = THEME.sounds ? THEME.sounds[name] : undefined;
+    if (own !== undefined) {
+      if (typeof own === 'function') own(arg, A);
+      else if (own) A.clip(own);
+      return;
+    }
     const T_ = A.tone,
       N = A.noise;
     switch (name) {
@@ -319,10 +367,11 @@ export const A = {
         break;
     }
   },
-  // generative music: D minor, slow harp over pads, a low bell every fourth bar; bosses add a pulse
+  // generative music: D minor, slow harp over pads, a low bell every fourth bar; bosses add a pulse.
+  // A table whose theme says `music: false` gets none of it.
   sched() {
     const x = A.ctx;
-    if (!x || x.state !== 'running') return;
+    if (!x || x.state !== 'running' || THEME.music === false) return;
     const boss = (!!(G.boss && G.boss.alive) || G.inGrave) && !G.demo,
       quiet = G.mode === 'title';
     const rly = G.rallyT > 0 && !G.demo,

@@ -5,6 +5,7 @@ import {PI, clamp, rand} from '../core/util.js';
 import {CAMS, R3} from './core.js';
 import {_v} from './frame.js';
 import {E, ZX, ZZ, elev} from './world.js';
+import {THEME} from '../table/content.js';
 import {BT, FY, GT, GY, OX, TY} from '../table/layout.js';
 
 // Player view: place the camera so the flippers sit near the bottom of the screen and the top of the level near the top
@@ -131,7 +132,7 @@ export function updateCam3D(dt) {
   cam.p.y += (py - cam.p.y) * k;
   cam.p.z += (pz - cam.p.z) * k;
   cam.fov += (fov - cam.fov) * k;
-  const sh = G.opt && G.opt.shake ? Math.min(18, G.cam.shake) * 0.3 : 0;
+  const sh = G.opt && G.opt.shake ? Math.min(18, G.cam.shake) * 0.3 * THEME.fx.shake : 0;
   C.position.set(cam.p.x + (sh ? rand(-sh, sh) : 0), cam.p.y + (sh ? rand(-sh, sh) : 0), cam.p.z);
   C.lookAt(cam.t.x, cam.t.y, cam.t.z);
   if (Math.abs(C.fov - cam.fov) > 0.01) {

@@ -16,14 +16,16 @@ import {PLAYER_HP} from '../rules/score.js';
 import {SLOTS_ORDER, SLOT_GOAL, goalText, spellDef, spellOf, spellOn, spellRank} from '../rules/spells.js';
 import {portrait} from '../rules/tavern.js';
 import {wingText} from '../rules/wings.js';
-import {BOSSES, CAMPAIGNS, HELP, RULES, STAGES, TEXT, USE, WINGS, WING_KEYS} from '../table/content.js';
+import {BOSSES, CAMPAIGNS, HELP, RULES, STAGES, TEXT, USE, WINGS, WING_KEYS, tr} from '../table/content.js';
 import {GT, LEVEL_NAMES, NM, WT0} from '../table/layout.js';
 import {A} from './audio.js';
 import {explainStep, glossary} from './help.js';
 
 export function popup(title, sub, kind, note) {
   if (G.demo) return;
-  UI.popup(title, sub || '', kind || 'info', note || '');
+  title = tr(title); // the table's wording, if it has its own. An empty title drops the banner
+  if (!title) return;
+  UI.popup(title, tr(sub || ''), kind || 'info', tr(note || ''));
 }
 export const VERSION = 'engine 0.1';
 export const UI = {
@@ -93,7 +95,7 @@ export const UI = {
     $('hScore').textContent = fmt(r.score);
     // the HUD shows only what this table uses
     $('hLv').hidden = !USE.levels;
-    $('hLv').textContent = 'Lv ' + r.level;
+    $('hLv').textContent = tr('Lv ' + r.level);
     $('hCls').textContent = USE.classes ? c.name : '';
     $('hGold').hidden = $('hCoin').hidden = !USE.gold;
     $('hGold').textContent = r.gold;
@@ -109,12 +111,12 @@ export const UI = {
     const armed = G.balls.some(b => b.arm > 0 || b.pow),
       g = r.grave;
     $('bCh').style.width = clamp(r.charge, 0, 100) + '%';
-    $('tCh').textContent = armed ? c.shot + ' armed' : r.charge >= 100 ? c.abil + ' ready' : c.shot;
+    $('tCh').textContent = tr(armed ? c.shot + ' armed' : r.charge >= 100 ? c.abil + ' ready' : c.shot);
     $('bCh').parentNode.classList.toggle('full', r.charge >= 100);
     let b = '';
     for (let i = 1; i < r.ballsLeft; i++) b += '<i></i>';
     $('hBalls').innerHTML = b;
-    $('hBallN').textContent = 'Ball ' + r.ballNum;
+    $('hBallN').textContent = tr('Ball ' + r.ballNum);
     $('hObj').textContent = G.inGrave
       ? T.banks.nails.segs.some(x => x.on)
         ? TEXT.graveObjNails
@@ -129,7 +131,10 @@ export const UI = {
               : ''
             : TEXT.quiet;
     const chips = [];
-    const ch = (t, k) => chips.push('<span class="chip ' + (k || '') + '">' + esc(t) + '</span>');
+    const ch = (t, k) => {
+      t = tr(t);
+      if (t) chips.push('<span class="chip ' + (k || '') + '">' + esc(t) + '</span>');
+    };
     if (G.pending.length)
       ch(
         G.pending[0] === 'book'
@@ -181,22 +186,23 @@ export const UI = {
       $('bossHp').style.width = Math.round(wk.fill * 100) + '%';
       const nq = r.main && qCur(r.main),
         nt = nq && nq.t !== 'boss' ? UI.objText(r.main) : '';
-      $('bossPhase').textContent = (wk.fill < 1 ? 'Wakes with the main quest. Next: ' : 'Rising. ') + nt;
+      $('bossPhase').textContent = tr(wk.fill < 1 ? 'Wakes with the main quest. Next: ' : 'Rising. ') + nt;
     } else if (bo && bo.alive && !here) {
       $('bossName').textContent = bo.def.name;
       $('bossHp').style.width = clamp((bo.hp / bo.maxHp) * 100, 0, 100) + '%';
-      $('bossPhase').textContent = 'Waiting on ' + LEVEL_NAMES[bo.tier];
+      $('bossPhase').textContent = tr('Waiting on ') + LEVEL_NAMES[bo.tier];
     } else if (bo && bo.alive) {
       $('bossName').textContent = bo.def.name;
       $('bossHp').style.width = clamp((bo.hp / bo.maxHp) * 100, 0, 100) + '%';
-      $('bossPhase').textContent =
+      $('bossPhase').textContent = tr(
         {
           shield: 'Warded. Strike the lit bumpers',
           open: bo.stun > 0 ? 'Staggered. Double damage' : 'Exposed. Strike the boss',
           summon: 'Summoning. Slay the minions',
           cast: 'Casting ' + bo.def.cast.name + '. Hit a red shot',
           frenzy: 'Frenzy'
-        }[bo.phase] || '';
+        }[bo.phase] || ''
+      );
     }
     // side panels
     let h = '';
@@ -380,7 +386,7 @@ export const UI = {
       '<h2>' +
       (b.fallen ? 'Fallen' : b.tilt ? 'Tilt' : 'Ball lost') +
       '</h2><dl>' +
-      b.lines.map(l => '<dt>' + l[0] + '</dt><dd>' + l[1] + ' <small>' + fmt(l[2]) + '</small></dd>').join('') +
+      b.lines.map(l => '<dt>' + tr(l[0]) + '</dt><dd>' + l[1] + ' <small>' + fmt(l[2]) + '</small></dd>').join('') +
       '<dt>Multiplier</dt><dd>' +
       b.mult +
       'x</dd></dl><p class="big">' +

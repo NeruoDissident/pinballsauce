@@ -1,7 +1,7 @@
 /* ================= THE RUN =================
    Loading a table, starting, continuing and ending a run, the run's modifiers, and how a campaign's main quest is
    assembled from the table's plan. */
-import {G, T, later} from '../core/state.js';
+import {FXO, G, T, later} from '../core/state.js';
 import {pick, rand, setStoreNs, shuffle, store} from '../core/util.js';
 import {startBall} from './ball.js';
 import {CLASSES} from './classes.js';
@@ -12,7 +12,7 @@ import {PERKS, RELICS} from './perks.js';
 import {qBegin, qResume, quests} from './quests.js';
 import {gold} from './score.js';
 import {buildTable} from '../table/build.js';
-import {BOSSES, CAMPAIGNS, DEF, RULES, SIDE, USE, setContent} from '../table/content.js';
+import {BOSSES, CAMPAIGNS, DEF, RULES, SIDE, THEME, TUNE, USE, setContent} from '../table/content.js';
 import {BT, TY, setFeel, setLayout} from '../table/layout.js';
 import {A} from '../ui/audio.js';
 import {UI, popup} from '../ui/ui.js';
@@ -23,6 +23,8 @@ export function initGame(def) {
   setLayout(def.layout);
   setFeel(def.feel);
   setContent(def);
+  for (const k in FXO) delete FXO[k];
+  Object.assign(FXO, THEME.fx.bursts); // the table's say on the engine's particle effects (see burst in core/state.js)
   applyNames((def.content || {}).names);
   buildTable(def);
   checkLamps();
@@ -115,7 +117,7 @@ export function newRun(cls, comp) {
     shield: false,
     shop: true,
     time: 0,
-    grave: {hits: 0, need: 8, used: 0, open: false},
+    grave: {hits: 0, need: TUNE.graveHits, used: 0, open: false},
     wing: {key: null, open: false, done: false, prog: 0},
     stat: {ramps: 0, orbits: 0, jackpots: 0, bestCombo: 0}
   };
@@ -143,12 +145,12 @@ export function recalc() {
     gold: 1,
     xp: 1,
     crit: c.crit,
-    save: 8 + c.save,
+    save: TUNE.ballSave - 2 + c.save, // the launch adds 2: see launch in ball.js
     flip: c.flip,
     dr: c.dr,
     hp: 0,
     charge: 1,
-    combo: 5,
+    combo: TUNE.comboTime,
     comboPay: 0,
     healKill: 0,
     pierce: false,

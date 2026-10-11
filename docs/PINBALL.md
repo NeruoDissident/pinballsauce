@@ -9,6 +9,10 @@ only points at it. Where it is a matter of design (what a table needs, how goals
 
 If a request contradicts this page, the request wins. If a request is silent, this page decides.
 
+The same holds for the shared code: everything it does by itself (its sounds, effects, words, light colours, point
+values, timings) is a default. A table keeps what suits it and changes or switches off the rest; no table is made
+to sound or look like another.
+
 ---
 
 ## 1. What makes it pinball

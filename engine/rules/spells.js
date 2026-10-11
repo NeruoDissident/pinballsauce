@@ -481,7 +481,7 @@ export const SPELL_FX = {
         x = clamp(b.x + Math.cos(a) * d, OX[b.tier] + 30, OX[b.tier] + 610),
         y = clamp(b.y + Math.sin(a) * d, TY[b.tier] + 40, TY[b.tier] + 880);
       G.booms.push({x, y, r: rr, t: 0, c: '#ff8a3a'});
-      burst(x, y, 14, '#ffb050', 300, 0.7);
+      burst(x, y, 14, '#ffb050', 300, 0.7, 'meteor');
       A.s('slam');
       G.cam.shake = Math.max(G.cam.shake, 3);
       for (const e of nearFoes(x, y, rr, b.tier)) {

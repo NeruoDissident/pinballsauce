@@ -24,10 +24,9 @@ import {relight} from '../rules/lamps.js';
 import {COMPANIONS, ROLES, guardPosts} from '../rules/party.js';
 import {qAdd, qCur} from '../rules/quests.js';
 import {continueRun, initGame, saveRun, startDemo, startRun} from '../rules/run.js';
-import {CRADLE_ARM, CRADLE_RALLY} from '../rules/score.js';
 import {gameStep} from '../rules/step.js';
 import {enterWing} from '../rules/wings.js';
-import {DEF, RULES, TEXT, USE, WINGS, WING_KEYS} from '../table/content.js';
+import {DEF, RULES, TEXT, THEME, TUNE, USE, WINGS, WING_KEYS} from '../table/content.js';
 import {BT, CX, FEELS, GT, GY, H, NM, OX, TY} from '../table/layout.js';
 import {UI, bindInput, popup} from '../ui/ui.js';
 
@@ -263,7 +262,7 @@ export function drawOverlay() {
     }
   }
   // lightning
-  if (G.bolts.length) {
+  if (G.bolts.length && THEME.fx.bolts !== false) {
     c.save();
     c.globalCompositeOperation = 'lighter';
     for (const b of G.bolts) {
@@ -302,7 +301,7 @@ export function drawOverlay() {
     if (b.cr > 0) {
       const R1 = (b.r + 9) * u,
         R2 = (b.r + 15) * u,
-        k1 = Math.min(1, b.cr / CRADLE_ARM);
+        k1 = Math.min(1, b.cr / TUNE.cradleArm);
       c.strokeStyle = '#05050a';
       c.lineWidth = 6;
       c.beginPath();
@@ -313,8 +312,8 @@ export function drawOverlay() {
       c.beginPath();
       c.arc(x, y, R1, -PI / 2, -PI / 2 + TAU * k1);
       c.stroke();
-      if (run.charge >= 100 && b.cr > CRADLE_ARM) {
-        const k2 = Math.min(1, (b.cr - CRADLE_ARM) / (CRADLE_RALLY - CRADLE_ARM));
+      if (run.charge >= 100 && b.cr > TUNE.cradleArm) {
+        const k2 = Math.min(1, (b.cr - TUNE.cradleArm) / (TUNE.cradleRally - TUNE.cradleArm));
         c.strokeStyle = '#05050a';
         c.lineWidth = 6;
         c.beginPath();
@@ -396,9 +395,9 @@ export function drawOverlay() {
     c.fillStyle = g;
     c.fillRect(0, 0, w, h);
   }
-  if (G.flash > 0) {
+  if (G.flash > 0 && THEME.fx.flash > 0) {
     c.globalCompositeOperation = 'lighter';
-    c.globalAlpha = Math.min(0.34, G.flash * 0.34);
+    c.globalAlpha = Math.min(0.34, G.flash * 0.34) * Math.min(1, THEME.fx.flash);
     c.fillStyle = G.flashC;
     c.fillRect(0, 0, w, h);
     c.globalAlpha = 1;

@@ -44,8 +44,9 @@ export function serve(root, port) {
 }
 /* The tests' page routing. Nothing leaves the machine. And `patch`, if given, is laid over the table's definition
    before it boots, without touching its files: that is how a test tries a table with another feel, another number
-   of balls, with other point values, or with game systems switched off.
-   {feel: 'fast'}   {balls: 5}   {points: {ramp: 6000}}   {uses: {party: false}} */
+   of balls, other point values or rule numbers, other words or effects, or with game systems switched off.
+   {feel: 'fast'}   {balls: 5}   {points: {ramp: 6000}}   {tune: {ballSave: 15}}   {uses: {party: false}}
+   {text: {words: {JACKPOT: 'BINGO'}}}   {theme: {fx: {flash: 0}, sounds: {kill: false}}} */
 export function local(pg, table, patch) {
   return pg.route('**/*', r => {
     const u = r.request().url();
@@ -58,7 +59,11 @@ export function local(pg, table, patch) {
           JSON.stringify(patch) +
           ';if(p.uses)table.uses=Object.assign({},table.uses,p.uses);' +
           "if('feel' in p)table.feel=p.feel;if(p.balls)table.balls=p.balls;" +
-          'if(p.points)table.points=Object.assign({},table.points,p.points);boot(table);'
+          'if(p.points)table.points=Object.assign({},table.points,p.points);' +
+          'if(p.tune)table.tune=Object.assign({},table.tune,p.tune);' +
+          'if(p.theme)table.theme=Object.assign({},table.theme,p.theme);' +
+          'if(p.text){const c=table.content||(table.content={});c.text=Object.assign({},c.text,p.text);}' +
+          'boot(table);'
       });
     return r.continue();
   });

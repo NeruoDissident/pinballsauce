@@ -13,7 +13,7 @@ import {gameOver, saveRun, startDemo} from './run.js';
 import {gold} from './score.js';
 import {spellCast, spellVal} from './spells.js';
 import {leaveWing} from './wings.js';
-import {PTS, RULES, TEXT, USE, WING_KEYS, hook} from '../table/content.js';
+import {PTS, RULES, TEXT, TUNE, USE, WING_KEYS, hook} from '../table/content.js';
 import {railPos} from '../table/geometry.js';
 import {CX, FEEL, GRID, GT, H, HW, TY, WLEN, WT0, tierOf} from '../table/layout.js';
 import {DRAIN_Y} from '../table/parts.js';
@@ -58,7 +58,7 @@ export function startBall() {
     save: 0,
     sub: null
   });
-  if (r.hp < G.mods.maxHp * 0.6) r.hp = Math.round(G.mods.maxHp * 0.6);
+  if (r.hp < G.mods.maxHp * TUNE.ballHeal) r.hp = Math.round(G.mods.maxHp * TUNE.ballHeal);
   r.mult = G.mods.multMin;
   r.kickback = true;
   r.shop = true;
@@ -111,16 +111,16 @@ export function updatePlunger(dt) {
 export function nudge() {
   if (G.plunge.ready || G.tilt > 0 || G.choice || G.paused || !G.run || G.sub) return;
   const now = G.t;
-  G.nudges = G.nudges.filter(t => now - t < 4);
+  G.nudges = G.nudges.filter(t => now - t < TUNE.tiltTime);
   G.nudges.push(now);
-  if (G.nudges.length > 4) {
+  if (G.nudges.length >= TUNE.tiltNudges) {
     G.tilt = 1e9;
     G.save = 0;
     popup('Tilt', 'The table goes dead', 'bad');
     A.s('tilt');
     return;
   }
-  if (G.nudges.length === 4) popup('Warning', 'Ease off the table', 'bad');
+  if (G.nudges.length === TUNE.tiltNudges - 1) popup('Warning', 'Ease off the table', 'bad');
   for (const b of G.balls)
     if (b.st === 'live') {
       const cx = CX[b.tier];
@@ -229,7 +229,7 @@ export function updateBalls(dt) {
           b.sx = b.x;
           b.sy = b.y;
           A.s('eject');
-          burst(h.x, h.y + 12, 6, '#ffd9a0', 140, 0.4);
+          burst(h.x, h.y + 12, 6, '#ffd9a0', 140, 0.4, 'eject');
         }
       }
     } else if (b.st === 'tunnel') {
@@ -246,7 +246,7 @@ export function updateBalls(dt) {
         G.graveLive = true;
         A.s('slam');
         G.cam.shake = 14;
-        burst(b.x, b.y, 20, '#9dffc8', 260, 0.8);
+        burst(b.x, b.y, 20, '#9dffc8', 260, 0.8, 'graveFall');
       } else if (b.rs >= tn.len) {
         const h = T.holes[tn.to];
         b.st = 'held';

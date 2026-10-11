@@ -9,7 +9,8 @@ export let DEF = null,
   THEME = {},
   TEXT = {},
   USE = {}, // which game systems this table uses (see uses() below)
-  PTS = {}; // what things are worth on this table (POINTS0 below, with the table's own `points` laid over it)
+  PTS = {}, // what things are worth on this table (POINTS0 below, with the table's own `points` laid over it)
+  TUNE = {}; // the rule numbers on this table (TUNE0 below, with the table's own `tune` laid over it)
 export let ENEMY = {},
   BOSSES = {},
   CAMPAIGNS = {},
@@ -70,6 +71,82 @@ export const POINTS0 = {
   guard: 500, // the party's guard turns a ball back
   grave: 50000, // out of the Grave
   wing: 100000 // a wing won
+};
+/* The engine's own visual effects, and what a table's theme may do about them:  theme.fx = {...}
+     flash     how strong the full-screen colour flashes are (1 = as built, 0 = none)
+     shake     how strong the camera shake is (the player's own Screen Shake option still switches it off)
+     rings     false = no shockwave rings on the floor
+     bolts     false = no lightning lines
+     particle  the sprite every particle is drawn with: 'dot', 'heart', 'star', 'spark', or a function
+               (c, size) that paints one in white on a 2D canvas context
+     particleSize   how big it is drawn (9)
+     bursts    {name: false | {n, col, speed, life}}: silence or change one named spray of particles */
+export const FX0 = {flash: 1, shake: 1, rings: true, bolts: true, particle: 'dot', particleSize: 9, bursts: {}};
+// every spray of particles the engine fires, by name
+export const BURSTS = [
+  'sling',
+  'bump',
+  'bell',
+  'bumpDead', // a bumper an enemy is sitting on
+  'kickback',
+  'eject', // a scoop kicking the ball out
+  'barred', // a closed ramp turning the ball away
+  'pickup',
+  'graveFall', // a ball landing in the Grave
+  'powerShot', // a class's held-ball shot firing
+  'fireball',
+  'consecrate',
+  'cloak',
+  'meteor',
+  'rallyBall', // each party ball arriving
+  'rallySpark',
+  'partyPulse',
+  'partyLeave',
+  'guardSave', // the guard at the drain turning a ball back
+  'guardStruck',
+  'foeRise', // an enemy appearing
+  'foeDeny',
+  'foeStrike',
+  'foeSwat', // a hunter batting the ball
+  'armor',
+  'kill',
+  'bossAura',
+  'bossHit',
+  'bossDown'
+];
+/* The rule numbers: how long, how many, how often. Defaults, like the points: `tune: {ballSave: 15}` in a table's
+   table.js changes one and leaves the rest. */
+export const TUNE0 = {
+  // every table
+  ballSave: 10, // seconds of ball save from the launch (a class may add its own)
+  comboTime: 5, // seconds between two shots that still count as a combo
+  comboStep: 0.25, // each step of a combo pays this much more...
+  comboSteps: 8, // ...for this many steps
+  tiltNudges: 5, // this many nudges inside tiltTime is a tilt; one fewer is the warning
+  tiltTime: 4,
+  mbSave: 8, // seconds of ball save when a multiball starts
+  mbMaxBalls: 5, // the most balls on the table at once
+  spinCall: 18, // a spinner that calls something calls it every this many turns
+  // health
+  healthScale: 0.3, // enemies hit for this share of their listed damage
+  ballHeal: 0.6, // health is topped up to this share at the start of each ball
+  // enemies
+  waveEvery: 30, // seconds between waves...
+  waveFaster: 1.5, // ...less this much a level...
+  waveMin: 14, // ...and never under this
+  waveBudget: 3, // what a wave may spend on enemies (each has a cost)...
+  waveBudgetStep: 0.6, // ...plus this much a level
+  // levels
+  xpBase: 45, // experience for the second level...
+  xpGrow: 1.32, // ...and each level after needs this many times more
+  // classes and the party
+  cradleArm: 0.8, // seconds a ball is held on a raised flipper to arm the class shot
+  cradleRally: 1.5, // ...and to call the Rally with a full meter
+  rallyTime: 20, // seconds a Rally lasts
+  // the Grave
+  graveHits: 8, // hits that open it the first time...
+  graveHitsStep: 4, // ...and this many more each time after
+  graveTime: 22 // seconds to get out
 };
 const TEXT0 = {
   // engine defaults; a table's content.text overrides any of them
@@ -149,6 +226,11 @@ function themeDefaults(def, th) {
   if (!t.rampCol) t.rampCol = P.slice(0, nm).map(p => p.glow);
   if (!t.fog) t.fog = each(p => p.b);
   if (!t.motes) t.motes = P.slice(0, nm + 1).map(p => ({col: p.glow, style: 'drift'}));
+  for (const k in (th.fx || {}).bursts || {})
+    if (!BURSTS.includes(k))
+      throw new Error('theme: there is no particle effect "' + k + '" (' + BURSTS.join(', ') + ')');
+  t.fx = Object.assign({}, FX0, th.fx || {});
+  t.sounds = th.sounds || {};
   return t;
 }
 /* A table's own say on what happens. Its rules may give `on: {name(what, ball, run, impact) {...}}` for any of:
@@ -157,6 +239,21 @@ function themeDefaults(def, th) {
      kill (what is the foe)   boss (what is the boss; its .phase has just begun)   bossDown (what is the boss)
      ball (a ball has just been served)   ballEnd (a ball has just been lost for good)
    The engine does its own part first, then calls the hook. ball is null where there is none. */
+/* The engine's own words: the banners ("Tilt", "Level Up"), the words that float off the table ("JACKPOT",
+   "STAGGERED", "3x COMBO"), the chips under the score and the lines of the end-of-ball bonus. A table replaces any
+   of them by writing the engine's wording and its own:
+     text: {words: {'JACKPOT': 'FIRST KISS', 'Tilt': 'Busted', 'COMBO': 'CHAIN', 'STAGGERED': ''}}
+   A whole line that matches is replaced as it stands; otherwise each phrase is replaced wherever it appears in the
+   line (so 'COMBO' also changes '3x COMBO'), longest phrase first. An empty string drops a floating word or a
+   banner altogether. */
+let WORDS = null,
+  WORD_KEYS = [];
+export function tr(s) {
+  if (!WORDS || typeof s !== 'string' || !s) return s;
+  if (s in WORDS) return WORDS[s];
+  for (const k of WORD_KEYS) if (s.includes(k)) s = s.split(k).join(WORDS[k]);
+  return s;
+}
 export function hook(name, what, ball, run, imp) {
   const f = RULES.on && RULES.on[name];
   if (f) f(what, ball || null, run, imp);
@@ -213,10 +310,16 @@ export function setContent(def) {
     if (!(k in POINTS0))
       throw new Error('table: there is no point value "' + k + '" (' + Object.keys(POINTS0).join(', ') + ')');
   PTS = Object.assign({}, POINTS0, def.points || {});
+  for (const k in def.tune || {})
+    if (!(k in TUNE0))
+      throw new Error('table: there is no setting "' + k + '" (' + Object.keys(TUNE0).join(', ') + ')');
+  TUNE = Object.assign({}, TUNE0, def.tune || {});
   RULES = def.rules || {};
   THEME = themeDefaults(def, def.theme || {});
   TEXT = Object.assign({}, TEXT0, c.text || {});
   TEXT.buffs = Object.assign({}, TEXT0.buffs, (c.text || {}).buffs || {});
+  WORDS = (c.text || {}).words || null;
+  WORD_KEYS = WORDS ? Object.keys(WORDS).sort((a, b) => b.length - a.length) : [];
   ENEMY = c.foes || {};
   BOSSES = c.bosses || {};
   CAMPAIGNS = c.campaigns || {};

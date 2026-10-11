@@ -108,7 +108,7 @@ export function guardHit(c, p, b, imp) {
   c.saves++;
   c.flash = 1;
   A.s('kick');
-  burst(p.x, p.y - 10, 10, ROLES[d.role].col, 220, 0.6);
+  burst(p.x, p.y - 10, 10, ROLES[d.role].col, 220, 0.6, 'guardSave');
   const near = () => {
     let best = null,
       bd = 1e9;

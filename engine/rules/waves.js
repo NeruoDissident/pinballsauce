@@ -5,12 +5,13 @@ import {spawnEnemy} from './foes.js';
 import {qCur, qEvent, quests} from './quests.js';
 import {charge, gold, heal, score} from './score.js';
 import {wingOfTier, wingProg} from './wings.js';
-import {CAMPAIGNS, ENEMY, PTS, TEXT, USE, WINGS} from '../table/content.js';
+import {CAMPAIGNS, ENEMY, PTS, TEXT, TUNE, USE, WINGS} from '../table/content.js';
 import {NM} from '../table/layout.js';
 import {A} from '../ui/audio.js';
 import {popup} from '../ui/ui.js';
 
-export const waveGap = () => Math.max(14, 30 - G.run.level * 1.5 - (G.run.threat - 1) * 4);
+export const waveGap = () =>
+  Math.max(TUNE.waveMin, TUNE.waveEvery - G.run.level * TUNE.waveFaster - (G.run.threat - 1) * 4);
 export const FOE_CAP = 22;
 export const TIER_CAP = 10;
 export const foesOn = t => G.enemies.filter(e => !e.dead && e.tier === t).length;
@@ -20,7 +21,7 @@ export function startWave(tier, why) {
     camp = CAMPAIGNS[r.arcs[r.arcs.length - 1]];
   if (!USE.foes || !camp || !(camp.foes || []).length) return false;
   if (tier >= NM || G.enemies.length >= FOE_CAP || foesOn(tier) >= TIER_CAP) return false;
-  let budget = 3 + r.level * 0.6 + (r.threat - 1) * 2 + (why === 'bell' ? 2 : 0);
+  let budget = TUNE.waveBudget + r.level * TUNE.waveBudgetStep + (r.threat - 1) * 2 + (why === 'bell' ? 2 : 0);
   const foes = camp.foes,
     list = [],
     cheapest = foes.reduce((a, b) => (ENEMY[b].cost < ENEMY[a].cost ? b : a));
@@ -181,7 +182,7 @@ export function updatePickups(dt) {
         p.gone = true;
         hit = true;
         A.s('pickup');
-        burst(p.x, p.y, 10, '#ffd24a', 180, 0.6);
+        burst(p.x, p.y, 10, '#ffd24a', 180, 0.6, 'pickup');
         if (p.hoard) {
           gold(12, p.x, p.y);
           score(PTS.hoard, p.x, p.y);

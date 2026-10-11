@@ -8,8 +8,9 @@ multiball) are on every table. Every other section describes an optional system:
 has switched that system on (`uses` in `table.js`, or the data that brings it; see TABLE_FORMAT). Each heading says
 which.
 
-These are defaults, not law. A table changes how the ball moves with its `feel`, and what its own features do in
-its `rules.js`. Changing a number on this page changes it for every table: do that when the owner wants every table
+These are defaults, not law. A table changes how the ball moves with its `feel`, what things are worth with
+`points`, the rule numbers on this page (ball save, tilt, combo, wave pacing, the Grave's count and clock) with
+`tune`, and what its own features do in its `rules.js`. Changing a number on this page changes it for every table: do that when the owner wants every table
 changed, and say so. Each section names the file that holds it. Numbers are read from the code; if this page and
 the code disagree, the code is right and this page needs fixing.
 

@@ -40,8 +40,9 @@ engine/table/              layout.js  the level model (fields on a grid, Grave, 
                            parts.js   standard parts a field gets unless it says not (arch, orbits, slings, flippers,
                                       lanes) and the cabinet parts it always gets (shelf, way out)
                            geometry.js primitives (seg, bank, bumper, hole, mouth, rail)
-                           content.js a table's content as live bindings, default text (TEXT0), default point
-                                      values (POINTS0), and USE: which game systems this table has switched on
+                           content.js a table's content as live bindings; the defaults a table may override: text
+                                      (TEXT0), point values (POINTS0), rule numbers (TUNE0), effects (FX0); the
+                                      word table (tr); and USE: which game systems this table has switched on
 engine/physics/physics.js  how the ball moves. Its numbers come from the table's feel preset.
 engine/rules/              one file per subject: classes, spells, perks, party, rally, tavern (recruits), foes, waves,
                            bosses, quests, lamps, score, powers, grave, wings, events (what a hit is worth), ball,
@@ -66,6 +67,8 @@ docs/                      this guide, PINBALL, TABLE_FORMAT, RULESET, NEW_TABLE
 | Change a table's layout, words, goals, art | `PINBALL.md` (what it should still have), `TABLE_FORMAT.md` and that table's files |
 | Make a table faster, bouncier, easier; change how its flippers hit | `TABLE_FORMAT.md`, "`feel`" |
 | Change what a ramp, a target or a jackpot is worth on a table | `TABLE_FORMAT.md`, "`points`" |
+| Change a rule number on a table (ball save, tilt, combo, wave pacing) | `TABLE_FORMAT.md`, "`tune`" |
+| Change or silence the engine's sounds, effects, light colours or words on a table; give it voice lines | `TABLE_FORMAT.md`, "Nothing the shared code does is forced on a table" |
 | Add or drop a game system on a table (health, enemies, classes...) | `TABLE_FORMAT.md`, "`uses`" |
 | What does an optional system do? What is a Rally, a ward, a lamp colour? | `RULESET.md` |
 | Change how every table plays | `RULESET.md`, then the one file in `engine/rules/` it names |
@@ -109,8 +112,12 @@ wants the work done.
 
 6. **`PINBALL.md` is the default for everything a request does not say.** Do not make the owner repeat it. Do not
    treat it as law either: if he asks for something that contradicts it, build what he asked for.
-7. **Nothing is core.** Never tell the owner a table must have a system (a Grave, bosses, a health bar, classes).
-   If a table cannot run without one, that is a bug in the shared code: fix it there, behind the switch.
+7. **Nothing is core, and nothing is forced.** Never tell the owner a table must have a system (a Grave, bosses, a
+   health bar, classes). If a table cannot run without one, that is a bug in the shared code: fix it there, behind
+   the switch. The same goes for anything the shared code does on its own: a sound, an effect, a word, a colour, a
+   number. Each is a default with a name, and a table changes it or switches it off (`theme.sounds`, `theme.fx`,
+   `theme.lampCols`, `text.words`, `tune`, `points`, `feel`). If you find something a table cannot change, do not
+   work round it in the table: give it a named default in the shared code, leaving every existing table as it is.
 8. **Layout and content are data; a table's own behaviour goes in its `rules.js` hooks** (`onComplete`, `onScoop`,
    `on`, `lamps`, `status`, `objective`, `bonus`, `tick`, `init`, `newRun`).
 9. **One table's feel is that table's.** To make a table faster or bouncier, set its `feel` (a preset, or a preset

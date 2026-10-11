@@ -315,7 +315,7 @@ export function frameActors(dt, ex) {
   }
   for (let i = 0; i < X.booms.length; i++) {
     const m = X.booms[i],
-      b = G.booms[i];
+      b = THEME.fx.rings === false ? null : G.booms[i];
     if (!b) {
       m.visible = false;
       continue;

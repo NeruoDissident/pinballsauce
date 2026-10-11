@@ -3,6 +3,7 @@
    sensors, scoops, banks, ramps). Both are plain objects every module reads and writes. Also the few helpers that
    only touch G: delayed calls, floating text, particles, lightning, the ball the camera follows. */
 import {TAU, lerp, prefs, rand} from './util.js';
+import {TUNE, tr} from '../table/content.js';
 
 export const T = {
   segs: [],
@@ -91,15 +92,29 @@ export const G = {
   stuck: [],
   bonus: null
 };
-export const xpNeed = l => Math.round(45 * Math.pow(1.32, l - 1));
+export const xpNeed = l => Math.round(TUNE.xpBase * Math.pow(TUNE.xpGrow, l - 1));
 export function later(t, fn) {
   G.queue.push({t, fn});
 }
 export function float(x, y, text, color, size) {
+  text = tr(text); // the table's wording, if it has its own (see tr in table/content.js)
+  if (!text) return; // a table that sets one of the engine's floating words to '' does not get it
   G.floats.push({x, y, text, color: color || '#ffe9b0', size: size || 13, t: 0});
   if (G.floats.length > 40) G.floats.shift();
 }
-export function burst(x, y, n, color, sp, life) {
+/* A spray of particles. Every spray the engine itself fires has a name (the last argument), and a table's theme may
+   change or silence any of them: fx: {bursts: {kill: {col: '#ff9ac8', n: 24}, sling: false}}  (see FX0 in
+   table/content.js for the names). A table's own rules call burst() with no name, or with one of their own. */
+export const FXO = {}; // name -> false | {n, col, speed, life}, filled from the table's theme when it loads
+export function burst(x, y, n, color, sp, life, name) {
+  const o = name === undefined ? undefined : FXO[name];
+  if (o === false) return;
+  if (o) {
+    if (o.n !== undefined) n = o.n;
+    if (o.col) color = o.col;
+    if (o.speed !== undefined) sp = o.speed;
+    if (o.life !== undefined) life = o.life;
+  }
   for (let i = 0; i < n; i++) {
     const a = rand(TAU),
       v = rand(0.3, 1) * (sp || 220);
@@ -137,6 +152,6 @@ export function focusBall() {
   return f || G.balls[0] || null;
 }
 export function comboF() {
-  return G.combo > 1 ? 1 + 0.25 * Math.min(8, G.combo - 1) * (1 + G.mods.comboPay) : 1;
+  return G.combo > 1 ? 1 + TUNE.comboStep * Math.min(TUNE.comboSteps, G.combo - 1) * (1 + G.mods.comboPay) : 1;
 }
 G.opt = prefs.get('opt', {shake: !(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)});

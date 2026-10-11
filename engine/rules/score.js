@@ -5,7 +5,7 @@ import {interruptBoss} from './bosses.js';
 import {CLASSES} from './classes.js';
 import {qEvent} from './quests.js';
 import {recalc} from './run.js';
-import {PTS, TEXT, USE} from '../table/content.js';
+import {PTS, TEXT, TUNE, USE} from '../table/content.js';
 import {heroBalls} from './spells.js';
 import {A} from '../ui/audio.js';
 import {popup} from '../ui/ui.js';
@@ -55,10 +55,7 @@ export function heal(n) {
 // The ball is your life. Player health is switched off while we find whether it fits: a strike still lands (shake, sound,
 // and a Death Wish still drains the meter) but nothing can make you fall.
 export const PLAYER_HP = () => USE.health && G.playerHp !== false;
-export const HURT_K = 0.3;
 // health is on and tuned way down: foes hit for 30% of their old damage
-export const CRADLE_ARM = 0.8;
-export const CRADLE_RALLY = 1.5;
 export function hurt(n) {
   const r = G.run;
   if (G.fallen || !G.balls.length) return;
@@ -71,7 +68,7 @@ export function hurt(n) {
     G.dirty = true;
     return;
   }
-  let v = n * (G.playerHp === true ? 1 : HURT_K) * (1 - G.mods.dr);
+  let v = n * (G.playerHp === true ? 1 : TUNE.healthScale) * (1 - G.mods.dr);
   if (G.buffs.aegis > 0) v *= G.mods.aegisK;
   if (G.buffs.aegisK) v *= G.buffs.aegisK;
   v = Math.max(1, Math.ceil(v));

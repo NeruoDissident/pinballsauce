@@ -155,6 +155,47 @@ export function texGlow() {
   c.fillRect(0, 0, 64, 64);
   return cv;
 }
+/* The sprite every particle is drawn with. A table's theme picks one (fx.particle): a soft dot (the default), a
+   heart, a star or a spark, or its own painter (c, size), which draws in white: particles are tinted as they fly. */
+export function texParticle(kind) {
+  if (!kind || kind === 'dot') return texGlow();
+  const S = 64,
+    cv = mkCanvas(S, S),
+    c = cv.getContext('2d');
+  c.fillStyle = '#fff';
+  c.strokeStyle = '#fff';
+  c.shadowColor = 'rgba(255,255,255,.7)';
+  c.shadowBlur = 6;
+  if (typeof kind === 'function') kind(c, S);
+  else if (kind === 'heart') {
+    c.beginPath();
+    c.moveTo(32, 54);
+    c.bezierCurveTo(4, 34, 8, 10, 22, 10);
+    c.bezierCurveTo(28, 10, 32, 15, 32, 20);
+    c.bezierCurveTo(32, 15, 36, 10, 42, 10);
+    c.bezierCurveTo(56, 10, 60, 34, 32, 54);
+    c.fill();
+  } else if (kind === 'star') {
+    c.beginPath();
+    for (let i = 0; i < 10; i++) {
+      const a = -Math.PI / 2 + (i * Math.PI) / 5,
+        r = i % 2 ? 11 : 26;
+      c.lineTo(32 + Math.cos(a) * r, 33 + Math.sin(a) * r);
+    }
+    c.closePath();
+    c.fill();
+  } else if (kind === 'spark') {
+    c.lineWidth = 5;
+    c.lineCap = 'round';
+    c.beginPath();
+    c.moveTo(32, 6);
+    c.lineTo(32, 58);
+    c.moveTo(6, 32);
+    c.lineTo(58, 32);
+    c.stroke();
+  } else throw new Error('theme: fx.particle is dot, heart, star, spark or a function, not "' + kind + '"');
+  return cv;
+}
 export function texFlame() {
   const cv = mkCanvas(64, 96),
     c = cv.getContext('2d');
