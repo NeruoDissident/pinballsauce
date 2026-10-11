@@ -2,6 +2,24 @@
 
 Updated 11 October 2026 with Judgment. The earlier stages below retain their original verification notes.
 
+## Stage 8.3: opening-screen collection
+
+The source site and one-file collection now share the same picker and catalog. Development lists Gravebound,
+Neon Descent, Crush Hour and Judgment, in that order. Experimental lists Starfall and Test Bench. Phones retain
+large cards and do not load a preview. Desktop windows with a fine pointer and at least 960px of width show a
+random table's live attract mode behind the selection panel, with a pause/resume button. Reduced-motion
+preferences start the preview paused; hidden pages pause it, too.
+
+The preview runs in a separate frame and is removed before the real game starts. The one-file build uses srcdoc
+so it also works offline. No table layouts, rules, physics, saved runs or replay baselines changed. The service
+worker precaches the shared catalog and picker so the source site's mobile menu remains available offline.
+
+`npm run test:lobby` checks both entry points, order/groups, live attract mode, pause/resume, responsive frame
+cleanup, all six Play/Other tables routes, Inspect, phone touch launch, and the offline desktop collection.
+Desktop and phone screenshots were inspected. All 20 mobile/offline checks pass. `npm test` passes all six layout
+snapshots, 120 replays, 25 Judgment progression checks and 23 mechanism checks without changing any recordings.
+Two additional replays against the rebuilt collection match source. Existing gameplay verification is retained below.
+
 ## Stage 8.2: player flipper power
 
 At the owner's explicit request, the shared standard flipper strength is now 1.15, matching Judgment's approved

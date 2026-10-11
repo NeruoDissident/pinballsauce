@@ -18,7 +18,8 @@
     "format": "prettier --write \"engine/**/*.js\" \"tables/*/rules.js\" \"tables/*/table.js\" \"tables/*/main.js\" \"tables/*/theme/*.js\" \"tests/*.mjs\" \"tools/*.mjs\" \"engine/ui/page.css\" \"tables/*/theme/*.css\"",
     "test:judgment": "node tests/check.mjs && node tests/table.mjs --table judgment && node tests/replay.mjs 10 --table judgment && node tests/judgment.mjs && node tests/standards.mjs --table judgment && node tests/mechanisms.mjs",
     "test:mechanisms": "node tests/mechanisms.mjs",
-    "test:power": "node tests/flipper-power.mjs"
+    "test:power": "node tests/flipper-power.mjs",
+    "test:lobby": "node tools/bundle.mjs all && node tests/lobby.mjs"
   },
   "license": "UNLICENSED",
   "devDependencies": {

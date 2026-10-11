@@ -1,127 +1,216 @@
-/* ================= THE TABLE PICKER =================
-   For a build that carries more than one table in one page (tools/bundle.mjs all). One table runs per page load:
-   the picker shows the tables, boots the one chosen, and "Other tables" in a table's title menu comes back here.
-   The page's address can name a table to skip the picker: #gravebound, or #gravebound.inspect for inspect mode.
-   A single-table page never loads this file. */
-import {boot} from './shell.js';
-
+/* Shared opening screen. Catalog metadata comes from the host; previews run in a separate frame.
+   Selecting a table removes the preview before starting the real game. */
 const STYLE = `
-/* layout: one column of marquee panels, each lit in its own table's colour and lettered in its own face */
-:root{--pk-bg:#07080d;--pk-panel:#0f111a;--pk-line:#272b3d;--pk-ink:#ebe7da;--pk-dim:#9c9cb0;--pk-key:#11131d;color-scheme:dark;
-  --pk-display:"Arial Black","Segoe UI",system-ui,sans-serif;--pk-body:Spectral,Georgia,"Times New Roman",serif;--pk-mono:ui-monospace,Menlo,Consolas,monospace}
-html,body{height:100%}
-body{margin:0;background:var(--pk-bg);color:var(--pk-ink);font:16px/1.5 var(--pk-body)}
-#pk{position:absolute;inset:0;overflow-y:auto;-webkit-user-select:text;user-select:text} /* the game's page pins the body, so the picker scrolls inside itself */
-#pk>div{min-height:100%;box-sizing:border-box;display:flex;flex-direction:column;gap:28px;max-width:760px;margin:0 auto;padding-block:calc(36px + env(safe-area-inset-top,0px)) calc(28px + env(safe-area-inset-bottom,0px));padding-inline:16px}
-#pk header{display:flex;flex-direction:column;gap:6px}
-#pk h1{margin:0;font:900 clamp(26px,7vw,40px)/1 var(--pk-display);letter-spacing:.14em;text-transform:uppercase;text-wrap:balance}
-#pk header p{margin:0;color:var(--pk-dim);max-width:60ch}
-#pk ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:16px}
-#pk li{--c:#d9a441;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px 22px;align-items:end;padding:20px 20px 18px;border:1px solid var(--pk-line);border-top:3px solid var(--c);
-  background:linear-gradient(100deg,color-mix(in srgb,var(--c) 16%,var(--pk-panel)) 0%,var(--pk-panel) 46%)}
-#pk li>div{min-width:0;display:flex;flex-direction:column;gap:6px}
-#pk h2{margin:0;font-weight:700;font-size:clamp(28px,8vw,44px);line-height:1;color:var(--c);text-wrap:balance}
-#pk .blurb{margin:0}
-#pk .facts{margin:0;font:12px/1.5 var(--pk-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--pk-dim)}
-#pk nav{display:flex;gap:10px;flex-wrap:wrap}
-#pk button{font:700 13px/1 var(--pk-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--pk-ink);background:var(--pk-key);border:1px solid var(--pk-line);height:46px;padding:0 20px;cursor:pointer}
-#pk button.go{background:var(--c);border-color:var(--c);color:#0a0a0e}
-#pk button:hover{border-color:var(--c)}
-#pk button:focus-visible{outline:2px solid var(--pk-ink);outline-offset:2px}
-#pk footer{margin-top:auto;color:var(--pk-dim);font-size:14px;display:flex;flex-direction:column;gap:4px}
-#pk footer p{margin:0;max-width:65ch}
-#pk kbd{font:12px var(--pk-mono);border:1px solid var(--pk-line);padding:1px 5px}
-@media (max-width:560px){#pk li{grid-template-columns:minmax(0,1fr)}#pk nav button{flex:1}}
+#pk{--pk-ink:#f1ede3;--pk-dim:#a7adb9;--pk-line:#ffffff24;position:fixed;inset:0;z-index:100;color:var(--pk-ink);background:#080b12;font:15px/1.45 "Segoe UI",system-ui,sans-serif;overflow:auto;color-scheme:dark}
+#pk *{box-sizing:border-box}
+#pk .pk-inner{position:relative;max-width:760px;margin:auto;padding:calc(32px + env(safe-area-inset-top,0px)) max(20px,env(safe-area-inset-right,0px)) calc(40px + env(safe-area-inset-bottom,0px)) max(20px,env(safe-area-inset-left,0px))}
+#pk header{margin-bottom:32px}
+#pk .eyebrow{font:600 11px/1.5 "Segoe UI",sans-serif;letter-spacing:.24em;text-transform:uppercase;color:#c5ac78;margin:0 0 12px}
+#pk h1{font:900 clamp(30px,6vw,44px)/1 "Arial Black","Segoe UI",sans-serif;letter-spacing:-.055em;margin:0 0 12px;color:var(--pk-ink);text-shadow:none}
+#pk header p:last-child{color:var(--pk-dim);margin:0}
+#pk section{margin-top:26px}
+#pk h2{font:600 11px/1.5 "Segoe UI",sans-serif;letter-spacing:.2em;text-transform:uppercase;display:flex;align-items:center;gap:12px;margin:0 0 12px;color:var(--pk-dim)}
+#pk h2:after{content:"";height:1px;background:var(--pk-line);flex:1}
+#pk ol{list-style:none;padding:0;margin:0;display:grid;gap:12px}
+#pk li{border:1px solid var(--pk-line);border-left:3px solid var(--c);background:linear-gradient(110deg,color-mix(in srgb,var(--c) 9%,#121722),#121722);padding:20px;transition:background .15s,border-color .15s}
+#pk li:hover,#pk li:focus-within{border-color:var(--c);background:linear-gradient(110deg,color-mix(in srgb,var(--c) 16%,#121722),#121722)}
+#pk h3{margin:0;padding:0;border:0;text-transform:none;font:750 28px/1.1 "Segoe UI",sans-serif;letter-spacing:-.035em}
+#pk a.table{color:var(--c);text-decoration:none}
+#pk .blurb{color:var(--pk-dim);margin:9px 0 18px}
+#pk nav{display:flex;gap:10px}
+#pk button{font:650 11px/1 "Segoe UI",sans-serif;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--pk-line);border-radius:4px;color:var(--pk-ink);background:transparent;min-height:44px;padding:0 16px;cursor:pointer;box-shadow:none}
+#pk nav button{flex:1}
+#pk button.go{background:var(--c);border-color:var(--c);color:#080b12}
+#pk button:hover{border-color:var(--pk-ink)}
+#pk button:focus-visible,#pk a:focus-visible{outline:2px solid #fff;outline-offset:4px}
+#pk footer{color:var(--pk-dim);font-size:12px;margin-top:24px;max-width:44ch}
+#pk footer p{margin:6px 0}
+#pk kbd{font:11px monospace;border:1px solid var(--pk-line);padding:1px 4px;border-radius:3px}
+#pk .pk-preview,#pk .pk-feature{display:none}
+@media(min-width:960px) and (pointer:fine){
+ #pk{background:radial-gradient(ellipse at 75% 40%,#27364a,#080b12 75%)}
+ #pk .pk-preview{display:block;position:absolute;inset:0 0 0 30%;width:70%;height:100%;border:0;pointer-events:none}
+ #pk:after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,#080b12 0%,#080b12f2 23%,#080b12a8 40%,#080b1220 65%),linear-gradient(0deg,#080b12ed,transparent 32%)}
+ #pk .pk-inner{z-index:1;margin:0;padding:34px clamp(24px,4vw,72px);width:470px;min-height:100%;max-width:none}
+ #pk header{margin-bottom:24px}
+ #pk h1{font-size:42px}
+ #pk section{margin-top:22px}
+ #pk ol{gap:8px}
+ #pk li{padding:12px 14px;display:grid;grid-template-columns:1fr auto;align-items:center;gap:12px;background:#121722b8;backdrop-filter:blur(12px)}
+ #pk h3{font-size:22px}
+ #pk .blurb{display:none}
+ #pk nav{gap:6px}
+ #pk nav button{padding:0 10px;min-height:38px}
+ #pk nav button:not(.go){font-size:9px;padding:0 7px;color:var(--pk-dim)}
+ #pk footer{font-size:11px;margin-top:22px}
+ #pk .pk-feature{display:block;position:absolute;z-index:1;left:max(500px,44%);right:6%;bottom:7%;pointer-events:none}
+ #pk .pk-feature h2{font:800 clamp(32px,4.5vw,72px)/1.1 "Segoe UI",sans-serif;letter-spacing:-.05em;color:var(--preview-color);margin:0 0 10px;text-transform:none;display:block;text-shadow:0 2px 24px #000}
+ #pk .pk-feature h2:after{display:none}
+ #pk .pk-feature .preview-note{margin:0 0 18px;color:#d5d9df;max-width:36ch;font-size:16px}
+ #pk .pk-feature button{pointer-events:auto;background:#080b1299;backdrop-filter:blur(10px)}
+}
+@media(prefers-reduced-motion:reduce){#pk li{transition:none}}
 `;
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'})[c]);
 
-// tables: the table definitions. css: {tableId: text of its theme.css}, applied when that table boots.
-export function pickTable(tables, css) {
-  css = css || {};
+// The one-file build supplies bootTable; the source site navigates to table folders.
+export function pickTable(tables, css = {}, catalog = [], bootTable) {
+  const rank = t => {
+    const i = catalog.findIndex(c => c.id === t.id);
+    return i < 0 ? catalog.length : i;
+  };
+  const ordered = [...tables].sort((a, b) => rank(a) - rank(b));
+  const info = t => ({...t, ...catalog.find(c => c.id === t.id)});
+  const url = (t, inspect = false) =>
+    bootTable ? '#' + t.id + (inspect ? '.inspect' : '') : 'tables/' + t.id + '/' + (inspect ? '?inspect' : '');
   window.__pbTables = () => {
     try {
       history.replaceState(null, '', location.pathname + location.search);
     } catch (e) {}
     location.reload();
   };
+  let cleanup = () => {};
   const go = (def, inspect) => {
-    for (const id of ['pk', 'pkStyle']) {
-      const el = document.getElementById(id);
-      if (el) el.remove();
+    if (!bootTable) {
+      location.href = url(def, inspect);
+      return;
     }
+    cleanup();
+    for (const id of ['pk', 'pkStyle']) document.getElementById(id)?.remove();
     if (css[def.id]) {
-      const s = document.createElement('style');
-      s.textContent = css[def.id];
-      document.body.appendChild(s);
-    } // last in the page, so it wins over page.css wherever a host put that
+      const style = document.createElement('style');
+      style.textContent = css[def.id];
+      document.body.appendChild(style);
+    }
     try {
-      history.replaceState(null, '', '#' + def.id);
+      history.replaceState(null, '', url(def, inspect));
     } catch (e) {}
-    boot(def, {inspect});
+    bootTable(def, {inspect});
   };
-  const h = (location.hash || '').slice(1),
+  const h = window.__pbPreviewId || (location.hash || '').slice(1),
     want = tables.find(t => h === t.id || h === t.id + '.inspect');
   if (want) {
     go(want, h !== want.id);
     return;
   }
+  // srcdoc inherits the parent origin, including for the offline file:// collection.
+  const previewDocument = bootTable ? '<!doctype html>' + document.documentElement.outerHTML : null;
   const st = document.createElement('style');
   st.id = 'pkStyle';
   st.textContent = STYLE;
-  document.body.appendChild(st);
-  const n = (k, one, many) => k + ' ' + (k === 1 ? one : many || one + 's');
-  const cards = tables
-    .map((t, i) => {
-      const L = t.layout,
-        th = t.theme || {},
-        pal = th.pal,
-        c = t.accent || (pal ? pal[L.fields.length - 1].acc : '#d9a441'),
-        face = (th.fonts && th.fonts.fontD) || '"Grenze Gotisch","Old English Text MT",Georgia,serif',
-        x = t.content.text || {};
-      // only what the table has: a plain table lists its playfield and its ramps and nothing else
-      const count = o => Object.keys(o || {}).length,
-        u = t.uses || {},
-        facts = [n(L.fields.length, 'playfield')];
-      if (u.foes !== false && count(t.content.foes)) facts.push(n(count(t.content.foes), 'foe'));
-      if (u.bosses !== false && count(t.content.bosses)) facts.push(n(count(t.content.bosses), 'boss', 'bosses'));
-      if (u.quests !== false && count(t.content.campaigns))
-        facts.push(n(count(t.content.campaigns), t.content.foes ? 'campaign' : 'mission'));
-      if ((L.wings || []).length) facts.push(n(L.wings.length, 'wing'));
-      if ((L.ramps || []).length) facts.push(n(L.ramps.length, 'ramp'));
-      return (
-        '<li style="--c:' +
-        esc(c) +
-        '"><div><h2 style="font-family:' +
-        esc(face).replace(/&quot;/g, "'") +
-        '">' +
-        esc(t.name) +
-        '</h2><p class="blurb">' +
-        esc(t.blurb || x.eyebrow || '') +
-        '</p><p class="facts">' +
-        esc(facts.join(' · ')) +
-        '</p></div>' +
-        '<nav aria-label="' +
-        esc(t.name) +
-        '"><button type="button" class="go" data-i="' +
-        i +
-        '">Play</button><button type="button" data-i="' +
-        i +
-        '" data-ins="1">Inspect</button></nav></li>'
-      );
-    })
-    .join('');
+  document.head.appendChild(st);
   const el = document.createElement('main');
   el.id = 'pk';
+  const cards = group =>
+    ordered
+      .map((t, i) => {
+        const c = info(t);
+        if ((c.group || 'Experimental') !== group) return '';
+        return (
+          '<li data-table="' +
+          esc(t.id) +
+          '" style="--c:' +
+          esc(c.accent || '#d9a441') +
+          '"><div><h3><a class="table" href="' +
+          url(t) +
+          '" data-i="' +
+          i +
+          '">' +
+          esc(c.name) +
+          '</a></h3><p class="blurb">' +
+          esc(c.blurb || '') +
+          '</p></div><nav aria-label="' +
+          esc(c.name) +
+          '"><button type="button" class="go" data-i="' +
+          i +
+          '">Play</button><button type="button" data-i="' +
+          i +
+          '" data-ins="1">Inspect</button></nav></li>'
+        );
+      })
+      .join('');
   el.innerHTML =
-    '<div><header><h1>Pinballsauce</h1><p>' +
-    n(tables.length, 'pinball table') +
-    ' built from the same parts. The ball and the flippers are shared; each table has its own layout, its own world, and only the game systems it wants.</p></header><ol>' +
-    cards +
-    '</ol>' +
-    '<footer><p>Play is the game. Inspect opens the table top-down with every piece labelled, a coordinate grid, pan, zoom and a screenshot button.</p><p>In a table: <kbd>Z</kbd> and <kbd>/</kbd> flip, <kbd>Space</kbd> launches and nudges, <kbd>I</kbd> toggles inspect. On a phone, tap the left and right halves. Saves stay in this browser.</p></footer></div>';
+    '<div class="pk-inner"><header><p class="eyebrow">The pinball collection</p><h1>Pinballsauce</h1><p>Pick a world. Keep the ball alive.</p></header>' +
+    ['Development', 'Experimental']
+      .map(group => '<section aria-label="' + group + '"><h2>' + group + '</h2><ol>' + cards(group) + '</ol></section>')
+      .join('') +
+    '<footer><p><kbd>Z</kbd> / <kbd>←</kbd> Left flipper &nbsp; <kbd>/</kbd> / <kbd>→</kbd> Right flipper<br><kbd>Space</kbd> Launch & nudge · <kbd>Esc</kbd> Pause</p><p>On a phone, tap either side to flip.<br>Your progress stays in this browser.</p></footer></div>' +
+    '<aside class="pk-feature"><p class="eyebrow" id="previewStatus">Attract mode · Live table</p><h2 id="previewTitle"></h2><p class="preview-note" id="previewNote"></p><button type="button" id="previewPause">Pause preview</button></aside>';
   el.addEventListener('click', e => {
-    const b = e.target.closest('button[data-i]');
-    if (b) go(tables[+b.dataset.i], !!b.dataset.ins);
+    const b = e.target.closest('[data-i]');
+    if (b && !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey) {
+      e.preventDefault();
+      go(ordered[+b.dataset.i], !!b.dataset.ins);
+    }
   });
-  document.body.insertAdjacentElement('afterbegin', el);
+  document.body.prepend(el);
+  const desktop = matchMedia('(min-width:960px) and (pointer:fine)');
+  let frame = null,
+    paused = matchMedia('(prefers-reduced-motion:reduce)').matches;
+  const previewPause = el.querySelector('#previewPause');
+  const syncPause = () => {
+    try {
+      frame?.contentWindow.__pb?.api.hold(paused || document.hidden);
+    } catch (e) {}
+    previewPause.textContent = paused ? 'Play preview' : 'Pause preview';
+    previewPause.setAttribute('aria-pressed', String(paused));
+  };
+  const change = () => {
+    if (!desktop.matches) {
+      frame?.remove();
+      frame = null;
+      return;
+    }
+    if (frame || !ordered.length) return;
+    const t = info(ordered[Math.floor(Math.random() * ordered.length)]);
+    el.style.setProperty('--preview-color', t.accent || '#d9a441');
+    el.querySelector('#previewTitle').textContent = t.name;
+    el.querySelector('#previewNote').textContent = t.blurb || '';
+    previewPause.hidden = false;
+    el.querySelector('#previewStatus').textContent = 'Attract mode · Live table';
+    frame = document.createElement('iframe');
+    frame.className = 'pk-preview';
+    frame.title = 'Silent pinball attract mode';
+    frame.tabIndex = -1;
+    frame.setAttribute('aria-hidden', 'true');
+    const currentFrame = frame;
+    frame.addEventListener('load', () => {
+      if (frame !== currentFrame) return;
+      try {
+        const child = frame.contentWindow,
+          p = child.__pb;
+        if (!p?.ready()) throw Error('Preview unavailable');
+        const style = child.document.createElement('style');
+        style.textContent = '#menu,#hud,#gfx,#banner,#touch,#pauseBtn,#camBtn,.side{display:none!important}';
+        child.document.head.appendChild(style);
+        p.api.UI.menu(null);
+        p.api.advance(6, 1);
+        syncPause();
+      } catch (e) {
+        el.querySelector('#previewStatus').textContent = 'Choose a table to play';
+        previewPause.hidden = true;
+      }
+    });
+    if (previewDocument)
+      frame.srcdoc = previewDocument.replace(
+        /<head([^>]*)>/i,
+        '<head$1><script>window.__pbPreviewId=' + JSON.stringify(t.id).replace(/</g, '\\u003c') + ';<\/script>'
+      );
+    else frame.src = url(t);
+    el.prepend(frame);
+    syncPause();
+  };
+  previewPause.addEventListener('click', () => {
+    paused = !paused;
+    syncPause();
+  });
+  desktop.addEventListener('change', change);
+  document.addEventListener('visibilitychange', syncPause);
+  cleanup = () => {
+    frame?.remove();
+    frame = null;
+    desktop.removeEventListener('change', change);
+    document.removeEventListener('visibilitychange', syncPause);
+  };
+  change();
 }

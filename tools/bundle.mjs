@@ -44,7 +44,7 @@ const VIRT = '/__entry__.js',
   virtual = {};
 virtual[VIRT] =
   what === 'all'
-    ? "import {pickTable} from '/engine/app/picker.js';\n" +
+    ? "import {pickTable} from '/engine/app/picker.js';\nimport {boot} from '/engine/app/shell.js';\nimport {CATALOG} from '/catalog.js';\n" +
       tables.map((t, i) => 'import t' + i + " from '/tables/" + t + "/table.js';").join('\n') +
       '\npickTable([' +
       tables.map((t, i) => 't' + i).join(',') +
@@ -61,7 +61,7 @@ virtual[VIRT] =
             .filter(q => q[1])
         )
       ) +
-      ');\n'
+      ',CATALOG,boot);\n'
     : "import {boot} from '/engine/app/shell.js';\nimport table from '/tables/" +
       tables[0] +
       "/table.js';\nboot(table);\n";
