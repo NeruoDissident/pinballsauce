@@ -2,6 +2,28 @@
 
 Updated 11 October 2026 with Judgment. The earlier stages below retain their original verification notes.
 
+## Stage 8.4: standard controller input
+
+All six tables, the source picker and the one-file collection accept standard browser gamepads, including the
+ROG Ally in Gamepad Mode. Bumpers or triggers flip; A holds/releases the existing plunger and nudges during play;
+Y changes view; Menu pauses/resumes. D-pad or left stick navigate, A confirms and B goes back. Sliders adjust
+left/right, with up/down moving between controls. Controls are listed in the picker and each table's Controls menu.
+
+Controller sessions require neutral input after menu transitions or focus changes; disconnect/lost focus pauses
+an active run and releases held inputs. Keyboard, touch and gamepad holds are independent. The preview iframe
+never polls controllers and the picker disposes its session before booting a table. No layout, physics, power
+setting, replay recording or table content changed. Table feature counts in the picker remain deferred.
+
+`npm run test:gamepad` uses simulated standard gamepads to exercise source and bundled input, plunger launch,
+single-edge nudge, camera, bumpers/triggers, mixed keyboard/controller holds, menu/slider/checkbox navigation,
+repeat/deadzone, disconnect/reconnect, blur, Inspect exit, preview isolation and controller-only startup on all
+six tables. Physical controller latency, audio activation and the Ally's device/browser setup remain hardware
+playtest checks; the tests do not claim a physical Ally was used.
+
+Static checks and `npm test` pass: all six layout snapshots, 120 five-minute replays, 25 Judgment progression
+checks and 23 mechanism checks. All existing recordings match without updates. All 20 mobile/offline checks
+pass, including touch launch, double-tap nudge and offline return to the table picker.
+
 ## Stage 8.3: opening-screen collection
 
 The source site and one-file collection now share the same picker and catalog. Development lists Gravebound,

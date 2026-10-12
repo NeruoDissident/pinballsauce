@@ -54,7 +54,7 @@ engine/rules/              one file per subject: classes, spells, perks, party, 
                            choices (cards), run (start, save, campaign plan), step (the per-frame order), names
 engine/render/             3D: scene, floor, frame, camera, figures + figurekit (stock foes), actors, wings,
                            defaults (what is drawn when a theme says nothing), world (heights)
-engine/ui/                 page.js + page.css (markup, HUD), ui.js (menus), audio.js, help.js
+engine/ui/                 page.js + page.css (markup, HUD), ui.js (menus/input), gamepad.js (shared controller/lobby input), audio.js, help.js
 engine/app/                shell.js (boot, loop, input, dev keys), inspect.js (inspect mode)
 tables/<id>/               index.html, main.js, table.js, layout.js, content.js, rules.js, theme/
 tests/                     check.mjs (static), table.mjs (layout), replay.mjs (simulation), soak.mjs (bot),

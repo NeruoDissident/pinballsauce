@@ -1,3 +1,4 @@
+import {GAMEPAD_HELP, bindGamepad, padMenu} from '../ui/gamepad.js';
 /* Shared opening screen. Catalog metadata comes from the host; previews run in a separate frame.
    Selecting a table removes the preview before starting the real game. */
 const STYLE = `
@@ -22,7 +23,7 @@ const STYLE = `
 #pk nav button{flex:1}
 #pk button.go{background:var(--c);border-color:var(--c);color:#080b12}
 #pk button:hover{border-color:var(--pk-ink)}
-#pk button:focus-visible,#pk a:focus-visible{outline:2px solid #fff;outline-offset:4px}
+#pk .pad-focus,#pk button:focus-visible,#pk a:focus-visible{outline:2px solid #fff;outline-offset:4px}
 #pk footer{color:var(--pk-dim);font-size:12px;margin-top:24px;max-width:44ch}
 #pk footer p{margin:6px 0}
 #pk kbd{font:11px monospace;border:1px solid var(--pk-line);padding:1px 4px;border-radius:3px}
@@ -134,7 +135,9 @@ export function pickTable(tables, css = {}, catalog = [], bootTable) {
     ['Development', 'Experimental']
       .map(group => '<section aria-label="' + group + '"><h2>' + group + '</h2><ol>' + cards(group) + '</ol></section>')
       .join('') +
-    '<footer><p><kbd>Z</kbd> / <kbd>←</kbd> Left flipper &nbsp; <kbd>/</kbd> / <kbd>→</kbd> Right flipper<br><kbd>Space</kbd> Launch & nudge · <kbd>Esc</kbd> Pause</p><p>On a phone, tap either side to flip.<br>Your progress stays in this browser.</p></footer></div>' +
+    '<footer><p><kbd>Z</kbd> / <kbd>←</kbd> Left flipper &nbsp; <kbd>/</kbd> / <kbd>→</kbd> Right flipper<br><kbd>Space</kbd> Launch & nudge · <kbd>Esc</kbd> Pause</p><p>Controller: D-pad / left stick to browse, A to select.<br>' +
+    GAMEPAD_HELP +
+    '.</p><p>On a phone, tap either side to flip.<br>Your progress stays in this browser.</p></footer></div>' +
     '<aside class="pk-feature"><p class="eyebrow" id="previewStatus">Attract mode · Live table</p><h2 id="previewTitle"></h2><p class="preview-note" id="previewNote"></p><button type="button" id="previewPause">Pause preview</button></aside>';
   el.addEventListener('click', e => {
     const b = e.target.closest('[data-i]');
@@ -144,6 +147,12 @@ export function pickTable(tables, css = {}, catalog = [], bootTable) {
     }
   });
   document.body.prepend(el);
+  const stopPad = bindGamepad({
+    context: () => 'lobby',
+    frame: ({pressed, move}) => {
+      if (move || pressed.a) padMenu(el, move, pressed.a);
+    }
+  });
   const desktop = matchMedia('(min-width:960px) and (pointer:fine)');
   let frame = null,
     paused = matchMedia('(prefers-reduced-motion:reduce)').matches;
@@ -207,6 +216,7 @@ export function pickTable(tables, css = {}, catalog = [], bootTable) {
   desktop.addEventListener('change', change);
   document.addEventListener('visibilitychange', syncPause);
   cleanup = () => {
+    stopPad();
     frame?.remove();
     frame = null;
     desktop.removeEventListener('change', change);
