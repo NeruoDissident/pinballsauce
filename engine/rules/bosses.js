@@ -1,6 +1,6 @@
 /* ================= BOSSES =================
    A boss stands on its field's circle and loops through phases: shield | open | summon | cast | frenzy. */
-import {G, T, burst, flash, float, later, shake} from '../core/state.js';
+import {ballClass, G, T, burst, flash, float, later, shake} from '../core/state.js';
 import {clamp, rand} from '../core/util.js';
 import {startMultiball} from './events.js';
 import {spawnEnemy} from './foes.js';
@@ -258,7 +258,7 @@ export function strikeBoss(bo, b, imp) {
   const m = G.mods,
     r = G.run;
   if (bo.rise > 0) return;
-  const pw = b.pow ? r.cls : null;
+  const pw = b.pow ? ballClass(b) : null;
   if (pw === 'mage') {
     endPower(b);
     explode(b.x, b.y);
@@ -278,7 +278,7 @@ export function strikeBoss(bo, b, imp) {
     G.buffs.stealth > 0 ||
     bo.marked > 0 ||
     Math.random() < m.crit ||
-    (r.cls === 'rogue' && G.combo > 1 && G.comboT > 0);
+    (ballClass(b) === 'rogue' && G.combo > 1 && G.comboT > 0);
   if (pw === 'knight') {
     dmg *= 2.5;
     endPower(b);
@@ -295,7 +295,7 @@ export function strikeBoss(bo, b, imp) {
   if (spellOn('judgement')) dmg += m.pow * spellVal('judgement', 'boss');
   if (crit) dmg *= 2;
   if (G.buffs.sharp > 0) dmg *= 1.25;
-  if (bo.def.undead && r.cls === 'cleric') dmg *= 1.5;
+  if (bo.def.undead && ballClass(b) === 'cleric') dmg *= 1.5;
   if (bo.phase === 'summon') dmg *= 0.5;
   if (bo.stun > 0) dmg *= 2;
   score(PTS.bossHit);

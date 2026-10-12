@@ -149,9 +149,12 @@ Levelling and the spellbook come with `levels` (which needs classes). Boons and 
   foes attack it. At zero it falls and the drain stands open until any bank is completed.
 - **Recruits**: a scoop the table chooses sells them, three offers a visit: a class with one of its abilities.
   Price 40 + 15 per recruit held; six at most.
-- **Rally**: the companion and every recruit come out as balls, one every 0.55 s, for 20 s. Each pulses every 1.1 s
-  (bolts, shockwaves, heals) and recruits run their ability. The camera stays on your ball; losing it ends the Rally.
-  Party balls cannot enter scoops.
+- **Rally**: the companion and every recruit come out as balls, one every 0.55 s. Balls stay until drained. The camera
+  follows the lowest ball, including recruits; losing the original ball does not end the turn. Pending arrivals
+  also keep the turn alive. The last survivor becomes the playable ball, retains its class/appearance and can
+  enter scoops and the Grave. The saved hero class, level and upgrades are never replaced: the next serve uses
+  that build. Party pulses (every 1.1 s) and recruit abilities last 20 s (`rallyTime`, doubled by Twin Soul);
+  this clock never removes balls. During multiball, party balls cannot enter scoops.
 
 ## 8. Foes and waves (`foes.js`, `waves.js`) — optional: on when the table lists foes
 

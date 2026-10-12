@@ -1,7 +1,7 @@
 /* ================= TABLE EVENTS =================
    Everything the ball does to the table arrives here: ev(type, thing, ball, impact). This is where a hit becomes
    score, meter, quest progress and a call to the table's own rules (onComplete, onScoop). */
-import {G, T, bolt, burst, comboF, flash, float, later} from '../core/state.js';
+import {ballClass, G, T, bolt, burst, comboF, flash, float, later} from '../core/state.js';
 import {rand} from '../core/util.js';
 import {newBall} from '../physics/physics.js';
 import {serve} from './ball.js';
@@ -50,10 +50,10 @@ export function ev(type, o, b, imp) {
           G.dirty = true;
         }
         b.arm = 0;
-        b.pow = {t: r.cls === 'knight' ? 3.5 : 3, hits: 0};
+        b.pow = {t: ballClass(b) === 'knight' ? 3.5 : 3, hits: 0};
         A.s('ability');
-        burst(b.x, b.y, 18, CLASSES[r.cls].glow, 300, 0.6, 'powerShot');
-        float(b.x, b.y - 30, CLASSES[r.cls].shot.toUpperCase(), CLASSES[r.cls].glow, 15);
+        burst(b.x, b.y, 18, CLASSES[ballClass(b)].glow, 300, 0.6, 'powerShot');
+        float(b.x, b.y - 30, CLASSES[ballClass(b)].shot.toUpperCase(), CLASSES[ballClass(b)].glow, 15);
       }
       break;
     case 'sling':
@@ -115,7 +115,7 @@ export function ev(type, o, b, imp) {
       if (G.mods.bumpGold && Math.random() < 0.35) gold(1, o.x, o.y);
       if (spellOn('judgement') || b.spell === 'judgement') holyFire(o.x, o.y, o.tier);
       if (b.party === 'healer') heal(2);
-      if (G.mods.bumpDmg || (r.cls === 'mage' && (o.conduit || G.mods.conduit || spellOn('blink')))) {
+      if (G.mods.bumpDmg || (ballClass(b) === 'mage' && (o.conduit || G.mods.conduit || spellOn('blink')))) {
         const n = G.mods.conduit && o.conduit ? 2 : 1,
           near = G.enemies
             .filter(e => e.tier === o.tier && e.spawn <= 0 && !e.dead)
@@ -161,7 +161,7 @@ export function ev(type, o, b, imp) {
         G.graveT += 3;
         float(b.x, b.y - 26, '+3s', '#9dffc8', 12);
       }
-      if ((b.pow && r.cls === 'knight') || (B.door && r.cls === 'rogue'))
+      if ((b.pow && ballClass(b) === 'knight') || (B.door && ballClass(b) === 'rogue'))
         B.segs.forEach(s => {
           if (s.on) {
             s.on = false;
@@ -169,7 +169,7 @@ export function ev(type, o, b, imp) {
             score(PTS.drop);
           }
         });
-      if (b.pow && r.cls === 'knight' && (G.mods.jugger || spellVal('charge', 'all')) && !G.inGrave)
+      if (b.pow && ballClass(b) === 'knight' && (G.mods.jugger || spellVal('charge', 'all')) && !G.inGrave)
         for (const id in T.banks) {
           const O = T.banks[id];
           if (O === B || O.kind !== 'drop' || O.tier !== B.tier || O.door || !O.segs.some(s => s.on)) continue;

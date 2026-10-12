@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node tests/serve.mjs . 4187",
     "check": "node tests/check.mjs",
-    "test": "node tests/check.mjs && node tests/table.mjs && node tests/table.mjs --table neon-descent && node tests/table.mjs --table test-bench && node tests/table.mjs --table starfall && node tests/table.mjs --table crush-hour && node tests/replay.mjs 5 && node tests/replay.mjs 5 --table neon-descent && node tests/replay.mjs 5 --table test-bench && node tests/replay.mjs 5 --table starfall && node tests/replay.mjs 5 --table crush-hour && node tests/table.mjs --table judgment && node tests/replay.mjs 5 --table judgment && node tests/judgment.mjs && node tests/mechanisms.mjs",
+    "test": "node tests/check.mjs && node tests/table.mjs && node tests/table.mjs --table neon-descent && node tests/table.mjs --table test-bench && node tests/table.mjs --table starfall && node tests/table.mjs --table crush-hour && node tests/replay.mjs 5 && node tests/replay.mjs 5 --table neon-descent && node tests/replay.mjs 5 --table test-bench && node tests/replay.mjs 5 --table starfall && node tests/replay.mjs 5 --table crush-hour && node tests/table.mjs --table judgment && node tests/replay.mjs 5 --table judgment && node tests/judgment.mjs && node tests/mechanisms.mjs && node tests/rally.mjs",
     "test:full": "node tests/check.mjs && node tests/table.mjs && node tests/table.mjs --table neon-descent && node tests/table.mjs --table test-bench && node tests/table.mjs --table starfall && node tests/table.mjs --table crush-hour && node tests/replay.mjs 25 && node tests/replay.mjs 25 --feel flat && node tests/replay.mjs 10 --table neon-descent && node tests/replay.mjs 10 --table test-bench && node tests/replay.mjs 10 --table starfall && node tests/replay.mjs 10 --table crush-hour && node tests/soak.mjs 20 --table gravebound && node tests/soak.mjs 20 --table neon-descent && node tests/soak.mjs 20 --table test-bench && node tests/soak.mjs 20 --table starfall && node tests/soak.mjs 20 --table crush-hour && node tests/reach.mjs --table test-bench && node tests/reach.mjs --table starfall && node tests/standards.mjs --table starfall && node tests/reach.mjs --table crush-hour && node tests/standards.mjs --table crush-hour && node tests/table.mjs --table judgment && node tests/replay.mjs 10 --table judgment && node tests/judgment.mjs && node tests/soak.mjs 20 --table judgment --seeds 8 && node tests/reach.mjs --table judgment && node tests/standards.mjs --table judgment && node tests/mechanisms.mjs",
     "soak": "node tests/soak.mjs 20 --table",
     "reach": "node tests/reach.mjs --table",
@@ -20,7 +20,8 @@
     "test:mechanisms": "node tests/mechanisms.mjs",
     "test:gamepad": "node tools/bundle.mjs all && node tests/gamepad.mjs",
     "test:power": "node tests/flipper-power.mjs",
-    "test:lobby": "node tools/bundle.mjs all && node tests/lobby.mjs"
+    "test:lobby": "node tools/bundle.mjs all && node tests/lobby.mjs",
+    "test:rally": "node tests/rally.mjs"
   },
   "license": "UNLICENSED",
   "devDependencies": {

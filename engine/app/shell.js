@@ -294,6 +294,7 @@ export function drawOverlay() {
   // the ball: cradle ring filling, armed shot ring
   for (let i = 0; i < G.balls.length; i++) {
     const b = G.balls[i],
+      cl = CLASSES[b.cls || run.cls],
       o = R3.balls[i];
     if (!o || b.st !== 'live' || (!(b.cr > 0) && !(b.arm > 0))) continue;
     _v.set(o.sx - 320 + ZX(o.sy), o.sh, o.sy + ZZ(o.sy)).project(R3.camera);
@@ -314,7 +315,7 @@ export function drawOverlay() {
       c.beginPath();
       c.arc(x, y, R1, -PI / 2, -PI / 2 + TAU * k1);
       c.stroke();
-      if (run.charge >= 100 && b.cr > TUNE.cradleArm) {
+      if (run.charge >= 100 && !G.rallyActive && b.cr > TUNE.cradleArm) {
         const k2 = Math.min(1, (b.cr - TUNE.cradleArm) / (TUNE.cradleRally - TUNE.cradleArm));
         c.strokeStyle = '#05050a';
         c.lineWidth = 6;

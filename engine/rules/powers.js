@@ -1,6 +1,6 @@
 /* ================= CLASS POWERS =================
    The nudge power, the cradle shot and the passive traits of each class. */
-import {G, T, bolt, burst, flash, float, focusBall, ring, shake} from '../core/state.js';
+import {G, T, ballClass, bolt, burst, flash, float, focusBall, ring, shake} from '../core/state.js';
 import {hitBoss, interruptBoss} from './bosses.js';
 import {CLASSES} from './classes.js';
 import {damageEnemy} from './foes.js';
@@ -13,7 +13,7 @@ import {A} from '../ui/audio.js';
 
 /* ---------- class powers: cradle to charge, class nudge, ball traits ---------- */
 export function endPower(b, expired) {
-  const c = G.run.cls;
+  const c = ballClass(b);
   b.pow = null;
   if (expired) {
     if (c === 'mage') explode(b.x, b.y);
@@ -22,7 +22,7 @@ export function endPower(b, expired) {
 }
 export function powerImpact(b, type) {
   if (!b || !b.pow) return;
-  const c = G.run.cls;
+  const c = ballClass(b);
   if (c === 'mage') {
     endPower(b);
     explode(b.x, b.y);
@@ -59,7 +59,7 @@ export function consecrate(x, y) {
 export function classNudge() {
   const r = G.run,
     m = G.mods,
-    c = r.cls,
+    c = G.balls.length === 1 ? ballClass(G.balls[0]) : r.cls,
     live = G.balls.filter(b => b.st === 'live');
   if (!USE.classes) return; // a plain ball has no nudge power: a nudge is only a nudge
   if (G.nudgeCd > 0 || !live.length || G.fallen) return;
@@ -141,22 +141,22 @@ export function classNudge() {
 }
 export function updatePowers(dt) {
   const r = G.run,
-    c = r.cls,
-    m = G.mods,
-    cl = CLASSES[c];
+    m = G.mods;
   G.hidden = false;
   if (G.phase > 0) G.phase -= dt;
   if (G.nudgeCd > 0) G.nudgeCd -= dt;
   if (spellOn('cloak')) G.phase = Math.max(G.phase, 0.2);
   if (spellOn('cloak') || spellOn('smoke')) G.hidden = true;
   for (const b of G.balls) {
+    const c = ballClass(b),
+      cl = CLASSES[c];
     if (b.st !== 'live') {
       b.cr = 0;
       continue;
     }
     // one hold, two stages: at 0.8 s the class shot arms (one bar, spent when the flip fires it); hold on to 1.5 s with a
     // full meter and the party rallies instead. Let go between the two and you keep the armed shot.
-    const full = r.charge >= 100 && USE.party;
+    const full = r.charge >= 100 && USE.party && !G.rallyActive;
     let held = false;
     if (
       b.onFlip > 0 &&

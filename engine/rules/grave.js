@@ -3,7 +3,6 @@
    ball, tilted or not. The room itself is built in table/build.js. */
 import {G, T, flash, float} from '../core/state.js';
 import {relight} from './lamps.js';
-import {heroBalls} from './spells.js';
 import {catmull, resample} from '../table/geometry.js';
 import {TEXT, TUNE, USE} from '../table/content.js';
 import {GY} from '../table/layout.js';
@@ -30,7 +29,14 @@ export function graveCatch(b) {
   const r = G.run,
     g = r.grave,
     ok = !G.fallen && G.tilt <= 0; // an open Grave always takes the ball, tilted or fallen or not
-  if (!g.open || heroBalls().length > 1 || G.plunge.auto > 0 || (ok && (G.save > 0 || r.shield))) return false;
+  if (
+    !g.open ||
+    G.balls.filter(b => !b.gone).length > 1 ||
+    G.rallyPend > 0 ||
+    G.plunge.auto > 0 ||
+    (ok && (G.save > 0 || r.shield))
+  )
+    return false;
   g.open = false;
   g.used++;
   g.hits = 0;

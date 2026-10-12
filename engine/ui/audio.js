@@ -374,7 +374,7 @@ export const A = {
     if (!x || x.state !== 'running' || THEME.music === false) return;
     const boss = (!!(G.boss && G.boss.alive) || G.inGrave) && !G.demo,
       quiet = G.mode === 'title';
-    const rly = G.rallyT > 0 && !G.demo,
+    const rly = G.rallyActive && !G.demo,
       beat = rly ? 0.2 : boss ? 0.3 : 0.4;
     while (A.next < x.currentTime + 0.3) {
       const st = A.step++,

@@ -68,6 +68,9 @@ export function resetWorld() {
     graveLive: false,
     wave: {n: 0, t: 18, active: null, list: []},
     casts: [],
+    rallyActive: false,
+    rallyPend: 0,
+    rallyId: (G.rallyId || 0) + 1,
     rallyT: 0
   });
   for (const id in T.rails) T.rails[id].closed = false;

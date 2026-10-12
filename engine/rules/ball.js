@@ -8,7 +8,7 @@ import {graveCatch} from './grave.js';
 import {relight} from './lamps.js';
 import {classNudge} from './powers.js';
 import {qCur, qFail} from './quests.js';
-import {endRally} from './rally.js';
+import {endRally, settleRally} from './rally.js';
 import {gameOver, saveRun, startDemo} from './run.js';
 import {gold} from './score.js';
 import {spellCast, spellVal} from './spells.js';
@@ -33,6 +33,7 @@ export function serve() {
   G.dirty = true;
 }
 export function startBall() {
+  endRally();
   const r = G.run;
   r.bb = {kills: 0, quests: 0, ramps: 0};
   G.chanceUsed = false;
@@ -273,13 +274,24 @@ export function updateBalls(dt) {
     const g = G.balls.filter(b => b.gone);
     G.balls = G.balls.filter(b => !b.gone);
     for (const b of g) onDrain(b);
+    settleRally();
   }
 }
 export function onDrain(b) {
   const r = G.run;
-  if (b.party) return;
+  if (G.sub === 'bonus') return;
   A.s('drain');
-  if (G.balls.some(x => x.party)) endRally('Your ball is lost');
+  if (G.rallyActive || b.party || b.rallyRole) {
+    if (G.balls.length || G.rallyPend > 0 || G.plunge.auto > 0) {
+      settleRally();
+      if (G.balls.length <= 1 && G.mb) {
+        G.mb = null;
+        relight();
+      }
+      return;
+    }
+    endRally();
+  }
   if (!G.fallen && G.tilt <= 0 && !G.inGrave && !G.balls.length) {
     const cA = spellCast('aegis'),
       cS = spellCast('sanctuary');
@@ -346,6 +358,8 @@ export function saveBall(t, s) {
   G.dirty = true;
 }
 export function endBall() {
+  if (G.sub === 'bonus') return;
+  endRally();
   const r = G.run;
   hook('ballEnd', null, null, r);
   G.sub = 'bonus';

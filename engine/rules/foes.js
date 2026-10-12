@@ -1,7 +1,7 @@
 /* ================= FOES =================
    Every foe has a job on the table (swarm, thief, hunter, possess, ritual, wall, duel, gate), a visible wind-up
    and a shot that answers it. A table lists its foes in content.foes; the jobs are played here. */
-import {G, T, bolt, burst, float, focusBall, later, ring} from '../core/state.js';
+import {ballClass, G, T, bolt, burst, float, focusBall, later, ring} from '../core/state.js';
 import {PI, clamp, lerp, pick, rand, shuffle} from '../core/util.js';
 import {hitCircle} from '../physics/physics.js';
 import {strikeBoss} from './bosses.js';
@@ -555,7 +555,7 @@ export function damageEnemy(e, dmg, crit) {
 export function strikeEnemy(e, b, imp, sure) {
   const r = G.run,
     m = G.mods,
-    pw = b && b.pow ? r.cls : null,
+    pw = b && b.pow ? ballClass(b) : null,
     th = 1 + 0.4 * (r.threat - 1);
   if (e.job === 'duel' && !pw && e.stun <= 0 && imp < 430 && !sure) {
     A.s('clank');
@@ -620,7 +620,7 @@ export function strikeEnemy(e, b, imp, sure) {
     spellOn('markedPrey') ||
     (sure && spellVal('cloak', 'crit') > 0) ||
     Math.random() < m.crit + spellVal('smoke', 'crit') ||
-    (r.cls === 'rogue' && G.combo > 1 && G.comboT > 0);
+    (ballClass(b) === 'rogue' && G.combo > 1 && G.comboT > 0);
   if (sure && spellOn('cloak') && spellVal('cloak', 'gold')) gold(spellVal('cloak', 'gold'), e.x, e.y);
   if (b && (b.spell === 'warcry' || b.spell === 'shieldWall')) {
     e.wind = 0;
@@ -646,11 +646,11 @@ export function strikeEnemy(e, b, imp, sure) {
         }
   }
   let dmg = m.pow * clamp(imp / 800, 0.55, 1.6);
-  if (e.def.undead && r.cls === 'cleric') dmg *= m.smite ? 2 : 1.5;
+  if (e.def.undead && ballClass(b) === 'cleric') dmg *= m.smite ? 2 : 1.5;
   if (sure && m.cutpurse) {
     gold(m.cutpurse, e.x, e.y);
   }
-  if (m.stagger && r.cls === 'knight') {
+  if (m.stagger && ballClass(b) === 'knight') {
     e.wind = 0;
     e.stun = Math.max(e.stun, 0.8);
   }
@@ -674,7 +674,7 @@ export function strikeEnemy(e, b, imp, sure) {
     e.castT = e.def.cast + 1;
     float(e.x, e.y - 40, 'SPELL INTERRUPTED', '#9fe8ff', 13);
     A.s('interrupt');
-    if (r.cls === 'mage') dmg *= 3;
+    if (ballClass(b) === 'mage') dmg *= 3;
     score(PTS.foeInterrupt);
   }
   if (crit) dmg *= 2;
@@ -742,7 +742,7 @@ export function collideActors(b) {
       imp = hitCircle(b, e, e.r, 0.35);
     if (imp > 30 && e.hitCd <= 0) {
       e.hitCd = 0.12;
-      const plow = b.pow && G.run.cls === 'knight';
+      const plow = b.pow && ballClass(b) === 'knight';
       if (strikeEnemy(e, b, imp) || plow) {
         b.vx = pvx * (plow ? 0.94 : 0.82);
         b.vy = pvy * (plow ? 0.94 : 0.82);

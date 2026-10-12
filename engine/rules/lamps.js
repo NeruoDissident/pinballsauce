@@ -135,7 +135,7 @@ export const STATUS = {
   mb: () => (G.mb ? 2 : 0),
   levelup: () => (G.pending.indexOf('book') >= 0 ? 2 : 0), // a level-up is waiting at a scoop
   boon: () => (G.pending.indexOf('perk') >= 0 ? 2 : 0),
-  rally: r => (r.charge >= 100 ? 2 : 0), // the meter is full
+  rally: r => (G.rallyActive ? 2 : r.charge >= 100 ? 1 : 0), // the meter is full
   combo: () => +(G.combo > 1 && G.comboT > 0),
   grave: r => +!!(r.grave && r.grave.open)
 };

@@ -1,7 +1,7 @@
 /* ================= ONE FRAME =================
    Poses everything from the game state and draws. Reads G and T, changes neither (it does add cosmetic sparks). */
 import {frameMovingParts} from './mechanisms.js';
-import {G, T, focusBall} from '../core/state.js';
+import {ballClass, G, T, focusBall} from '../core/state.js';
 import {PI, clamp, hash, lerp, rand} from '../core/util.js';
 import {frameActors} from './actors.js';
 import {updateCam3D} from './camera.js';
@@ -61,7 +61,7 @@ export function frame3D(dt) {
     t = G.t,
     sc = R3.scene,
     run = G.run,
-    cls = run ? run.cls : 'knight',
+    cls = run ? ballClass(focusBall()) : 'knight',
     cl = CLASSES[cls];
   const ex = G.paused || G.choice || G.mode === 'over' ? 0 : (R3.acc || 0) * (G.slow > 0 ? 0.4 : 1);
   if (T.mechanisms) frameMovingParts(G.balls);
@@ -83,7 +83,9 @@ export function frame3D(dt) {
       o.m.visible = o.blob.visible = o.halo.visible = o.loc.visible = false;
       continue;
     }
-    const o = ballObj(i),
+    const cls = ballClass(b),
+      cl = CLASSES[cls],
+      o = ballObj(i),
       hid = b.st === 'tunnel',
       bp = ballPos(b, ex),
       bx = bp.x,
@@ -129,7 +131,7 @@ export function frame3D(dt) {
     const hot = !!b.pow || b.arm > 0,
       pc = b.pc || null,
       gc = b.pg || pc || (b.pow && cls === 'mage' ? '#ff8a3a' : cl.glow),
-      ghost = cloak || (cls === 'rogue' && hot);
+      ghost = b.phased || cloak || (cls === 'rogue' && hot);
     zshift(o.m.position.set(bx - 320, y, bz) && o.m);
     o.m.scale.setScalar(b.r);
     o.m.quaternion.copy(o.q);

@@ -189,7 +189,7 @@ export const PERKS = [
     id: 'twinSoul',
     kind: 'key',
     name: 'Twin Soul',
-    desc: 'The party answers the Rally for twice as long.',
+    desc: 'Rally pulses and recruit abilities last twice as long.',
     max: 1,
     f: m => (m.twin = true)
   },

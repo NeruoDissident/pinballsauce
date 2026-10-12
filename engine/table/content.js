@@ -233,7 +233,7 @@ export const TUNE0 = {
   // classes and the party
   cradleArm: 0.8, // seconds a ball is held on a raised flipper to arm the class shot
   cradleRally: 1.5, // ...and to call the Rally with a full meter
-  rallyTime: 20, // seconds a Rally lasts
+  rallyTime: 20, // seconds of Rally pulses and recruit abilities (balls stay until drained)
   // the Grave
   graveHits: 8, // hits that open it the first time...
   graveHitsStep: 4, // ...and this many more each time after

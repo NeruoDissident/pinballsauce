@@ -119,7 +119,7 @@ export const UI = {
     G.dirty = false;
     G.cam.top = 0;
     const m = G.mods,
-      c = CLASSES[r.cls];
+      c = CLASSES[(G.balls.length === 1 && G.balls[0].cls) || r.cls];
     $('hScore').textContent = fmt(r.score);
     // the HUD shows only what this table uses
     $('hLv').hidden = !USE.levels;
@@ -184,9 +184,12 @@ export const UI = {
     else if (USE.grave && g.open) ch(TEXT.graveChip + ' open', 'moss');
     else if (USE.grave && g.hits > 0) ch(TEXT.graveChip + ' ' + g.hits + '/' + g.need, '');
     if (armed) ch(G.balls.some(b => b.pow) ? c.shot : c.shot + ' armed. Flip to release', 'violet');
-    else if (!G.plunge.ready && r.charge >= 100 && USE.party) ch('Cradle 1.5 s to Rally the party', 'frost');
+    else if (!G.plunge.ready && r.charge >= 100 && USE.party && !G.rallyActive)
+      ch('Cradle 1.5 s to Rally the party', 'frost');
     else if (!G.plunge.ready && r.charge >= 33 && USE.classes) ch('Cradle the ball: ' + c.shot, 'frost');
-    if (G.rallyT > 0) ch('Rally ' + Math.ceil(G.rallyT) + 's', 'gold');
+    if (G.rallyActive) ch('Rally · ' + G.balls.length + ' balls', 'gold');
+    else if (G.balls.length === 1 && G.balls[0].rallyRole) ch(G.balls[0].label + ' · Last ball', 'gold');
+    if (G.rallyT > 0) ch('Rally powers ' + Math.ceil(G.rallyT) + 's', 'gold');
     for (const cs of G.casts) ch(spellDef(cs.id).name + ' ' + Math.ceil(cs.t) + 's', 'violet');
     for (const sl of SLOTS_ORDER) {
       const d = spellOf(r.cls, sl);

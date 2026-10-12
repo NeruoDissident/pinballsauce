@@ -158,7 +158,7 @@ tune:{ballSave:15, tiltNudges:4, comboTime:8}
 | `waveBudget`, `waveBudgetStep` | 3, 0.6 | what a wave may spend on enemies, plus this much a level |
 | `xpBase`, `xpGrow` | 45, 1.32 | experience for the second level; each level after needs this many times more |
 | `cradleArm`, `cradleRally` | 0.8, 1.5 | seconds a ball is held on a raised flipper to arm the class shot; to call the Rally |
-| `rallyTime` | 20 | seconds a Rally lasts |
+| `rallyTime` | 20 | seconds of opening Rally pulses and recruit abilities; balls stay until drained |
 | `graveHits`, `graveHitsStep`, `graveTime` | 8, 4, 22 | hits that open the Grave the first time, more each time after, seconds to get out |
 
 ### Nothing the shared code does is forced on a table
@@ -441,7 +441,7 @@ the lock. A `lamp` piece is one of those.
 | `lockLit`, `lock1` | the lock is lit; one ball is locked |
 | `mb` | a multiball is running (flashes) |
 | `levelup`, `boon` | a level-up, or a boon, is waiting at a scoop (flashes) |
-| `rally` | the power meter is full (flashes) |
+| `rally` | Rally multiball active (flashes), otherwise full power meter (steady) |
 | `combo` | a combo is running |
 | `grave` | the Grave is open |
 | anything in `rules.status` | the table's own: `status:{name: run => state}`, where state is 0 (dark), 1 (lit) or 2 (flashing) |

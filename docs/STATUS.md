@@ -1,6 +1,20 @@
 # Status
 
-Updated 11 October 2026 with Judgment. The earlier stages below retain their original verification notes.
+Updated 12 October 2026 with Rally multiball. The earlier stages below retain their original verification notes.
+
+## Stage 8.5: Rally multiball
+
+Rally balls remain until drained and camera focus includes the lowest party ball. The original hero can drain
+without ending the turn. When only one ball remains (including pending launches), a recruit becomes the playable
+ball with its own class, appearance, class powers and scoop/Grave access. The run's hero class, level, spellbook
+and upgrades remain intact for the next serve. Simultaneous drains charge one reserve ball; delayed arrivals
+cannot leak into the next turn. The old `rallyTime` controls opening pulses and recruit abilities only; Twin Soul
+extends those powers. Rally's HUD, status lamp, help text and music reflect multiball state.
+
+Verification: `npm run check`, 22 focused browser checks in `npm run test:rally`, and all 23 mechanism checks pass.
+`npm test` was run but stops at Gravebound's layout snapshot (`segs`/`shots` hashes); the same failure reproduces
+on untouched main commit `637764f` in this environment. Separate Starfall and Judgment layout checks also report
+hash differences. Golden recordings were not rewritten. Physical playtesting remains necessary for balance.
 
 ## Stage 8.4: standard controller input
 

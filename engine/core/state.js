@@ -78,6 +78,9 @@ export const G = {
   wave: {n: 0, t: 18, active: null, list: []},
   casts: [],
   rallyT: 0,
+  rallyActive: false,
+  rallyPend: 0,
+  rallyId: 0,
   wingUrns: 0,
   spawnT: 0,
   ambT: 6,
@@ -188,12 +191,14 @@ export function bolt(a, b, name) {
 }
 export function focusBall() {
   let f = null;
-  const rallying = G.balls.some(b => b.party);
   for (const b of G.balls) {
-    if (rallying && b.party) continue;
+    if (b.gone) continue;
     if (!f || b.y > f.y) f = b;
   }
-  return f || G.balls[0] || null;
+  return f;
+}
+export function ballClass(b) {
+  return (b && b.cls) || (G.run && G.run.cls);
 }
 export function comboF() {
   return G.combo > 1 ? 1 + TUNE.comboStep * Math.min(TUNE.comboSteps, G.combo - 1) * (1 + G.mods.comboPay) : 1;
