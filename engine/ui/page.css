@@ -1292,3 +1292,9 @@ tr.me td {
     padding: 0;
   }
 }
+
+/* Gamepad navigation needs a visible focus ring regardless of the last pointer event. */
+.pad-focus {
+  outline: 2px solid #fff !important;
+  outline-offset: 4px;
+}

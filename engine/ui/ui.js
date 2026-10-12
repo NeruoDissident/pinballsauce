@@ -1,5 +1,5 @@
 /* ================= HUD, MENUS, INPUT ================= */
-import {inspectKey, openInspect} from '../app/inspect.js';
+import {INS, closeInspect, inspectKey, openInspect} from '../app/inspect.js';
 import {gfxInfo, gfxKey, resize} from '../app/shell.js';
 import {G, T, xpNeed} from '../core/state.js';
 import {$, clamp, esc, fmt, prefs, store} from '../core/util.js';
@@ -19,6 +19,7 @@ import {wingText} from '../rules/wings.js';
 import {BOSSES, CAMPAIGNS, HELP, RULES, STAGES, TEXT, USE, WINGS, WING_KEYS, tr} from '../table/content.js';
 import {FLIPPER_POWER, GT, LEVEL_NAMES, NM, WT0, flipperBoost, setFlipperBoost} from '../table/layout.js';
 import {A} from './audio.js';
+import {GAMEPAD_HELP, bindGamepad, padMenu} from './gamepad.js';
 import {explainStep, glossary} from './help.js';
 
 export function popup(title, sub, kind, note) {
@@ -465,6 +466,7 @@ export const UI = {
     UI.menu('over');
   },
   show(html, name) {
+    if (Object.values(inputHolds).some(holds => holds.size)) clearInputs();
     const m = $('menu');
     m.innerHTML = html;
     m.hidden = false;
@@ -653,7 +655,9 @@ export const UI = {
           : USE.party
             ? '<dt>Rally</dt><dd>With a full meter, hold the ball still on a raised flipper until the ring fills</dd>'
             : '') +
-        '<dt>Pause</dt><dd>P or Esc</dd><dt>View, detail, full screen</dt><dd>C, Q and F</dd><dt>Touch</dt><dd>Left and right halves of the screen flip. Hold the right half and let go to launch. Double-tap either half to nudge (mash and you will tilt); the bottom middle of the screen nudges too. The eye button at the top changes the view.</dd></dl>' +
+        '<dt>Controller</dt><dd>' +
+        GAMEPAD_HELP +
+        '. D-pad or left stick: menus; A: select; B: back. Press a button to connect. On handheld PCs, select Gamepad mode.</dd><dt>Pause</dt><dd>P or Esc</dd><dt>View, detail, full screen</dt><dd>C, Q and F</dd><dt>Touch</dt><dd>Left and right halves of the screen flip. Hold the right half and let go to launch. Double-tap either half to nudge (mash and you will tilt); the bottom middle of the screen nudges too. The eye button at the top changes the view.</dd></dl>' +
         '<p class="lead">Every left flipper on the table moves together, and so does every right one. ' +
         esc(TEXT.controlsNote) +
         '</p><nav class="row">' +
@@ -911,9 +915,7 @@ export function togglePause() {
   G.paused = !G.paused;
   UI.menu(G.paused ? 'pause' : null);
   if (G.paused) {
-    setFlip(-1, false);
-    setFlip(1, false);
-    G.in.n = false;
+    clearInputs();
   }
 }
 export const KEYS = {
@@ -957,7 +959,59 @@ export function moveFocus(d) {
   bs[i].focus({preventScroll: true});
   A.s('ui');
 }
+// Keep input sources independent: releasing a trigger cannot cancel a held keyboard key or finger.
+const inputHolds = {l: new Set(), r: new Set(), n: new Set()};
+function inputHold(source, key, on) {
+  const holds = inputHolds[key];
+  if (on) holds.add(source);
+  else holds.delete(source);
+  if (key === 'n') G.in.n = !!holds.size;
+  else setFlip(key === 'l' ? -1 : 1, !!holds.size);
+}
+function clearInputs() {
+  for (const holds of Object.values(inputHolds)) holds.clear();
+  setFlip(-1, false);
+  setFlip(1, false);
+  G.in.n = false;
+}
+function padBack() {
+  if (INS.on) closeInspect();
+  else if (UI.cur === 'pause') togglePause();
+  else if (['options', 'controls', 'help', 'scores', 'class', 'party'].includes(UI.cur))
+    UI.act({
+      dataset: {act: UI.cur === 'party' ? 'new' : ['scores', 'class'].includes(UI.cur) ? 'title' : UI.back || 'title'}
+    });
+  else if (UI.cur === 'title') $('menu').querySelector('[data-act="tables"]')?.click();
+}
 export function bindInput() {
+  bindGamepad({
+    context: () => (INS.on ? 'inspect' : UI.cur || G.mode),
+    lost: () => {
+      if (G.mode === 'play' && !G.paused && !G.choice && !INS.on) togglePause();
+    },
+    frame: ({held, pressed, move}) => {
+      if (Object.values(pressed).some(Boolean)) A.init();
+      const playing = !UI.cur && !INS.on && G.mode === 'play' && !G.paused;
+      inputHold('pad', 'l', playing && held.l);
+      inputHold('pad', 'r', playing && held.r);
+      inputHold('pad', 'n', playing && held.a);
+      if (INS.on) {
+        if (pressed.b || pressed.pause) closeInspect();
+      } else if (UI.cur) {
+        if (pressed.pause && G.paused) {
+          G.paused = false;
+          UI.menu(null);
+        } else if (pressed.b) padBack();
+        else padMenu($('menu'), move, pressed.a);
+      } else if (playing) {
+        if (pressed.pause || pressed.b) togglePause();
+        else {
+          if (pressed.a) nudge();
+          if (pressed.view) gfxKey('cam');
+        }
+      }
+    }
+  });
   addEventListener('keydown', e => {
     if (inspectKey(e)) return;
     const k = KEYS[e.code],
@@ -995,10 +1049,10 @@ export function bindInput() {
     }
     e.preventDefault();
     if (e.repeat) return;
-    if (k === 'l') setFlip(-1, true);
-    else if (k === 'r') setFlip(1, true);
+    if (k === 'l') inputHold(e.code, 'l', true);
+    else if (k === 'r') inputHold(e.code, 'r', true);
     else if (k === 'n' || k === 'u') {
-      G.in.n = true;
+      inputHold(e.code, 'n', true);
       nudge();
     } else if (k === 'p') togglePause();
     else gfxKey(k);
@@ -1006,9 +1060,9 @@ export function bindInput() {
   addEventListener('keyup', e => {
     const k = KEYS[e.code];
     if (!k) return;
-    if (k === 'l') setFlip(-1, false);
-    else if (k === 'r') setFlip(1, false);
-    else if (k === 'n' || k === 'u') G.in.n = false;
+    if (k === 'l') inputHold(e.code, 'l', false);
+    else if (k === 'r') inputHold(e.code, 'r', false);
+    else if (k === 'n' || k === 'u') inputHold(e.code, 'n', false);
   });
   $('menu').addEventListener('click', e => {
     const b = e.target.closest('button[data-act]');
@@ -1055,7 +1109,7 @@ export function bindInput() {
     const ids = new Set();
     const up = e => {
       if (!ids.delete(e.pointerId)) return;
-      if (!ids.size) setFlip(side, false);
+      if (!ids.size) inputHold('touch', side < 0 ? 'l' : 'r', false);
     };
     el.addEventListener('pointerdown', e => {
       A.init();
@@ -1063,7 +1117,7 @@ export function bindInput() {
       try {
         el.setPointerCapture(e.pointerId);
       } catch (_) {}
-      setFlip(side, true);
+      inputHold('touch', side < 0 ? 'l' : 'r', true);
       e.preventDefault();
       // touch has no nudge key: tap the same side twice quickly to bang the cabinet. Mash and the tilt fills
       const now = performance.now();
@@ -1080,14 +1134,14 @@ export function bindInput() {
   zone($('tR'), 1);
   const tn = $('tN'),
     nup = () => {
-      G.in.n = false;
+      inputHold('touch', 'n', false);
     };
   tn.addEventListener('pointerdown', e => {
     A.init();
     try {
       tn.setPointerCapture(e.pointerId);
     } catch (_) {}
-    G.in.n = true;
+    inputHold('touch', 'n', true);
     nudge();
     e.preventDefault();
   });
@@ -1144,9 +1198,7 @@ export function bindInput() {
     if (document.hidden && G.mode === 'play' && !G.paused && !G.choice) togglePause();
   });
   addEventListener('blur', () => {
-    setFlip(-1, false);
-    setFlip(1, false);
-    G.in.n = false;
+    clearInputs();
   });
   addEventListener('resize', resize);
   // a phone turning over: the size is not settled when the event fires, so ask again shortly after

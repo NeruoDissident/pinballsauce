@@ -38,6 +38,12 @@ npm start              # http://127.0.0.1:4187   the table picker
 - On a phone: open the hosted site and use the browser's "Add to Home Screen" (or "Install app"). It then opens
   full screen from its own icon and plays offline any table that has been opened once. Left and right halves of the
   screen flip, the right half held and let go launches, a double-tap on either half nudges.
+- Controller (standard Xbox-style mapping): press and release a button with the game focused to connect.
+  LB/LT flip left; RB/RT flip right. Hold A and release to launch, tap A in play to nudge. Y changes view;
+  Menu pauses/resumes. D-pad/left stick navigate menus, A selects, B goes back. On sliders, left/right adjust
+  and up/down move to another control. Disconnecting during play pauses. On ROG Ally, select **Gamepad Mode**
+  in Command Center; Desktop Mode emulates mouse/keyboard instead. Use a current browser and the hosted HTTPS
+  site (or localhost / the downloadable one-file build), not an insecure LAN HTTP address.
 - Inspect mode: `tables/<id>/?inspect`, or press `I` in a table, or "Inspect table" in its menu. Pan, zoom, top-down
   or tilted, a label on every piece with the layout line that made it, a coordinate grid, a screenshot button.
   A screenshot carries its field, centre and zoom in a caption, so it can be handed to an LLM with "move this".
@@ -61,6 +67,7 @@ npm run reach -- <id>      # which shots each flipper can make
 npm run standards -- <id>  # the table against PINBALL.md: fair launch, a light on every goal and shot, state lamps
 npm run switches -- <id>   # the table with each of its game systems off in turn: does anything throw?
 npm test                   # static check, every layout, a 5-minute replay of 20 scenarios on every table
+npm run test:gamepad       # simulated controller: all six tables, menus, launch, pause and disconnect safety
 npm run test:full          # the same with longer replays, plus soak, reach and standards
 npm run bundle -- all      # dist/pinballsauce.html: every table in one file, behind a picker
 ```
